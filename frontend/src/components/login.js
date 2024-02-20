@@ -16,17 +16,6 @@ const Login = () => {
         event.preventDefault();
         console.log('Submitting', { username, password });
 
-        axios.post('http://localhost:8000/addusertodb')
-        
-
-        axios.get('http://localhost:8000/helloworld') // Replace with your API URL
-            .then(response => {
-                setMessage(response.data.message);
-                
-            })
-            .catch(error => {
-                console.error('There was an error!', error);
-            });
     };
 
     return (
