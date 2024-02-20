@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('helloworld', views.hello_world, name='hello_world'),
     path('', views.home_page, name='home_page'),
+    path('postuser', views.home_page, name='home_page'),
     
 ]

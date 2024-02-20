@@ -15,7 +15,7 @@ const Login = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         console.log('Submitting', { username, password });
-
+        // API TIL LOCALHOST:8000/PUTUSER
     };
 
     return (
