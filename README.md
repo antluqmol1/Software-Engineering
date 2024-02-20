@@ -1,3 +1,25 @@
+# How to run backend  and frontend
+## backend
+Start in the root directory, it should contain 'backend' 'frontend' and several other .md files
+<br>
+If you encounter any **errors** running the sever, check with **chat-gpt** what **imports** you may be missing.
+
+1. cd into 'backend', here you should see the folder 'venv'
+2. start the virtual enviroment (venv), using the command `source venv/bin/activate`
+3. you should now see `(venv)` to the left in your terminal
+4. cd from `backend` into 'ServerBackend' using the command `cd ServerBackend`
+5. here you should run `python3 manage.py runserver`, or `python manage.py runserver` based on your current version of python
+6. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
+
+## frontend
+**if you have started the backend. you must open a new terminal. Navigate to the root directory**
+
+1. cd into `frontend/src`
+2. run `npm start`
+3. a new browser tab should open with the react frontend.
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
