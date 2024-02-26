@@ -6,6 +6,10 @@ import Home from './components/Home';
 import Login from './components/Login';
 import CreateUser from './components/CreateUser';
 import Profile from './components/Profile';
+import './App.css'; // Import the CSS file
+
+
+
 
 function App() {
   return (

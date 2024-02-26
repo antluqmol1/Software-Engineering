@@ -18,8 +18,8 @@ const HomePage = () => {
     }, []);
 
     return (
-        <div>
-            <h1>{message}</h1>
+        <div className="home-container">
+        {/* Your content goes here */}
         </div>
     );  
 };

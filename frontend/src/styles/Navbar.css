@@ -1,0 +1,37 @@
+/* Navbar.css */
+.navbar {
+    background-color: #333; /* Background color of the navbar */
+    color: #fff; /* Text color */
+    padding: 10px 20px; /* Padding around the navbar */
+    display: flex; /* Use flexbox layout */
+    justify-content: space-between; /* Align items with space between them */
+    align-items: center; /* Vertically center items */
+  }
+  
+  .navbar-brand {
+    font-size: 1.5rem; /* Adjust font size as needed */
+    font-weight: bold; /* Make text bold */
+    text-decoration: none; /* Remove underline */
+    color: #fff; /* Text color */
+  }
+  
+  .navbar-links {
+    list-style: none; /* Remove bullet points from list */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+  }
+  
+  .navbar-links li {
+    display: inline; /* Display list items horizontally */
+    margin-right: 20px; /* Add spacing between items */
+  }
+  
+  .navbar-links li a {
+    text-decoration: none; /* Remove underline from links */
+    color: #fff; /* Text color */
+  }
+  
+  .navbar-links li a:hover {
+    color: #ff0; /* Change text color on hover */
+  }
+  
