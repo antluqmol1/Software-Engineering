@@ -34,7 +34,7 @@ if you want to branch from the main branch, make sure you are at main, or move t
 1. make a branch `git branch [your branch name]`
 2. checkout the branch `git checkout [your branch name]`
 3. make your first commit
-4. make first push and set upstream branch at the same time using `git push - origin [your branch name]`
+4. make first push and set upstream branch at the same time using `git push -u origin [your branch name]`
 5. step 4 makes sure that next time you do `git push` you will push to this branch, and not to the previous upstream branch (default is `main`)
 
 
