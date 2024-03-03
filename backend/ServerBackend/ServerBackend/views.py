@@ -16,7 +16,7 @@ def putadmin(request):
         first_name = data.get('first_name')
         last_name = data.get('last_name')
         email = data.get('email')
-        
+
 
         # Validate the information
         if not (first_name and last_name and email):
@@ -46,14 +46,15 @@ def putuser(request):
 
         first_name = data.get('first_name')
         last_name = data.get('last_name')
+        username = data.get('username')
         email = data.get('email')
         password = data.get('password')
 
         # Validate the information
-        if not (first_name and last_name and email and password):
+        if not (first_name and last_name and username and email and password):
             return JsonResponse({'error': 'Missing fields'}, status=400)
 
-        new_user = user(first_name=first_name, last_name=last_name, email=email, password=password)
+        new_user = user(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
         new_user.full_clean()  # Validate the information
         new_user.save()
 
