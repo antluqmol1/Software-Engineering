@@ -4,7 +4,7 @@ Start in the root directory, it should contain 'backend' 'frontend' and several 
 <br>
 If you encounter any **errors** running the sever, check with **chat-gpt** what **imports** you may be missing.
 
-1. cd into 'backend', here you should see the folder 'venv'
+1. cd into the ***backend*** folder, here you should see the folder ***venv***
 2. start the virtual enviroment (venv), using the command `source venv/bin/activate`
 3. you should now see `(venv)` to the left in your terminal
 4. cd from `backend` into 'ServerBackend' using the command `cd ServerBackend`
@@ -18,6 +18,24 @@ If you encounter any **errors** running the sever, check with **chat-gpt** what 
 2. run `npm start`
 3. a new browser tab should open with the react frontend.
 
+# Git branches
+when working on a new feature or specific changes/fixes, you should make your own branch.<br>
+The name of the branch should reflect who is working on it, and what it aims to implement
+
+
+>**Example:**
+>- Branch Name: `Antonio-reactlogin`<br>
+>- here, Antonio is working on a react login functionality.<br>
+
+NB! when making a new branch, make sure you are at the correct branch you want to branch from<br>
+if you want to branch from the main branch, make sure you are at main, or move there with `git checkout main`
+
+### how to make and push to new branch
+1. make a branch `git branch [your branch name]`
+2. checkout the branch `git checkout [your branch name]`
+3. make your first commit
+4. make first push and set upstream branch at the same time using `git push - origin [your branch name]`
+5. step 4 makes sure that next time you do `git push` you will push to this branch, and not to the previous upstream branch (default is `main`)
 
 
 # Getting Started with Create React App
