@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+// Get the the cookie information
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
 const CreateUser = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +46,11 @@ const CreateUser = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const csrftoken = getCookie('csrftoken');
+
+    console.log("Token: ",csrftoken)
+
     try {
       const response = await axios.put('http://localhost:8000/putuser/', {
         first_name,
@@ -37,6 +58,10 @@ const CreateUser = () => {
         username,
         email,
         password,
+      }, {
+        headers: {
+          'X-CSRFToken': csrftoken,  // Include CSRF token in the headers
+        }
       });
 
       console.log('User created successfully', response.data);

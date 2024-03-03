@@ -2,6 +2,7 @@ import json
 from .models import user, admin
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
+from django.middleware.csrf import get_token
 
 def hello_world(request):
     return JsonResponse({'message': 'Hello World'})
@@ -9,7 +10,14 @@ def hello_world(request):
 def home_page(request):
     return JsonResponse({'message': 'Hello World'})
 
-def putadmin(request):
+def grab_token(request):
+    # Ensure a CSRF token is set in the user's session
+    csrf_token = get_token(request)
+    print("returning token: ", csrf_token)
+    # Return the token in a JSON response
+    return JsonResponse({'csrfToken': csrf_token})
+
+def put_admin(request):
     try:
         data = json.loads(request.body)
 
@@ -38,7 +46,7 @@ def putadmin(request):
         # Any other errors
         return JsonResponse({'error': 'An error occurred'}, status=500)
 
-def putuser(request):
+def put_user(request):
     # do something here to communicate with DATABASE
     # return json respons, 200 if OK, f.ex 400 if illegal request.
     try:

@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('helloworld', views.hello_world, name='hello_world'),
     path('', views.home_page, name='home_page'),
-    path('putuser/', views.putuser, name='putuser'),
-    path('putadmin/', views.putadmin, name='putadmin'),
+    path('token/', views.grab_token, name='grab_token'),
+    path('putuser/', views.put_user, name='put_user'),
+    path('putadmin/', views.put_admin, name='put_admin'),
 ]
+
