@@ -1,3 +1,21 @@
+
+
+
+/* App.css */
+.home-container {
+  background-image: url("assets/Background_party.png");
+  /* Additional styles for background */
+  /* background-color: red; */
+  background-size: cover; /* This will cover the entire container */
+  background-position: center; /* This will center the background image */
+
+  width: 100vw; /* Set the height to fill the viewport height */
+  height: 100vh; /* Set the height to fill the viewport height */
+
+  
+  /* Add any other styles as needed */
+}
+
 .App {
   text-align: center;
 }
