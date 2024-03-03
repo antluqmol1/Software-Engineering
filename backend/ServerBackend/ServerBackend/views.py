@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.middleware.csrf import get_token
 
+
+print("inside views.py")
+
 def hello_world(request):
     return JsonResponse({'message': 'Hello World'})
 

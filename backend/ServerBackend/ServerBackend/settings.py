@@ -22,9 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-rm85syi-1#o$orog)1*xo78#j5(u4oj6@bq=*nne%8wo9oq9jp'
 
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CORS_ALLOW_CREDENTIALS = True
 # Or you can specify the allowed origins
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # The origin of your React app
