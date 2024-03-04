@@ -22,8 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-rm85syi-1#o$orog)1*xo78#j5(u4oj6@bq=*nne%8wo9oq9jp'
 
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+
+AUTH_USER_MODEL = 'ServerBackend.User'
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -46,7 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',   
     'corsheaders',
     'ServerBackend.apps.ServerBackendConfig',
 ]

@@ -1,0 +1,32 @@
+/* Profile.css */
+
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-heading {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.profile-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.profile-item label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
