@@ -1,48 +1,160 @@
-/* styles/Login.css */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  padding: 50px;
+  min-height: 100vh;
+  /* Ensure it takes the full viewport height */
+  background: #edf2f7;
+  /* Add a background color for the whole page */
+  box-sizing: border-box;
 }
 
-.login-form {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
+.login-form-container {
+  max-width: 350px;
   width: 100%;
+  /* Ensure it is responsive */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Center align the content for better aesthetics */
+  padding: 40px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  /* More pronounced shadow */
+  margin: 20px;
+  /* Add spacing around the form */
+}
+
+.fun-fact-section {
+  background-color: #f8f9fd;
+  padding: 40px;
+  border-radius: 10px;
+  margin: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+  /* Lighter shadow for the fun-fact-section */
+  flex: 1;
+  /* Allow it to take up the remaining space */
+  max-width: 600px;
+  /* Set a max-width for larger screens */
+}
+
+.login-form h2 {
+  font-size: 28px;
+  /* Slightly larger for emphasis */
+  color: #333333;
+  margin-bottom: 30px;
+  font-weight: 600;
+  /* Make the font a bit bolder */
 }
 
 .input-group {
+  width: 100%;
   margin-bottom: 20px;
 }
 
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
+.input-group input {
+  width: calc(100% - 20px);
+  /* Subtract padding from the width */
+  padding: 15px;
+  /* More padding for larger touch targets */
+  font-size: 16px;
+  border: 2px solid #ccc;
+  /* Thicker border for better visibility */
+  border-radius: 5px;
+  margin-top: 8px;
+  transition: border-color 0.3s;
+  /* Smooth transition for the border color */
 }
 
-input {
+.input-group input:focus {
+  border-color: #0056b3;
+  /* Highlight input on focus */
+  outline: none;
+  /* Remove default focus outline */
+}
+
+.forgot-password {
+  text-align: right;
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  margin-bottom: 10px;
+  margin-bottom: 25px;
 }
 
-button {
-  background-color: #61dafb;
-  color: #fff;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
+.forgot-password a {
+  font-size: 16px;
+  /* Larger font size for readability */
+  color: #0056b3;
+  text-decoration: underline;
+  /* Underline to indicate it's clickable */
+  transition: color 0.3s;
+  /* Smooth transition for color */
+}
+
+.forgot-password a:hover,
+.forgot-password a:focus {
+  /* Add hover and focus states */
+  color: #003d82;
+  text-decoration: none;
+  /* Remove underline on hover/focus for a clean look */
+}
+
+.login-button {
+  width: 100%;
+  padding: 15px;
+  /* Larger padding for a bigger button */
+  font-size: 18px;
+  border-radius: 5px;
+  background-color: #0056b3;
+  color: white;
   cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  /* Add transform to transitions */
 }
 
-button:hover {
-  background-color: #3185c7;
+.login-button:hover {
+  background-color: #003d82;
+  transform: translateY(-2px);
+  /* Slight lift when hovered */
 }
+
+.signup-redirect {
+  text-align: center;
+  width: 100%;
+  margin-top: 25px;
+}
+
+.signup-redirect a {
+  font-size: 16px;
+  /* Consistent font size for all links */
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.signup-redirect a:hover,
+.signup-redirect a:focus {
+  /* Add hover and focus states */
+  color: #003d82;
+  text-decoration: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    /* Stack them on smaller screens */
+    padding: 30px;
+    /* Less padding on smaller screens */
+  }
+
+  .fun-fact-section {
+    order: -1;
+    /* Put the fun fact above the form on mobile */
+    max-width: none;
+    /* Allow it to take the full width */
+    width: 100%;
+    margin-bottom: 30px;
+  }
+}
+
+/* Additional media queries and styles for larger/smaller screens */
