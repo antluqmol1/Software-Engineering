@@ -7,9 +7,21 @@ import '../styles/Profile.css';
 
 const Profile = () => {
     const [userData, setUserData] = useState(null);
+    const [error, setError] = useState(null);
+
+    // useEffect(() => {
+    //     // Fetch CSRF token when component mounts
+    //     axios.get("http://localhost:8000/grabtoken/", { withCredentials: true })
+    //       .then(response => {
+    //         setCsrfToken(response.data.csrfToken);
+    //       })
+    //       .catch(error => console.error('Error fetching CSRF token', error));
+    //   }, []);
 
     useEffect(() => {
-        axios.get('http://localhost:8000/profile/')
+        axios.get('http://localhost:8000/profile/', {     
+        withCredentials: true 
+        })
             .then(response => {
                 setUserData(response.data.user_data);
             })

@@ -1,13 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/Login.css"; // Make sure your CSS matches the layout and style in the image
 
 const Login = () => {
-  const [emailOrUsername, setEmailOrUsername] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
 
-  const handleEmailOrUsernameChange = (event) => {
-    setEmailOrUsername(event.target.value);
+  useEffect(() => {
+    // Fetch CSRF token when component mounts
+    axios.get("http://localhost:8000/grabtoken/", { withCredentials: true })
+      .then(response => {
+        setCsrfToken(response.data.csrfToken);
+      })
+      .catch(error => console.error('Error fetching CSRF token', error));
+  }, []);
+
+
+  const handleUsernameChange = (event) => {
+    setUsername(event.target.value);
   };
 
   const handlePasswordChange = (event) => {
@@ -18,8 +29,13 @@ const Login = () => {
     event.preventDefault();
     try {
       const response = await axios.post("http://localhost:8000/login/", {
-        emailOrUsername,
+        username,
         password,
+      }, {
+        headers: {
+          'X-CSRFToken': csrfToken,
+        },
+        withCredentials: true
       });
 
       console.log("Login successful", response.data);
@@ -38,10 +54,10 @@ const Login = () => {
           <div className="input-group">
             <input
               type="text"
-              id="emailOrUsername"
+              id="Username"
               placeholder="EMAIL OR USERNAME"
-              value={emailOrUsername}
-              onChange={handleEmailOrUsernameChange}
+              value={username}
+              onChange={handleUsernameChange}
             />
           </div>
           <div className="input-group">

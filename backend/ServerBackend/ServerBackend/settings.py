@@ -25,20 +25,33 @@ SECRET_KEY = 'django-insecure-rm85syi-1#o$orog)1*xo78#j5(u4oj6@bq=*nne%8wo9oq9jp
 
 AUTH_USER_MODEL = 'ServerBackend.User'
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-CORS_ALLOW_CREDENTIALS = True
 # Or you can specify the allowed origins
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # The origin of your React app
 ]
 
+# Dont know what this does, but it fixed every CSRF issues
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+]
+
+# whitelist for Cors 
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+]
+
+
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
 
 ALLOWED_HOSTS = [
+    "localhost",
 ]
 
 # Application definition
