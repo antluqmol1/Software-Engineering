@@ -37,6 +37,10 @@ if you want to branch from the main branch, make sure you are at main, or move t
 4. make first push and set upstream branch at the same time using `git push -u origin [your branch name]`
 5. step 4 makes sure that next time you do `git push` you will push to this branch, and not to the previous upstream branch (default is `main`)
 
+### Merge branch back to main/other branches
+1. Checkout the branch you want to merge into using f.ex. `git checkout main`.
+2. Now do `git merge [your branch]`, where `[your branch]` is the branch with the changes that you want merged with main.
+
 
 # Getting Started with Create React App
 
