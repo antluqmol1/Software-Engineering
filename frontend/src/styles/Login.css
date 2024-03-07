@@ -93,6 +93,171 @@
 
 .forgot-password a:hover,
 .forgot-password a:focus {
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    min-height: 100vh;
+    /* Full viewport height */
+    background: linear-gradient(135deg, #ece9e6 0%, #ffffff 100%);
+    /* Subtle gradient background */
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /* Modern font */
+  }
+
+  .login-form-container {
+    max-width: 350px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    /* More noticeable shadow for depth */
+    margin: 20px;
+    transition: all 0.3s ease-in-out;
+    /* Smooth transition for all properties */
+  }
+
+  .login-form-container:hover {
+    transform: translateY(-5px);
+    /* Slight raise effect on hover */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.16);
+    /* Deeper shadow on hover */
+  }
+
+  .fun-fact-section {
+    background-color: #f8f9fd;
+    padding: 50px;
+    border-radius: 12px;
+    margin: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    flex: 1;
+    max-width: 600px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .fun-fact-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Typography */
+  .login-form h2 {
+    font-size: 30px;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    /* Improved line height for readability */
+  }
+
+  /* Inputs */
+  .input-group {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .input-group input {
+    width: calc(100% - 20px);
+    padding: 16px;
+    font-size: 16px;
+    border: 2px solid #dcdfe6;
+    /* Lighter border color */
+    border-radius: 6px;
+    margin-top: 8px;
+    transition: border-color 0.2s ease-in-out;
+  }
+
+  .input-group input:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+    /* Faint glow effect */
+    outline: none;
+  }
+
+  /* Buttons and Links */
+  .button,
+  a {
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    /* Improve letter spacing for better readability */
+  }
+
+  .forgot-password a,
+  .signup-redirect a {
+    font-size: 16px;
+    color: #0056b3;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .forgot-password a:hover,
+  .signup-redirect a:hover,
+  .forgot-password a:focus,
+  .signup-redirect a:focus {
+    color: #003d82;
+    text-decoration: none;
+    /* Subtle effect for hover state */
+  }
+
+  .login-button {
+    width: 100%;
+    padding: 18px;
+    font-size: 18px;
+    border-radius: 6px;
+    background-image: linear-gradient(45deg, #4f77f1 0%, #2a56c6 100%);
+    /* Gradient background */
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    /* Remove border */
+  }
+
+  .login-button:hover {
+    background-image: linear-gradient(45deg, #3f67e1 0%, #1a46b6 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Responsiveness */
+  @media (max-width: 768px) {
+    .login-container {
+      flex-direction: column;
+      padding: 30px;
+    }
+
+    .fun-fact-section {
+      order: -1;
+      max-width: none;
+      width: 100%;
+      margin-bottom: 30px;
+    }
+  }
+
+  /* Further responsive tweaks for mobile orientation */
+  @media (max-width: 480px) {
+
+    .login-form-container,
+    .fun-fact-section {
+      padding: 30px;
+      margin: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group input,
+    .login-button {
+      padding: 14px;
+    }
+  }
+
   /* Add hover and focus states */
   color: #003d82;
   text-decoration: none;

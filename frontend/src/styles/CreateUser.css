@@ -1,0 +1,170 @@
+/* Base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body,
+html {
+    height: 100%;
+    margin: 0;
+}
+
+/* Flex container for both sections */
+.signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* Align to top */
+    min-height: 100vh;
+    padding: 60px 0;
+    background: #f0f4f8;
+}
+
+/* Left side - form container */
+.signup-form-container {
+    width: 40%;
+    /* Adjust based on your design preference */
+    padding: 2rem;
+    background: #fff;
+    margin-right: 2rem;
+    /* Spacing between the two containers */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Right side - information container */
+.information-container {
+    width: 40%;
+    /* Same as the form container for balance */
+    color: #333;
+    padding: 2rem;
+    background: #edf6ff;
+    /* Slightly different background for distinction */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Typography for headers and paragraphs */
+h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Input and label styling */
+input[type="email"],
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 1rem;
+    border: 1px solid #ccd6dd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: .5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Button styling */
+button.signup-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button.signup-button:hover {
+    background-color: #003d82;
+}
+
+/* Checkbox and Terms of Service styling */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.terms-service {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Icons and bullet points for the right container */
+.information-container .bullet-point {
+    margin-bottom: 2rem;
+}
+
+.information-container h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+/* .information-container .icon { */
+/* You will need to add background images for icons here */
+/*}*/
+
+/* Add media queries for responsiveness */
+@media (max-width: 1024px) {
+    .signup-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .signup-form-container,
+    .information-container {
+        width: 80%;
+        margin-right: 0;
+        margin-bottom: 2rem;
+    }
+}
+
+/* Responsive adjustments for smaller mobile devices */
+@media (max-width: 768px) {
+    .signup-container {
+        padding: 30px;
+    }
+
+    .signup-form-container,
+    .information-container {
+        width: 100%;
+        margin: 0;
+        padding: 1.5rem;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    .information-container {
+        order: -1;
+        /* Place the info container on top */
+    }
+}
