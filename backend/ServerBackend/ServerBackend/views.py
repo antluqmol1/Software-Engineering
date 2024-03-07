@@ -1,5 +1,5 @@
 import json
-from .models import User, admin
+from .models import User
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -7,8 +7,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
-
-
 
 
 @csrf_exempt
@@ -22,7 +20,6 @@ def home_page(request):
     return JsonResponse({'message': 'Hello World'})
 
 
-
 # not used, going with @csrf_exempt instead
 @csrf_exempt
 def grab_token(request):
@@ -31,7 +28,6 @@ def grab_token(request):
     print("returning token: ", csrf_token)
     # Return the token in a JSON response
     return JsonResponse({'csrfToken': csrf_token})
-
 
 
 @csrf_exempt
@@ -46,7 +42,6 @@ def get_profile(request):
     print(data)
 
     return
-
 
 
 @csrf_exempt
@@ -84,7 +79,6 @@ def user_login(request):
     # maybe we should go for this instead?
     # # If not a POST request, show the login form (or handle accordingly)
     # return HttpResponse("Login page")
-
 
 
 @csrf_exempt
