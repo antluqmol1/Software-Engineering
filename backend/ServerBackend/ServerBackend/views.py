@@ -24,7 +24,7 @@ def home_page(request):
 
 
 # not used, going with @csrf_exempt instead
-@csrf_exempt
+
 def grab_token(request):
     # Ensure a CSRF token is set in the user's session
     csrf_token = get_token(request)
@@ -34,27 +34,36 @@ def grab_token(request):
 
 
 
-@csrf_exempt
+
 def get_profile(request):
-    
-    print(request.method)
+    print("get profile")    
+    if request.method == 'GET':
+        print("method is GET")
+        
+        user = request.user
 
-    data = json.load(request.body)
-    header = json.load(request.header)
+        if user.is_authenticated:
+            user_data = {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'email': user.email,
+            }
+            return JsonResponse({'user_data': user_data})
+        else:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
 
-    print(header)
-    print(data)
-
-    return
-
+    else:
+        # If the request method is not GET, return an error
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
-@csrf_exempt
+
 def user_login(request):
     print("inside user_login")
     if request.method == 'POST':
 
-        print("method is a post")
+        print("method is POST")
         # Get username and password from request.POST
         data = json.loads(request.body)
 

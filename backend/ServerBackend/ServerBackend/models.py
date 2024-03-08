@@ -22,7 +22,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30)
     username = models.CharField(max_length=40, unique=True)
     email = models.EmailField(max_length=320, unique=True)
-    # other fields...
+    
+    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
 
     groups = models.ManyToManyField(
         'auth.Group',
@@ -49,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.username
 
-
+## this is an old class, not sure if we need it. 
 class admin(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
