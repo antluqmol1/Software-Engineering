@@ -1,296 +1,31 @@
+/* Profile.css */
+
 .profile-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 50px;
-    background: #f4f7fa;
-    min-height: 100vh;
-    max-width: 1200px;
-    /* Max width to prevent too wide layouts on large screens */
-    margin: auto;
-    /* Center the container */
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-/* Typography enhancements */
 .profile-heading {
     font-size: 24px;
-    /* Larger font size for headings */
-    margin-bottom: 1.5rem;
-    /* More space after the heading */
-    color: #212529;
-    /* Dark color for better readability */
-}
-
-/* Styles for the account information card on the left */
-.account-info-card {
-    width: 48%;
-    /* Use percentage to allow for responsive adjustment */
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Style for the user's profile photo section */
-.profile-photo-section {
-    text-align: center;
-    /* Center the content */
     margin-bottom: 20px;
 }
 
-.profile-photo-section img {
-    width: 100px;
-    /* Adjust based on your preference */
-    height: 100px;
-    border-radius: 50%;
-    /* Circular photo */
-}
-
-.upload-image-button {
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-/* Improved visuals for input and buttons */
-.account-info-card input[type="text"],
-.account-info-card input[type="email"],
-button.upload-image-button,
-button.save-changes-button,
-button.delete-account-button,
-.subscription-card .upgrade-button {
-    transition: all 0.2s ease-in-out;
-    /* Smooth transition for interactive elements */
-    letter-spacing: 0.05em;
-    /* Add letter-spacing for a more distinguished look */
-    font-weight: 600;
-    /* Bold font for better readability */
-}
-
-button.upload-image-button {
-    box-shadow: 0 2px 4px rgba(0, 84, 179, 0.25);
-    /* Add shadow for depth */
-}
-
-button.save-changes-button {
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.25);
-}
-
-button.delete-account-button {
-    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.25);
-}
-
-/* Enhancements for input fields */
-.account-info-card input[type="text"],
-.account-info-card input[type="email"] {
-    font-size: 14px;
-    /* Make the font size consistent */
-    line-height: 1.5;
-    /* Improve readability */
-    color: #495057;
-    /* Slightly darker font color for better contrast */
-    background-color: #e9ecef;
-    /* Light background color for inputs */
-    border: 1px solid #ced4da;
-    /* Slightly darker border for depth */
-}
-
-.account-info-card input[type="text"]:hover,
-.account-info-card input[type="email"]:hover {
-    background-color: #dee2e6;
-    /* Darken background on hover for interactivity */
-}
-
-.account-info-card input[type="text"]:focus,
-.account-info-card input[type="email"]:focus {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccd6dd;
-    border-radius: 5px;
-    border-color: #0056b3;
-    box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
-    /* Focus ring for better accessibility */
-    outline: none;
-    /* Remove default outline */
-}
-
-button.upload-image-button:hover,
-button.save-changes-button:hover,
-button.delete-account-button:hover {
-    transform: scale(1.02);
-    /* Slightly enlarge buttons on hover */
-}
-
-.subscription-card .upgrade-button:hover {
-    filter: brightness(90%);
-    /* Darken button color on hover for feedback */
-}
-
-/* Improve layout with more space and better alignment */
-.account-info-card,
-.subscription-card {
-    max-width: 600px;
-    /* Maximum width for large screens */
-    display: flex;
-    flex-direction: column;
-    /* Stack elements vertically */
-    justify-content: center;
-    /* Center elements vertically */
-    align-items: center;
-    /* Center elements horizontally */
-    gap: 20px;
-    /* Add space between elements */
-    padding: 30px;
-    /* More padding for a spacious feel */
-    background-color: #f8f9fa;
-    /* Light background for a subtle contrast */
-    border: none;
-    /* Remove border for a cleaner look */
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
-    /* Softer shadow for subtlety */
-}
-
-/* Button styles */
-.save-changes-button {
-    background-color: #28a745;
-    /* Bootstrap success color */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-.delete-account-button {
-    background-color: #dc3545;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.5);
-}
-
-.delete-account-button:hover {
-    background-color: #a02935;
-    text-decoration: none;
-    color: #a02935;
-    /* Darker shade on hover */
-}
-
-/* Styles for the subscription card on the right */
-.subscription-card {
-    width: 48%;
-    background: #fff;
+.profile-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    /* Center the content for the subscription card */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.subscription-card .upgrade-button {
-    background-color: #6f42c1;
-    /* A purple color */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    margin-top: 10px;
-    box-shadow: 0 2px 4px rgba(111, 66, 193, 0.25);
-    /* Matching shadow style */
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
 
-/* Subtle separator for visual structure */
-.account-info-card::after,
-.subscription-card::before {
-    content: '';
-    display: block;
-    height: 1px;
-    width: 80%;
-    background: #eaeaea;
-    margin: 20px auto;
-    /* Center the separator */
-}
-
-/* Adding a subtle hover effect to the cards for interactivity */
-.account-info-card:hover,
-.subscription-card:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Responsive design adjustments */
-@media (max-width: 576px) {
-    .profile-container {
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-    }
-
-    .account-info-card,
-    .subscription-card {
-        width: calc(100% - 40px);
-        /* Subtracting padding */
-        margin-bottom: 20px;
-        max-width: none;
-        /* Override max-width for mobile devices */
-        width: auto;
-        /* Full width minus the padding */
-        margin-bottom: 30px;
-        /* More space between cards */
-    }
-}
-
-/* Styling for the profile picture upload */
-.profile-photo-section .upload-image-button {
+.profile-item label {
     font-weight: bold;
-    background-color: #004a9f;
-    /* Make button text bold */
-}
-
-/* Differentiate primary and secondary actions */
-.primary-action-button {
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0, 86, 179, 0.2);
-}
-
-.secondary-action-button {
-    background-color: transparent;
-    color: #dc3545;
-    margin-top: 20px;
-    padding: 12px 24px;
-    border: 2px solid #dc3545;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.secondary-action-button:hover {
-    background-color: #dc3545;
-    color: white;
-}
-
-/* More distinct button styles for primary actions */
-button.save-changes-button {
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.4);
-    /* Add shadow to 'save' button */
-}
-
-button.delete-account-button {
-    transition: color 0.2s ease-in-out;
-    /* Smooth transition for color change */
+    margin-right: 10px;
 }

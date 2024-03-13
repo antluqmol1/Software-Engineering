@@ -77,16 +77,9 @@ const Login = () => {
           </button>
         </form>
         <div className="signup-redirect">
-          <span>Don't have a Goosechase account? </span>
+          <span>Don't have a Boozechase account? </span>
           <a href="/signup">Sign up</a>
         </div>
-      </div>
-      <div className="fun-fact-section">
-        <p>Did you know...</p>
-        <p>
-          The largest ever Goosechase Experience had over 97,000 submissions!
-        </p>
-        {/* Include the illustration */}
       </div>
     </div>
   );
