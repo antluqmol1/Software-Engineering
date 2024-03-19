@@ -1,3 +1,8 @@
 backend/node_modules/
 frontend/node_modules/
 backend/venv/
+backend/ServerBackend/ServerBackend/migrations/
+backend/ServerBackend/ServerBackend/__pycache__/
+backend/ServerBackend/ServerBackend/.DS_store
+backend/ServerBackend/.DS_store
+frontend/src/.DS_Store
