@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import "../styles/CreateUser.css"; // Make sure your CSS matches the layout and style in the image
+
 
 // Get the the cookie information
 function getCookie(name) {
@@ -73,55 +75,68 @@ const CreateUser = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="firstname">First Name:</label>
-        <input
-          type="text"
-          id="firstname"
-          value={first_name}
-          onChange={handleFirstNameChange}
-        />
+    <div className="signup-container">
+      <form className="signup-form-container" onSubmit={handleSubmit}>
+        <h2>Create User</h2>
+        <div>
+          <label htmlFor="firstname">First Name:</label>
+          <input
+            type="text"
+            id="firstname"
+            value={first_name}
+            onChange={handleFirstNameChange}
+          />
+        </div>
+        <div>
+          <label htmlFor="lastname">Last Name:</label>
+          <input
+            type="text"
+            id="lastname"
+            value={last_name}
+            onChange={handleLastNameChange}
+          />
+        </div>
+        <div>
+          <label htmlFor="username">Username:</label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={handleUsernameChange}
+          />
+        </div>
+        <div>
+          <label htmlFor="email">E-mail:</label>
+          <input
+            type="text"
+            id="email"
+            value={email}
+            onChange={handleEmailChange}
+          />
+        </div>
+        <div>
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={handlePasswordChange}
+          />
+        </div>
+        <button type="submit" className="signup-button">Create User</button>
+      <div className="signup-redirect">
+        <span>Already have an account? </span>
+          <a href="/login">Log in</a>
       </div>
-      <div>
-        <label htmlFor="lastname">Last Name:</label>
-        <input
-          type="text"
-          id="lastname"
-          value={last_name}
-          onChange={handleLastNameChange}
-        />
-      </div>
-      <div>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={handleUsernameChange}
-        />
-      </div>
-      <div>
-        <label htmlFor="email">E-mail:</label>
-        <input
-          type="text"
-          id="email"
-          value={email}
-          onChange={handleEmailChange}
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={handlePasswordChange}
-        />
-      </div>
-      <button type="submit">Create User</button>
-    </form>
+      </form>
+
+      {/* Information container */}
+      {/*<div className="information-container">
+      </div>*/}
+
+    </div>
   );
 };
+
 
 export default CreateUser;

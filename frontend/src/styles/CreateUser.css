@@ -48,7 +48,9 @@ html {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    
 }
+
 
 /* Typography for headers and paragraphs */
 h2 {
