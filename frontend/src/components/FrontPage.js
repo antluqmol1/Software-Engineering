@@ -56,8 +56,9 @@ const FrontPage = () => {
         )}
         {userIsLoggedIn ? (
           <div className="buttons-container">
-            <button className="login-button" onClick={handleLoginClick}>Login</button>
-            <button className="login-button" onClick={handleSignUpClick}>Sign Up</button>
+            {/* these should be changed to point to the join and create game buttons */}
+            <button className="login-button" onClick={handleLoginClick}>Join game</button>
+            <button className="login-button" onClick={handleSignUpClick}>Create game</button>
           </div>
         ) : (
         <div className="buttons-container">
