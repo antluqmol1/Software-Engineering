@@ -5,7 +5,7 @@ import '../styles/Home.css';
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
 
 
-const HomePage = () => {
+const FrontPage = () => {
   const [message, setMessage] = useState('');
 
   const navigate = useNavigate(); // Initialize useHistory hook
@@ -46,4 +46,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default FrontPage;
