@@ -3,22 +3,26 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
-import { checkUserLoggedIn } from '../utils/authUtils'; // Import checkUserLoggedIn from authUtils
+import { useCheckUserLoggedIn } from '../utils/authUtils'; // Import checkUserLoggedIn from authUtils
 
 const HomePage = () => {
   const [message, setMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check if the user is logged in
-    const userIsLoggedIn = checkUserLoggedIn();
-    setIsLoggedIn(userIsLoggedIn);
+  // Check if the user is logged in
+  
+  const userIsLoggedIn = useCheckUserLoggedIn();
 
-    if (!userIsLoggedIn) {
+  console.log(userIsLoggedIn)
+  console.log("jesdadsda")
+
+  useEffect(() => {
+
+    if (userIsLoggedIn === false) {
       // If not logged in, redirect to the login page
       navigate('/login');
-    } else {
+    } else if (userIsLoggedIn) {
       // If logged in, fetch data or perform any necessary actions
       axios.get('http://localhost:8000/')
         .then(response => {
@@ -28,7 +32,7 @@ const HomePage = () => {
           console.error('There was an error!', error);
         });
     }
-  }, [navigate]);
+  }, [userIsLoggedIn, navigate]);
 
   // Function to handle login button click
   const handleLoginClick = () => {
@@ -45,7 +49,7 @@ const HomePage = () => {
       <div className="home-content">
         <h1>Boozechase</h1>
         <p>{message}</p>
-        {isLoggedIn ? (
+        {userIsLoggedIn ? (
           <div className="buttons-container">
             {/* Add logout button or any other authenticated actions */}
           </div>

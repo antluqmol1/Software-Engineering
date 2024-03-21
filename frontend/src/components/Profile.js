@@ -18,6 +18,8 @@ const Profile = () => {
     //       .catch(error => console.error('Error fetching CSRF token', error));
     //   }, []);
 
+    console.log("getting profile")
+
     useEffect(() => {
         axios.get('http://localhost:8000/profile/', {     
         withCredentials: true 
