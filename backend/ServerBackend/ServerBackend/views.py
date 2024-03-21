@@ -170,7 +170,6 @@ def put_user(request):
 
 
 
-@csrf_exempt
 def delete_user(request):
 
     try:
