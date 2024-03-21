@@ -1,3 +1,4 @@
 backend/node_modules/
+backend/ServerBackend/ServerBackend/__pychache__
 frontend/node_modules/
 backend/venv/
