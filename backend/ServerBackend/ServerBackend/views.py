@@ -6,18 +6,18 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 
 
 @csrf_exempt
 def hello_world(request):
-    return JsonResponse({'message': 'Hello World'})
+    return JsonResponse({'message': 'Welcome to boozechase'})
 
 
 
 @csrf_exempt
 def home_page(request):
-    return JsonResponse({'message': 'Hello World'})
+    return JsonResponse({'message': 'Welcome to boozechase'})
 
 
 # not used, going with @csrf_exempt instead
@@ -29,13 +29,24 @@ def grab_token(request):
     # Return the token in a JSON response
     return JsonResponse({'csrfToken': csrf_token})
 
+def user_logout(request):
+    print("logging out")
+    if request.method == 'POST':
+        print("Valid method")
+
+        logout(request)
+        return JsonResponse({'success': True})
 
 
+        # if user.is_authenticated:
+        #     return JsonResponse({'success': True})
+        # else:
+        #     return JsonResponse({'success': False, 'message': 'No user was logged in.'})
 
 def get_profile(request):
     print("get profile")    
     if request.method == 'GET':
-        print("method is GET")
+        print("Valid method")
         
         user = request.user
 

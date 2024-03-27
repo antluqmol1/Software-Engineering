@@ -5,11 +5,15 @@ import axios from 'axios';
 import Navbar from './components/Navbar';
 import FrontPage from './components/FrontPage';
 import Login from './components/Login';
+import Logout from './components/Logout';
 import CreateUser from './components/CreateUser';
 import Profile from './components/Profile';
 import './styles/Home.css';
 import HomePage from './components/HomePage';
 
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFtoken';
+axios.defaults.withCredentials = true;
 
 
 
@@ -43,6 +47,7 @@ function App() {
           <Route path="/create-user" element={<CreateUser />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/logout" element={<Logout/>} />
         </Routes>
       </div>
     </Router>
