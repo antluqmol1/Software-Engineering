@@ -45,6 +45,15 @@ const FrontPage = () => {
       navigate('/create-user');
     }
 
+    // Function to handle login button click
+    const handleJoinGameClick = () => {
+      navigate('/join-game');
+    };
+    // Function to handle login button click
+    const handleCreateGameClick = () => {
+      navigate('/create-game');
+    };
+
   return (
     <div className="home-container" style={{ backgroundImage: "url('your-background-image-url.jpg')" }}>
       <div className="home-content">
@@ -57,8 +66,8 @@ const FrontPage = () => {
         {userIsLoggedIn ? (
           <div className="buttons-container">
             {/* these should be changed to point to the join and create game buttons */}
-            <button className="login-button" onClick={handleLoginClick}>Join game</button>
-            <button className="login-button" onClick={handleSignUpClick}>Create game</button>
+            <button className="login-button" onClick={handleJoinGameClick}>Join game</button>
+            <button className="login-button" onClick={handleCreateGameClick}>Create game</button>
           </div>
         ) : (
         <div className="buttons-container">

@@ -7,6 +7,7 @@ import FrontPage from './components/FrontPage';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import CreateUser from './components/CreateUser';
+import CreateGame from './components/CreateGame';
 import Profile from './components/Profile';
 import './styles/Home.css';
 import HomePage from './components/HomePage';
@@ -48,6 +49,7 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/logout" element={<Logout/>} />
+          <Route path="/create-game" element={<CreateGame />} />
         </Routes>
       </div>
     </Router>
