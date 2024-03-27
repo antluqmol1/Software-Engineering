@@ -1,5 +1,6 @@
 import json
-from .models import User
+import datetime
+from .models import User, Game
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -18,6 +19,42 @@ def hello_world(request):
 @csrf_exempt
 def home_page(request):
     return JsonResponse({'message': 'Welcome to boozechase'})
+
+
+def create_game(request):
+    print("creating game")
+
+    if request.method == "POST":
+        print("valid method")
+        user = request.user
+
+        data = json.loads(request.body)
+
+        gameId = data.get('gameid')
+        print(gameId)
+
+        # print(f'user data: {user.data}')
+
+        if user.is_authenticated:
+            print("creating game")
+
+            # create game in the database
+
+            new_game = Game(game_id = gameId,
+                            title='testgame', 
+                            description="testgame for testing", 
+                            admin=user,
+                            start_time=datetime.datetime.now(), 
+                            end_time=None)
+            
+            new_game.save()
+
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False})
+
+
+    pass
 
 
 # not used, going with @csrf_exempt instead

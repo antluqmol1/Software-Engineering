@@ -86,6 +86,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 Store information about each game, including the start time, end time, and the admin/user who initiated the game.
 '''
 class Game(models.Model):
+
+    # Primary key, which is the game key
+    game_id = models.CharField(max_length=255, null=False, default=None, primary_key=True)
+
     # Title of the game
     title = models.CharField(max_length=255)
     
@@ -143,7 +147,7 @@ class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
     # Game in which the user is participating; ForeignKey links to the Game model
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    game_id = models.ForeignKey(Game, on_delete=models.CASCADE, primary_key=True)
     
     # Score achieved by the participant; default is set to 0
     score = models.IntegerField(default=0)
@@ -152,11 +156,9 @@ class Participant(models.Model):
 '''
 Store the overall leaderboard for a game, ranking participants based on their scores.
 '''
-class Leaderboard(models.Model):
-    # Game for which the leaderboard is created; OneToOneField ensures a one-to-one relationship
-    game = models.OneToOneField(Game, on_delete=models.CASCADE, primary_key=True)
+# class Leaderboard(models.Model):
+#     # Game for which the leaderboard is created; OneToOneField ensures a one-to-one relationship
+#     game_id = models.OneToOneField(Game, on_delete=models.CASCADE, primary_key=True)
     
-    # Participants included in the leaderboard; ManyToManyField links to the Participant model
-    participants = models.ManyToManyField(Participant, related_name='leaderboard_entries')
-
-
+#     # Participants included in the leaderboard; ManyToManyField links to the Participant model
+#     participants = models.ManyToManyField(Participant, related_name='leaderboard_entries')
