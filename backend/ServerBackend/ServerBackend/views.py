@@ -33,7 +33,6 @@ def user_logout(request):
     print("logging out")
     if request.method == 'POST':
         print("Valid method")
-
         logout(request)
         return JsonResponse({'success': True})
 
