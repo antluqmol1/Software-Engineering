@@ -13,7 +13,9 @@ const Profile = () => {
         
         // Generate a random alphanumeric string of length 6
         const gameId = Math.random().toString(36).substring(2, 8);
-      
+
+        setGameId(gameId)
+
         return gameId
       }
     
