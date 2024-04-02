@@ -41,6 +41,20 @@ if you want to branch from the main branch, make sure you are at main, or move t
 1. Checkout the branch you want to merge into using f.ex. `git checkout main`.
 2. Now do `git merge [your branch]`, where `[your branch]` is the branch with the changes that you want merged with main.
 
+### How to merge to my local project the changes that other made in the main branch
+1. cd to our path of the project, for example: `cd Documents/inf2900/Team4/`
+2. Fetch the latest changes from Github: `git fetch origin`
+3. Pull the changes into our local main branch: `git pull origin main`
+   #### -> If conflicts, for example: error: `
+       Your local changes to the following files would be overwritten by merge:
+           frontend/src/App.js, frontend/src/components/FrontPage.js
+       Please commit your changes or stash them before you merge. Aborting. Updating 890515c2..1f0fda69`
+     We can stash our changes, Stash if you're in the middle of something and not ready to commit. You can always apply your stashed changes after pulling the updates from main.
+   We can do that doing, for example: `git add frontend/src/App.js`, `git add frontend/src/components/FrontPage.js` and `git stash push -m "Describe your changes"`
+   And afther that We can Pull the Latest changes from main: `git pull origin main`
+4. Once conflicts solved, We can go to our branch, for example: `git checkout antonio-frontend`
+5. And now, merge the changes from main: `git merge main`
+
 
 # Getting Started with Create React App
 
