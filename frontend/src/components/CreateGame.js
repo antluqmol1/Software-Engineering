@@ -7,9 +7,15 @@ import { Link, useNavigate } from 'react-router-dom'; // Import useHistory hook
 import Cookies from 'universal-cookie'
 
 const Profile = () => {
+    const [players, setPlayers] = useState(null);
     const [userData, setUserData] = useState(null);
     const [error, setError] = useState(null);
     const [gameId, setGameId] = useState(null);
+
+    function display_players(player_list) {
+      console.log(player_list)
+      return player_list.map((player)=> <li>{player}</li>)
+    }
 
     function generateGameId() {
 
@@ -34,6 +40,8 @@ const Profile = () => {
         })
           .then(response => {
             console.log('Game created successfully:', response.data);
+            var player_list = get_players()
+            setPlayers(player_list)
             // Handle success, if needed
           })
           .catch(error => {
@@ -42,18 +50,40 @@ const Profile = () => {
           });
       }
 
+    function get_players() {
+      const cookies = new Cookies();
+      const token = cookies.get('csrftoken')
+    
+      // Make a POST request to localhost:8000/create-game with the game ID
+      axios.get('http://localhost:8000/get-game-participants/', {}, {
+        headers: {
+          'X-CSRFToken': token, // Include CSRF token in headers
+        }
+      })
+        .then(response => {
+          console.log('participants:', response.data);
+          return response.data
+          // Handle success, if needed
+        })
+        .catch(error => {
+          console.error('Error creating game:', error);
+          return null
+        });
+    }
+
 
     useEffect(() => {
-
-        generateGameId()
-        createGame()
-
+        // temp fix, create game calls get_players, as they run over each other if not
+        var players = createGame()
     },[])
 
 
     return (
         <div>
             <h1>Game ID: {gameId}</h1>
+            {console.log("player list: ",players)}
+            <h2>Players: {players}</h2>
+            <display_players player_list={players} />
         </div>
     );
 };

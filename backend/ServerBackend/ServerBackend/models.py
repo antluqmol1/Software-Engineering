@@ -147,10 +147,11 @@ class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
     # Game in which the user is participating; ForeignKey links to the Game model
-    game_id = models.ForeignKey(Game, on_delete=models.CASCADE, primary_key=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, primary_key=True)
     
     # Score achieved by the participant; default is set to 0
     score = models.IntegerField(default=0)
+
 
 
 '''

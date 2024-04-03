@@ -1,6 +1,6 @@
 import json
 import datetime
-from .models import User, Game
+from .models import User, Game, Participant
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -38,8 +38,24 @@ def create_game(request):
         if user.is_authenticated:
             print("creating game")
 
-            # create game in the database
+            # Check if user is already in a game
+            print("checking if player is already in game")
+            #this is not the right way to do it, leads to traceback error on backend
+            potential_participant = Participant.objects.filter(user=user).exists()
+            # potential_participant = Participant.objects.get(user=user)
+            if potential_participant:
+                print("in a game, deleting user")
+                potential_participant = Participant.objects.filter(user=user)
+                #print for clarity
+                print(potential_participant.values())
+                Participant.objects.filter(user=user).delete()
+                return JsonResponse({'success': False})
+            else:
+                print("not in a game")
+            # potential_game = potential_participant.game_id
 
+
+            # create game in the database
             new_game = Game(game_id = gameId,
                             title='testgame', 
                             description="testgame for testing", 
@@ -48,13 +64,50 @@ def create_game(request):
                             end_time=None)
             
             new_game.save()
+            
+            # Create a participant in the created game(admin)
+            player = Participant(game = new_game,
+                                 user = user,
+                                 score = 0)
+            
+            player.save()
 
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False})
 
 
-    pass
+def get_game_participants(request):
+    print("get game participants")
+
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+
+        if user.is_authenticated:
+            print("validated")
+
+            print("getting user record in participant table")
+            current_user_participant = Participant.objects.get(user=user)
+            print("getting game in users participant table")
+            current_game = current_user_participant.game
+
+            print("getting array of players in same game")
+            participants_in_same_game = Participant.objects.filter(game=current_game)
+
+            # Extract relevant data to send back (e.g., usernames, scores)
+            print("sending back data")
+            participant_data = [{'username': p.user.username, 'score': p.score} 
+                                for p in participants_in_same_game]
+
+            return JsonResponse({'participants': participant_data})
+        else:
+            print("not validated")
+            return JsonResponse({'message': "not authenticated"})
+        
+    else:
+        print("invalid method")
+        return JsonResponse({'message': "incorrect method"})
 
 
 # not used, going with @csrf_exempt instead
