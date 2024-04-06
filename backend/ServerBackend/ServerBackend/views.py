@@ -20,6 +20,40 @@ def hello_world(request):
 def home_page(request):
     return JsonResponse({'message': 'Welcome to boozechase'})
 
+def join_game(request):
+    print("joining game")
+
+    if request.method == "GET":
+        print("valid method")
+        user = request.user
+
+        data = json.loads(request.body)
+
+        gameId = data.get('gameid')
+        print(f'attempting to join game {gameId}')
+
+        if user.is_authenticated:
+
+            # should return a unique game
+            game = Game.objects.get(game_id = gameId)
+            
+            if not game:
+                print("game not found")
+                return JsonResponse({'success': False, 'msg': 'invalid game code'})
+            
+            print("joining game")
+            player = Participant(game = game,
+                                 user = user,
+                                 score = 0)
+            
+            player.save()
+
+            return JsonResponse({'success': True, 'msg': 'joined game'})
+            
+        else:
+            print("user not authenticated")
+            return JsonResponse({'success': False, 'msg': 'not logged in/authenticated'})
+
 
 def create_game(request):
     print("creating game")
