@@ -1,63 +1,77 @@
 // Import the CSS file for styling
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import '../styles/Home.css';
-import { useNavigate } from 'react-router-dom'; // Import useHistory hook
-import { useCheckUserLoggedIn } from '../utils/authUtils'; // Import checkUserLoggedIn from authUtils
-
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "../styles/Home.css";
+import { useNavigate } from "react-router-dom"; // Import useHistory hook
+import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
 
 const FrontPage = () => {
   const [userData, setUserData] = useState(null);
+  const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
+  const [gameCode, setGameCode] = useState("");
   const navigate = useNavigate(); // Initialize useHistory hook
-  
-  const userIsLoggedIn = useCheckUserLoggedIn();
 
+  const userIsLoggedIn = useCheckUserLoggedIn();
 
   useEffect(() => {
     if (userIsLoggedIn === false) {
       // If not logged in, redirect to the login page
-      console.log("Not logged in")
-      navigate('/login');
-    } else if (userIsLoggedIn) {
+      console.log("Not logged in");
+      navigate("/login");
+    } else {
       // If logged in, fetch data or perform any necessary actions
       /* 
       When we can, lets change it from /profile to a /getusername
       */
-      console.log("Already logged in")
-      axios.get('http://localhost:8000/profile/', {
-      withCredentials: true
-      })
-        .then(response => {
+      console.log("Already logged in");
+      axios
+        .get("http://localhost:8000/profile/", {
+          withCredentials: true,
+        })
+        .then((response) => {
           setUserData(response.data.user_data);
         })
-        .catch(error => {
-          console.error('There was an error!', error);
+        .catch((error) => {
+          console.error("There was an error!", error);
         });
     }
   }, [userIsLoggedIn, navigate]);
 
-    // Function to handle login button click
-    const handleLoginClick = () => {
-      navigate('/login');
-    };
+  // Function to handle login button click
+  const handleLoginClick = () => {
+    navigate("/login");
+  };
 
-    const handleSignUpClick = () => {
-      navigate('/create-user');
+  const handleSignUpClick = () => {
+    navigate("/create-user");
+  };
+
+  const toggleActiveOption = (option) => {
+    setActiveOption(activeOption === option ? null : option);
+  };
+
+  const handleGameCodeChange = (e) => {
+    setGameCode(e.target.value.toUpperCase()); // Game codes are usually uppercase for readability
+  };
+
+  // Function to handle login button click
+  const handleJoinGameSubmit = () => {
+    if (gameCode.length < 5) {
+      // Assuming game codes are 5 characters long
+      alert("Please enter a valid game code."); // Replace with a nicer notification or UI feedback
+      return;
     }
-
-    // Function to handle login button click
-    const handleJoinGameClick = () => {
-      navigate('/join-game');
-    };
-    // Function to handle login button click
-    const handleCreateGameClick = () => {
-      navigate('/create-game');
-    };
+    navigate("/join-game");
+  };
+  // Function to handle login button click
+  const handleCreateGameSubmit = () => {
+    navigate("/create-game");
+  };
 
   return (
-    <div className="home-container" style={{ backgroundImage: "url('your-background-image-url.jpg')" }}>
+    <div className="home-container">
       <div className="home-content">
-        <h1>Boozechase</h1>
+        <h1>Funchase</h1>
         {userIsLoggedIn ? (
           <p>Welcome back {userData ? userData.username : "loading..."}</p>
         ) : (
@@ -65,18 +79,63 @@ const FrontPage = () => {
         )}
         {userIsLoggedIn ? (
           <div className="buttons-container">
-            {/* these should be changed to point to the join and create game buttons */}
-            <button className="login-button" onClick={handleJoinGameClick}>Join game</button>
-            <button className="login-button" onClick={handleCreateGameClick}>Create game</button>
+            <button
+              className={`button ${activeOption === "join" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("join")}
+            >
+              Join Game
+            </button>
+            <button
+              className={`button ${activeOption === "create" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("create")}
+            >
+              Create Game
+            </button>
           </div>
         ) : (
-        <div className="buttons-container">
-          {/* add some stuff here*/}
-          <button className="login-button" onClick={handleLoginClick}>Login</button>
-          <button className="login-button" onClick={handleSignUpClick}>Sign Up</button>
-        </div>
+          <div className="buttons-container">
+            <button
+              className={`button ${activeOption === "join" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("join")}
+            >
+              Join Game
+            </button>
+            <button className="SignUp-button" onClick={handleSignUpClick}>
+              Create Game
+            </button>
+          </div>
+          // <div className="buttons-container">
+          //   {/* add some stuff here*/}
+          //   <button className="login-button" onClick={handleLoginClick}>
+          //     Login
+          //   </button>
+          //   <button className="login-button" onClick={handleSignUpClick}>
+          //     Sign Up
+          //   </button>
+          // </div>
         )}
-        {/* Add more content or components as needed */}
+        {activeOption === "join" && (
+          <div className="game-action-container">
+            <input
+              type="text"
+              className="game-code-input"
+              placeholder="Enter game code"
+              value={gameCode}
+              onChange={handleGameCodeChange}
+              maxLength={5}
+            />
+            <button className="button" onClick={handleJoinGameSubmit}>
+              Join
+            </button>
+          </div>
+        )}
+        {activeOption === "create" && (
+          <div className="game-action-container">
+            <button className="button" onClick={handleCreateGameSubmit}>
+              Start a New Game
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

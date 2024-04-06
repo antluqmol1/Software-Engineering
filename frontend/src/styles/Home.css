@@ -1,30 +1,138 @@
 /* styles/Home.css */
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body,
+html {
+  height: 100%;
+  margin: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Default font */
+}
+
+/* Container for the whole page */
 .home-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: linear-gradient(to bottom, #800080, #4B0082); /* Purple fading color */
+  min-height: 100vh;
+  /* Use min-height for full vertical coverage */
+  background: linear-gradient(to bottom, #800080, #4B0082);
+  /* Refined purple gradient */
 }
 
+/* Content container */
 .home-content {
-  background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent white background */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
+  background-color: #FFFFFF;
+  padding: 3rem;
+  /* More generous padding */
+  border-radius: 20px;
+  /* Rounded corners for a modern look */
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+  /* Smooth shadow */
+  max-width: 400px;
   width: 100%;
   text-align: center;
 }
-  
+
+/* Heading style */
 .home-content h1 {
-  color: #333;
+  color: #5E2A84;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  font-weight: 900;
+  letter-spacing: -1px;
 }
 
-.home-content p {
-  color: #666;
-  font-size: 18px;
-  line-height: 1.5;
+/* Buttons and inputs container */
+.buttons-container {
+  display: flex;
+  gap: 1rem;
+  /* Consistent gap between buttons */
+  flex-wrap: wrap;
+  /* Allow buttons to wrap on smaller screens */
+  justify-content: space-around;
+  /* Even distribution */
+  margin-bottom: 2rem;
 }
 
-  
+/* Button styles */
+.button {
+  background-color: #5E2A84;
+  color: #FFFFFF;
+  border: 2px solid #5E2A84;
+  /* Ensure the button does not change size on hover */
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  /* Smoother transition for color and box-shadow */
+}
+
+/* Hover and active states */
+.button:hover,
+.button:focus,
+.button:active {
+  background-color: #7733BB;
+  border-color: #7733BB;
+  box-shadow: 0 4px 20px rgba(119, 51, 187, 0.25);
+}
+
+/* Active button style */
+.button.active {
+  background-color: #4B0082;
+  box-shadow: 0 4px 20px rgba(75, 0, 130, 0.25);
+}
+
+/* Input fields */
+.game-code-input,
+.game-action-container input[type="text"] {
+  width: calc(100% - 1.5rem);
+  /* Full width minus padding */
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 2px solid #DDD;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.game-code-input:focus,
+.game-action-container input[type="text"]:focus {
+  outline: none;
+  border-color: #5E2A84;
+  /* Highlight input on focus */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .home-content {
+    padding: 2rem;
+    /* Adjust padding on smaller screens */
+  }
+
+  .buttons-container {
+    flex-direction: column;
+    align-items: stretch;
+    /* Stretch buttons to fill container */
+  }
+
+  .button {
+    width: 100%;
+    /* Full width for buttons */
+    margin-bottom: 1rem;
+  }
+
+  .game-code-input,
+  .game-action-container input[type="text"] {
+    width: 100%;
+    /* Full width for inputs */
+  }
+}
