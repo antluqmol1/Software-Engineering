@@ -92,6 +92,9 @@ class Game(models.Model):
 
     # Title of the game
     title = models.CharField(max_length=255)
+
+    # Type of game, or the "title" in the front end
+    type = models.CharField(max_length=255, default=0)
     
     # Description providing additional details about the game
     description = models.TextField()
@@ -144,10 +147,10 @@ Keep track of users participating in a game, including their scores.
 '''
 class Participant(models.Model):
     # User participating in the game; ForeignKey links to the User model
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
     
     # Game in which the user is participating; ForeignKey links to the Game model
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, primary_key=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     
     # Score achieved by the participant; default is set to 0
     score = models.IntegerField(default=0)

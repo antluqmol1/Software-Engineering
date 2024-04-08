@@ -20,6 +20,40 @@ def hello_world(request):
 def home_page(request):
     return JsonResponse({'message': 'Welcome to boozechase'})
 
+def join_game(request):
+    print("joining game")
+
+    if request.method == "POST":
+        print("valid method")
+        user = request.user
+
+        data = json.loads(request.body)
+
+        gameId = data.get('gameid').lower()
+        print(f'attempting to join game {gameId}')
+
+        if user.is_authenticated:
+
+            # should return a unique game
+            try:
+                game = Game.objects.get(game_id = gameId)
+            except:
+                print("game not found")
+                return JsonResponse({'success': False, 'msg': 'invalid game code'})
+            
+            print("joining game")
+            player = Participant(game = game,
+                                 user = user,
+                                 score = 0)
+            
+            player.save()
+
+            return JsonResponse({'success': True, 'msg': 'joined game'})
+            
+        else:
+            print("user not authenticated")
+            return JsonResponse({'success': False, 'msg': 'not logged in/authenticated'})
+
 
 def create_game(request):
     print("creating game")
@@ -31,9 +65,10 @@ def create_game(request):
         data = json.loads(request.body)
 
         gameId = data.get('gameid')
+        type = data.get('id')
+        title = data.get('title')
+        description = data.get('description')
         print(gameId)
-
-        # print(f'user data: {user.data}')
 
         if user.is_authenticated:
             print("creating game")
@@ -52,13 +87,12 @@ def create_game(request):
                 return JsonResponse({'success': False})
             else:
                 print("not in a game")
-            # potential_game = potential_participant.game_id
-
 
             # create game in the database
             new_game = Game(game_id = gameId,
-                            title='testgame', 
-                            description="testgame for testing", 
+                            title=title,
+                            type=type,
+                            description=description, 
                             admin=user,
                             start_time=datetime.datetime.now(), 
                             end_time=None)
@@ -75,6 +109,29 @@ def create_game(request):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False})
+        
+def get_game(request):
+    print("get game")
+
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in")
+
+            potential_participant = Participant.objects.filter(user=user).exists()
+            # potential_participant = Participant.objects.get(user=user)
+            if potential_participant:
+                print("in a game, returning game id")
+                part = Participant.objects.get(user=user)
+
+                game_id = part.game.game_id
+                print(game_id)
+                return JsonResponse({'success': True, 'gameid': game_id})
+            else:
+                print("not in a game, fail")
+                return JsonResponse({'success': False})
 
 
 def get_game_participants(request):
