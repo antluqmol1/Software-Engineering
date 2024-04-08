@@ -28,40 +28,11 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     // Generate a random alphanumeric string of length 6
     const gameId = Math.random().toString(36).substring(2, 8);
 
-    console.log("setting game id");
+    console.log("setting game id", gameId);
     setGameId(gameId)
 
     return gameId;
   }, []);
-
-  function get_players() {
-    const cookies = new Cookies();
-    const token = cookies.get("csrftoken");
-
-    console.log("getting players");
-  
-    // Make a POST request to localhost:8000/create-game with the game ID
-    axios
-      .get(
-        "http://localhost:8000/get-game-participants/",
-        {},
-        {
-          headers: {
-            "X-CSRFToken": token, // Include CSRF token in headers
-          },
-        }
-      )
-      .then((response) => {
-        console.log("participants:", response.data);
-        return response.data;
-        // Handle success, if needed
-      })
-      .catch((error) => {
-        setPartError(error)
-        console.error("Error creating game:", error);
-        return null;
-      });
-  }
 
   function createGameBackend(id, title, description) {
     const gameId = generateGameId();
@@ -84,8 +55,11 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
       .then((response) => {
         // Success
         console.log("Game created successfully:", response.data);
-        var player_list = get_players();
-        return player_list;
+        if (response.data['success'] != false) {
+          navigate("/game-lobby")
+        }
+        // var player_list = get_players();
+        return;
       })
       .catch((error) => {
         // Error
@@ -103,7 +77,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
 
       if (!gameError) {
         console.log("navigating")
-        navigate("/game-lobby")
+        // navigate("/game-lobby")
       }
 
       console.log("players: ". playerslist)
@@ -115,12 +89,6 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
 
   return players;
 };
-
-
-function display_players(player_list) {
-  console.log(player_list);
-  return player_list.map((player) => <li>{player}</li>);
-}
 
 const gameModes = [
   {
@@ -148,13 +116,6 @@ const gameModes = [
 const GameModeCard = ({ mode }) => {
   const [trigger, setTrigger] = useState(false);
   var playerlist = useCreateGame(mode, trigger, setTrigger);
-  
-
-  console.log("player list:", playerlist);
-
-  if (playerlist) {
-    console.log("navigating");
-  }
 
   const handleClick = () => {
     setTrigger(true);

@@ -31,6 +31,10 @@ urlpatterns = [
     path('logout/', views.user_logout, name='user_logout'),
     path('create-game/', views.create_game, name='create_game'),
     path('get-game-participants/', views.get_game_participants, name='get_game_participants'),
+    path('get-game/', views.get_game, name='get_game'),
+    path('join-game/', views.join_game, name='join-game'),
+
+
 ]
 
 

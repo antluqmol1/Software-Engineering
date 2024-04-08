@@ -23,21 +23,21 @@ def home_page(request):
 def join_game(request):
     print("joining game")
 
-    if request.method == "GET":
+    if request.method == "POST":
         print("valid method")
         user = request.user
 
         data = json.loads(request.body)
 
-        gameId = data.get('gameid')
+        gameId = data.get('gameid').lower()
         print(f'attempting to join game {gameId}')
 
         if user.is_authenticated:
 
             # should return a unique game
-            game = Game.objects.get(game_id = gameId)
-            
-            if not game:
+            try:
+                game = Game.objects.get(game_id = gameId)
+            except:
                 print("game not found")
                 return JsonResponse({'success': False, 'msg': 'invalid game code'})
             
@@ -70,8 +70,6 @@ def create_game(request):
         description = data.get('description')
         print(gameId)
 
-        # print(f'user data: {user.data}')
-
         if user.is_authenticated:
             print("creating game")
 
@@ -89,8 +87,6 @@ def create_game(request):
                 return JsonResponse({'success': False})
             else:
                 print("not in a game")
-            # potential_game = potential_participant.game_id
-
 
             # create game in the database
             new_game = Game(game_id = gameId,
@@ -116,7 +112,26 @@ def create_game(request):
         
 def get_game(request):
     print("get game")
-    
+
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in")
+
+            potential_participant = Participant.objects.filter(user=user).exists()
+            # potential_participant = Participant.objects.get(user=user)
+            if potential_participant:
+                print("in a game, returning game id")
+                part = Participant.objects.get(user=user)
+
+                game_id = part.game.game_id
+                print(game_id)
+                return JsonResponse({'success': True, 'gameid': game_id})
+            else:
+                print("not in a game, fail")
+                return JsonResponse({'success': False})
 
 
 def get_game_participants(request):

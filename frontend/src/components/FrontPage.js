@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/Home.css";
+import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
 
@@ -52,16 +53,36 @@ const FrontPage = () => {
 
   const handleGameCodeChange = (e) => {
     setGameCode(e.target.value.toUpperCase()); // Game codes are usually uppercase for readability
+    console.log(gameCode)
   };
 
   // Function to handle login button click
   const handleJoinGameSubmit = () => {
-    if (gameCode.length < 5) {
-      // Assuming game codes are 5 characters long
-      alert("Please enter a valid game code."); // Replace with a nicer notification or UI feedback
-      return;
-    }
-    navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
+    
+    // if (gameCode.length < 5) {
+    //   // Assuming game codes are 5 characters long
+    //   alert("Please enter a valid game code."); // Replace with a nicer notification or UI feedback
+    //   return;
+    // }
+
+    axios
+        .post("http://localhost:8000/join-game/", 
+        {  gameid: gameCode }, 
+      {
+        headers: {
+          "X-CSRFToken": token, // Include CSRF token in headers
+        },
+      })
+        .then((response) => {
+          console.log(response.data)
+          setUserData(response.data.user_data);
+          navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
+        })
+        .catch((error) => {
+          console.error("There was an error!", error);
+        });
   };
   
   // Function to handle login button click
@@ -123,7 +144,7 @@ const FrontPage = () => {
               placeholder="Enter game code"
               value={gameCode}
               onChange={handleGameCodeChange}
-              maxLength={5}
+              maxLength={6}
             />
             <button className="button" onClick={handleJoinGameSubmit}>
               Join
