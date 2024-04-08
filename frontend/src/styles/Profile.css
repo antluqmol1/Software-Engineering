@@ -1,31 +1,285 @@
 /* Profile.css */
 
+body,
+html {
+    height: 100%;
+    /* Ensure the full height of the window is used */
+    margin: 0;
+    /* Reset default margin */
+    background-image: linear-gradient(rgb(128, 0, 128), rgb(75, 0, 130));
+    /* Set the purple background for the whole page */
+    font-family: 'decoy', serif;
+    justify-content: center;
+    /* Center the children horizontally */
+    align-items: center;
+    /* Center the children vertically */
+    text-align: left;
+    /* Ensures text is centered */
+}
+
 .profile-container {
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 400px;
+    /* Adjust width as needed */
+    margin: 100px auto;
+    /* This will center the container vertically and horizontally */
     padding: 20px;
+    box-sizing: border-box;
+    /* This ensures padding is included in width */
+    background-color: transparent;
+    /* Make the card background transparent */
 }
 
 .profile-heading {
-    font-size: 24px;
+    font-size: 1.95rem;
+    /* Increase font size */
+    color: #FFFFFF;
+    /* Change color to white */
+    margin-top: 0;
+    /* Remove margin-top to bring it closer to the wrapper */
     margin-bottom: 20px;
+    /* Add some space below the heading */
+    text-align: center;
+    /* Center the heading */
+    font-weight: 700;
+    /* Make it bold */
+    text-transform: uppercase;
+    /* Uppercase text for a more stylized look */
+    letter-spacing: 2px;
+    /* Increase letter spacing */
+    font-family: 'decoy', serif;
+    width: 100%;
+    /* Full width */
+    position: static;
+    /* Position it absolutely within the body/html flex container */
+    top: 20px;
+    /* Position the title at the top */
+    font-size: 2rem;
+    /* Adjust font size */
 }
 
 .profile-card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #FFFFFF;
+    /* Lighter purple for contrast */
+    border: none;
+    /* No border */
+    padding: 30px;
+    /* Increase padding */
+    border-radius: 12px;
+    /* Smooth out the border radius */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    /* Softer shadow for a subtle depth */
+    color: #FFFFFF;
+    /* Text color set to white for all child elements */
 }
 
 .profile-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
+    display: block;
+    /* Each item displays as block */
+    margin-bottom: 20px;
+    /* Increase space between items */
 }
 
 .profile-item label {
+    display: block;
+    /* Label takes up its own line */
+    margin-bottom: 5px;
+    /* Space between label and input field */
+    font-size: 20px;
+    /* Larger font size */
+    letter-spacing: 1px;
+    /* Letter spacing for labels */
+    color: #5E2A84;
     font-weight: bold;
-    margin-right: 10px;
+    line-height: 1.3;
+    box-sizing: border-box;
+    font-family: decoy, serif;
+}
+
+.profile-item input {
+    width: 100%;
+    /* Input field takes full width */
+    padding: 12px;
+    /* More padding for input fields */
+    border-radius: 4px;
+    border: 2px solid #FFFFFF;
+    /* White border for the inputs */
+    background-color: #6A1B9A;
+    /* Match the page background color */
+    color: #FFFFFF;
+    /* White input text */
+    font-size: 16px;
+    /* Larger font size for inputs */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Inner shadow for depth */
+    transition: all 0.3s ease;
+    /* Smooth transition for interactions */
+}
+
+.profile-item input:focus {
+    outline: none;
+    /* Removes the default focus outline */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 8px rgba(255, 255, 255, 0.5);
+    /* Adds a glow effect on focus */
+}
+
+.profile-photo-upload-section {
+    text-align: center;
+    /* Center align all content */
+    margin-top: 1rem;
+    /* Spacing from the top */
+    padding: 20px;
+    background: #FFFFFF;
+    /* White background for the section */
+    border-radius: 12px;
+    /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+    font-family: decoy, serif;
+    /* Maintain font consistency */
+}
+
+.custom-file-upload {
+    display: inline-block;
+    /* Allows for margin and padding */
+    padding: 10px 20px;
+    /* Padding for clickable area */
+    margin-bottom: 0.5rem;
+    /* Spacing below the label */
+    border-radius: 25px;
+    /* Rounded corners for the label/button */
+    background-color: #6A1B9A;
+    /* Purple background to match the theme */
+    color: #FFFFFF;
+    /* White text */
+    border: 2px solid #FFFFFF;
+    /* White border */
+    cursor: pointer;
+    /* Cursor changes to pointer to indicate it's clickable */
+    font-weight: bold;
+    /* Bold font for the text */
+    text-transform: uppercase;
+    /* Uppercase text */
+    font-size: 1rem;
+    /* Font size for the text */
+}
+
+.profile-photo-preview {
+    width: 100px;
+    /* Fixed width, adjust as needed */
+    height: 100px;
+    /* Fixed height, adjust as needed */
+    border-radius: 50%;
+    /* Round shape */
+    margin-bottom: 0.5rem;
+    /* Spacing below the image */
+    object-fit: cover;
+    /* Ensure the image covers the area */
+    border: 3px solid #FFFFFF;
+    /* White border */
+}
+
+.upload-button {
+    display: inline-block;
+    /* Allows for margin and padding */
+    padding: 10px 20px;
+    /* Padding for clickable area */
+    border-radius: 25px;
+    /* Rounded corners for the button */
+    background-color: #5E2A84;
+    /* Dark purple background */
+    color: #FFFFFF;
+    /* White text */
+    border: none;
+    /* No border */
+    cursor: pointer;
+    /* Cursor changes to pointer to indicate it's clickable */
+    font-weight: bold;
+    /* Bold font for the text */
+    text-transform: uppercase;
+    /* Uppercase text */
+    font-size: 1rem;
+    /* Font size for the text */
+    margin-top: 0.5rem;
+    /* Spacing above the button */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for the button */
+}
+
+.upload-button:hover {
+    background-color: #4A007A;
+    /* Slightly darker background on hover */
+}
+
+/* Style for the text indicating recommended file types */
+.profile-photo-upload-section div {
+    color: #4A007A;
+    /* White text to be visible on the purple background */
+    font-size: 0.85rem;
+    /* Smaller font size for the subtitle */
+    margin-top: 10px;
+    /* Spacing from the last element */
+}
+
+/* New styles for the wrapper */
+.profile-wrapper {
+    display: flex;
+    justify-content: center;
+    /* Center the content horizontally */
+    align-items: flex-start;
+    /* Align items to the start, removing vertical centering */
+    flex-direction: row;
+    /* Arrange items in a row */
+    gap: 0;
+    /* No space between the items */
+    width: 100%;
+    /* Full width to use all available space */
+    max-width: 1200px;
+    /* Set a maximum width for the container */
+    padding: 20px;
+    /* Add some padding */
+    box-sizing: border-box;
+    /* Include padding in the width calculation */
+    margin-top: 0;
+    /* Adjust top margin to bring the wrapper up */
+    margin-bottom: 20px;
+    /* Add some space below the wrapper */
+}
+
+/* Adjust the .profile-container to fit within the new flexbox layout */
+.profile-container {
+    display: block;
+    /* Use block display for the container */
+    width: 100%;
+    /* Full width */
+    max-width: 1200px;
+    /* Maximum width to match the wrapper */
+    margin: auto;
+    /* Center the container */
+}
+
+/* Remove margins that are no longer necessary due to flexbox layout */
+.profile-heading,
+.profile-card,
+.profile-photo-upload-section {
+    margin: 0;
+}
+
+/* You may need to adjust the max-width of .profile-card and .profile-photo-upload-section to fit your layout */
+.profile-card,
+.profile-photo-upload-section {
+    width: 50%;
+    /* Each section takes up half the width of the container */
+    margin: 0;
+    /* Remove margin */
+    box-shadow: none;
+    /* Optional: Remove shadow if preferred */
+}
+
+/* Ensure that the profile image upload section and the card take up equal space */
+.profile-card,
+.profile-photo-upload-section {
+    align-self: flex-start;
+    box-sizing: border-box;
+    /* Include padding and border in the width */
+    display: inline;
 }
