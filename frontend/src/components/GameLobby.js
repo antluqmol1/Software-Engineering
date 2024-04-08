@@ -1,10 +1,49 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
 import '../styles/GameLobby.css';
 
 function GameLobby() {
     const [showPopup, setShowPopup] = useState(false);
     const [playerList, setPlayerList] = useState([]);
+    const [gameId, setGameId] = useState(null);
+    const navigate = useNavigate();
+    
+
+    const handleDelete = () => {
+
+        const cookies = new Cookies();
+        const token = cookies.get("csrftoken");
+
+        console.log("deleting game, token: ", token);
+
+        // Make a POST request to localhost:8000/delete-game
+        axios
+        .delete(
+            "http://localhost:8000/delete-game/",
+            {
+            headers: {
+                "X-CSRFToken": token, // Include CSRF token in headers
+            },
+            }
+        )
+        .then((response) => {
+            if (response.data['success'] == true) {
+                console.log("successfully deleted game");
+                navigate("/");
+            }
+            else {
+                console.log("failed to delete game");
+            }
+
+            return response.data;
+        })
+        .catch((error) => {
+            console.error("Error getting players:", error);
+            return null;
+        });
+
+    }
 
     // Function to fetch the list of participants from the server
     const fetchPlayerList = () => {
@@ -48,6 +87,9 @@ function GameLobby() {
                     </div>
                 </div>
             )}
+           <button className="gamemode-button" onClick={handleDelete}>
+                End game
+            </button>
         </div>
     );
 }
