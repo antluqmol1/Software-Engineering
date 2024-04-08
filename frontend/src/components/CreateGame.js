@@ -1,6 +1,6 @@
 // Profile.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
@@ -10,58 +10,33 @@ import bluemargharita from "../assets/bluemargharita.jpg";
 import familynight from "../assets/familynight.png";
 import woods from "../assets/woods.jpg";
 
-const Profile = () => {
+const useCreateGame = ( mode, trigger, setTrigger) => {
   const [players, setPlayers] = useState(null);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
   const [gameId, setGameId] = useState(null);
 
-  function display_players(player_list) {
-    console.log(player_list);
-    return player_list.map((player) => <li>{player}</li>);
-  }
 
-  function generateGameId() {
+  console.log("Lobby and Request");
+
+  console.log(mode.id);
+
+  const generateGameId = useCallback(() => {
     // Generate a random alphanumeric string of length 6
     const gameId = Math.random().toString(36).substring(2, 8);
 
-    setGameId(gameId);
+    console.log("setting game id");
+    setGameId(gameId)
 
     return gameId;
-  }
-
-  function createGame() {
-    const gameId = generateGameId();
-    const cookies = new Cookies();
-    const token = cookies.get("csrftoken");
-
-    // Make a POST request to localhost:8000/create-game with the game ID
-    axios
-      .post(
-        "http://localhost:8000/create-game/",
-        { gameid: gameId },
-        {
-          headers: {
-            "X-CSRFToken": token, // Include CSRF token in headers
-          },
-        }
-      )
-      .then((response) => {
-        console.log("Game created successfully:", response.data);
-        var player_list = get_players();
-        setPlayers(player_list);
-        // Handle success, if needed
-      })
-      .catch((error) => {
-        console.error("Error creating game:", error);
-        // Handle error, if needed
-      });
-  }
+  }, []);
 
   function get_players() {
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
 
+    console.log("getting players");
+  
     // Make a POST request to localhost:8000/create-game with the game ID
     axios
       .get(
@@ -84,20 +59,57 @@ const Profile = () => {
       });
   }
 
-  useEffect(() => {
-    // temp fix, create game calls get_players, as they run over each other if not
-    var players = createGame();
-  }, []);
+  function createGameBackend(id, title, description) {
+    const gameId = generateGameId();
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
+  
+    console.log("inside create game")
+  
+    // Make a POST request to localhost:8000/create-game with the game ID
+    axios
+      .post(
+        "http://localhost:8000/create-game/",
+        { gameid: gameId, id: id, title: title, description: description},
+        {
+          headers: {
+            "X-CSRFToken": token, // Include CSRF token in headers
+          },
+        }
+      )
+      .then((response) => {
+        // Success
+        console.log("Game created successfully:", response.data);
+        var player_list = get_players();
+        return player_list;
+      })
+      .catch((error) => {
+        // Error
+        console.error("Error creating game:", error);
+      });
+  }
 
-  return (
-    <div>
-      <h1>Game ID: {gameId}</h1>
-      {console.log("player list: ", players)}
-      <h2>Players: {players}</h2>
-      <display_players player_list={players} />
-    </div>
-  );
+  console.log("above using effect")
+  // Create the game
+  useEffect(() => {
+    if (trigger) {
+      console.log("inside use effect - creating game");
+      createGameBackend(mode.id, mode.title, mode.description);
+      
+      console.log("players: ". playerslist)
+      // Reset trigger to avoid repeated calls
+      setTrigger(false); // You need to provide setTrigger function to this hook
+    }
+  }, [mode, trigger, setTrigger]); // Include setTrigger in the dependency array
+
+  return players;
 };
+
+
+function display_players(player_list) {
+  console.log(player_list);
+  return player_list.map((player) => <li>{player}</li>);
+}
 
 const gameModes = [
   {
@@ -105,27 +117,32 @@ const gameModes = [
     title: "Night Out",
     description: "Out on the town!",
     imageUrl: bluemargharita,
-    action: () => alert("Joining Night Out!"),
   },
   {
     id: 2,
     title: "Family Friendly",
     description: "Family night!",
     imageUrl: familynight,
-    action: () => alert("Joining Family Friendly!"),
   },
   {
     id: 3,
     title: "Mountain Hike",
     description: "Into the woods!",
     imageUrl: woods,
-    action: () => alert("Joining Mountain Hike!"),
   },
 ];
 
 // Individual game mode card component
 // Extracting this component allows for better testability and reusability.
-const GameModeCard = ({ mode }) => (
+const GameModeCard = ({ mode }) => {
+  const [trigger, setTrigger] = useState(false)
+  useCreateGame(mode, trigger, setTrigger)
+
+  const handleClick = () => {
+    setTrigger(true)
+  }
+
+  return (
   <div className="gamemode-card">
     {/* Image container for the game mode */}
     <div className="gamemode-image-wrapper">
@@ -138,11 +155,12 @@ const GameModeCard = ({ mode }) => (
     {/* Game mode description */}
     <h3>{mode.description}</h3>
     {/* Button that triggers an action when clicked, e.g., navigating to a game mode */}
-    <button className="gamemode-button" onClick={mode.action}>
+    <button className="gamemode-button" onClick={handleClick}>
       {mode.title}
     </button>
   </div>
-);
+  );
+};
 
 // Main GameModes component that renders the game mode options
 const GameModes = () => {
