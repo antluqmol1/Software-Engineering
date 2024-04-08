@@ -283,3 +283,53 @@ html {
     /* Include padding and border in the width */
     display: inline;
 }
+
+/* Button styles */
+.profile-card .btn {
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #6A1B9A;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(106, 27, 154, 0.4);
+    outline: none;
+    align-items: right;
+    justify-content: right;
+    /* Removes the focus outline */
+}
+
+.profile-card .btn:hover {
+    background-color: #5E2A84;
+    box-shadow: 0 3px 6px rgba(106, 27, 154, 0.6);
+}
+
+.profile-card .btn:active {
+    background-color: #4A007A;
+    box-shadow: 0 2px 4px rgba(74, 0, 122, 0.8);
+}
+
+.profile-card .btn:focus {
+    background-color: #6A1B9A;
+    box-shadow: 0 0 0 2px rgba(106, 27, 154, 0.5);
+}
+
+/* Input styles when in edit mode */
+.profile-card input[type="text"] {
+    border: 2px solid #6A1B9A;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 5px;
+    width: calc(100% - 24px);
+    /* Account for padding and borders */
+    box-sizing: border-box;
+    /* Include padding and borders in the width */
+}
+
+.profile-card input[type="text"]:focus {
+    border-color: #5E2A84;
+    box-shadow: 0 0 0 2px rgba(94, 42, 132, 0.5);
+}
