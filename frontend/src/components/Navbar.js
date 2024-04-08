@@ -26,6 +26,20 @@ function Navbar() {
     }
   };
 
+  const handleDeleteGame = async () => {
+    try {
+      await axios.delete("http://localhost:8000/delete-game/", {}, {
+        headers: {
+          'X-CSRFToken': csrfToken,
+        }
+      });
+      console.log("Deleted game");
+      navigate('/');
+    } catch (error) {
+      console.error("deletion failed", error);
+    }
+  };
+
 
   return (
     <nav className="navbar">
@@ -35,6 +49,7 @@ function Navbar() {
         <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
         <li><Link to="/profile" className="navbar-link">Profile</Link></li>
         <span onClick={handleLogout} className="navbar-link">Logout</span>
+        <span onClick={handleDeleteGame} className="navbar-link">End game</span>
       </ul>
     </nav>
   );

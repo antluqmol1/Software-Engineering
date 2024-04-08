@@ -108,7 +108,59 @@ def create_game(request):
 
             return JsonResponse({'success': True})
         else:
-            return JsonResponse({'success': False})
+            return JsonResponse({'success': False, 'msg': 'not authenticated'})
+
+def delete_game(request):
+    print('delete game')
+    print(request.method)
+
+    if request.method == 'DELETE':
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in")
+
+            potential_participant = Participant.objects.filter(user=user).exists()
+            # potential_participant = Participant.objects.get(user=user)
+            if potential_participant:
+                print("in a game, checking if admin")
+                part = Participant.objects.get(user=user)
+
+                admin = part.game.admin
+                print(f'is this a player ID?: {admin}')
+
+                if user == admin:
+                    print("player is an admin, deleting game")
+                    game_id = part.game.game_id
+                    clean_up_game(game_id=game_id)
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({'success': False, 'msg': 'user is not admin of game'})
+            else:
+                print("not in a game, fail")
+                return JsonResponse({'success': False})
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method'})
+
+def clean_up_game(game_id):
+
+    try:
+        games_to_delete = Game.objects.filter(game_id=game_id)
+        players_to_delete = Participant.objects.filter(game_id=game_id)
+    except:
+        print("failed to retrieve game and players")
+        return JsonResponse({'success': False})
+
+    try:
+        games_to_delete.delete()
+        players_to_delete.delete()
+    except:
+        print("failed to delete game and players")
+
+
+    
         
 def get_game(request):
     print("get game")
@@ -211,13 +263,38 @@ def get_profile(request):
         # If the request method is not GET, return an error
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+def update_profile(request):
+    print("updating profile")
+
+    if request.method == 'PUT':
+        print("valid method")
+
+        user = request.user
+
+        field = request.data['field']
+        new_value = request.data['updatedValue']
+
+        if user.is_authenticated:
+            
+            # set attributes of the user
+            setattr(user, field, new_value)
+
+            # save it to the database
+            user.save()
+
+        else:
+            return JsonResponse({'error': 'user not logged in'})
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
 
 
 def user_login(request):
     print("inside user_login")
     if request.method == 'POST':
 
-        print("method is POST")
+        print("valid method")
         # Get username and password from request.POST
         data = json.loads(request.body)
 
