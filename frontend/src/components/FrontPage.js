@@ -61,8 +61,9 @@ const FrontPage = () => {
       alert("Please enter a valid game code."); // Replace with a nicer notification or UI feedback
       return;
     }
-    navigate("/join-game");
+    navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
   };
+  
   // Function to handle login button click
   const handleCreateGameSubmit = () => {
     navigate("/create-game");

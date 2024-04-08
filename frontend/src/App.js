@@ -14,8 +14,9 @@ import Logout from "./components/Logout";
 import CreateUser from "./components/CreateUser";
 import CreateGame from "./components/CreateGame";
 import Profile from "./components/Profile";
-import "./styles/Home.css";
 import HomePage from "./components/HomePage";
+import GameLobby from "./components/GameLobby"; // Import the GameLobby component
+import "./styles/Home.css";
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFtoken";
@@ -49,6 +50,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/create-game" element={<CreateGame />} />
+          <Route path="/game-lobby" element={<GameLobby />} /> {/* Add route for GameLobby */}
         </Routes>
       </div>
     </Router>
