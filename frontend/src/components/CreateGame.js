@@ -10,26 +10,23 @@ import bluemargharita from "../assets/bluemargharita.jpg";
 import familynight from "../assets/familynight.png";
 import woods from "../assets/woods.jpg";
 
-const LobbyAndRequest = (id, title, description) => {
+const useCreateGame = ( mode, trigger, setTrigger) => {
   const [players, setPlayers] = useState(null);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
   const [gameId, setGameId] = useState(null);
 
-  // var players;
-  // var userData;
-  // var error;
-  // var gameId;
 
   console.log("Lobby and Request");
+
+  console.log(mode.id);
 
   const generateGameId = useCallback(() => {
     // Generate a random alphanumeric string of length 6
     const gameId = Math.random().toString(36).substring(2, 8);
 
-  console.log("setting game id");
-
-    setGameId(gameId);
+    console.log("setting game id");
+    setGameId(gameId)
 
     return gameId;
   }, []);
@@ -62,7 +59,7 @@ const LobbyAndRequest = (id, title, description) => {
       });
   }
 
-  function createGame(id, title, description) {
+  function createGameBackend(id, title, description) {
     const gameId = generateGameId();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
@@ -84,7 +81,7 @@ const LobbyAndRequest = (id, title, description) => {
         // Success
         console.log("Game created successfully:", response.data);
         var player_list = get_players();
-        setPlayers(player_list);
+        return player_list;
       })
       .catch((error) => {
         // Error
@@ -92,26 +89,22 @@ const LobbyAndRequest = (id, title, description) => {
       });
   }
 
-  // Crearte the game
+  console.log("above using effect")
+  // Create the game
   useEffect(() => {
-  console.log("inside use effect");
-  var players = createGame();
-  }, []);
+    if (trigger) {
+      console.log("inside use effect - creating game");
+      createGameBackend(mode.id, mode.title, mode.description);
+      
+      console.log("players: ". playerslist)
+      // Reset trigger to avoid repeated calls
+      setTrigger(false); // You need to provide setTrigger function to this hook
+    }
+  }, [mode, trigger, setTrigger]); // Include setTrigger in the dependency array
 
-  // can i make function calls like this?
-  // console.log("calling create game");
-  // createGame(id, title, description)
-  return players
-  // (
-
-    // <div>
-    //   <h1>Game ID: {gameId}</h1>
-    //   {console.log("player list: ", players)}
-    //   <h2>Players: {players}</h2>
-    //   <display_players player_list={players} />
-    // </div>
-  // );
+  return players;
 };
+
 
 function display_players(player_list) {
   console.log(player_list);
@@ -124,37 +117,32 @@ const gameModes = [
     title: "Night Out",
     description: "Out on the town!",
     imageUrl: bluemargharita,
-    action: function() { 
-      console.log("action activated")
-      // var players = LobbyAndRequest(1, "Night Out", "Out on the town!"); 
-    },
   },
   {
     id: 2,
     title: "Family Friendly",
     description: "Family night!",
     imageUrl: familynight,
-    action: function() { 
-      console.log("action activated")
-      LobbyAndRequest(this.id, this.title, this.description); 
-      
-    },
   },
   {
     id: 3,
     title: "Mountain Hike",
     description: "Into the woods!",
     imageUrl: woods,
-    action: function() {
-      console.log("action activated")
-      LobbyAndRequest(this.id, this.title, this.description); 
-    },
   },
 ];
 
 // Individual game mode card component
 // Extracting this component allows for better testability and reusability.
-const GameModeCard = ({ mode }) => (
+const GameModeCard = ({ mode }) => {
+  const [trigger, setTrigger] = useState(false)
+  useCreateGame(mode, trigger, setTrigger)
+
+  const handleClick = () => {
+    setTrigger(true)
+  }
+
+  return (
   <div className="gamemode-card">
     {/* Image container for the game mode */}
     <div className="gamemode-image-wrapper">
@@ -167,11 +155,12 @@ const GameModeCard = ({ mode }) => (
     {/* Game mode description */}
     <h3>{mode.description}</h3>
     {/* Button that triggers an action when clicked, e.g., navigating to a game mode */}
-    <button className="gamemode-button" onClick={mode.action}>
+    <button className="gamemode-button" onClick={handleClick}>
       {mode.title}
     </button>
   </div>
-);
+  );
+};
 
 // Main GameModes component that renders the game mode options
 const GameModes = () => {

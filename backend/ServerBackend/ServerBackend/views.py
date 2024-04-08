@@ -65,6 +65,9 @@ def create_game(request):
         data = json.loads(request.body)
 
         gameId = data.get('gameid')
+        type = data.get('id')
+        title = data.get('title')
+        description = data.get('description')
         print(gameId)
 
         # print(f'user data: {user.data}')
@@ -91,8 +94,9 @@ def create_game(request):
 
             # create game in the database
             new_game = Game(game_id = gameId,
-                            title='testgame', 
-                            description="testgame for testing", 
+                            title=title,
+                            type=type,
+                            description=description, 
                             admin=user,
                             start_time=datetime.datetime.now(), 
                             end_time=None)
