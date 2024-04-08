@@ -1,6 +1,6 @@
 // Profile.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
@@ -10,58 +10,36 @@ import bluemargharita from "../assets/bluemargharita.jpg";
 import familynight from "../assets/familynight.png";
 import woods from "../assets/woods.jpg";
 
-const Profile = () => {
+const LobbyAndRequest = (id, title, description) => {
   const [players, setPlayers] = useState(null);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
   const [gameId, setGameId] = useState(null);
 
-  function display_players(player_list) {
-    console.log(player_list);
-    return player_list.map((player) => <li>{player}</li>);
-  }
+  // var players;
+  // var userData;
+  // var error;
+  // var gameId;
 
-  function generateGameId() {
+  console.log("Lobby and Request");
+
+  const generateGameId = useCallback(() => {
     // Generate a random alphanumeric string of length 6
     const gameId = Math.random().toString(36).substring(2, 8);
+
+  console.log("setting game id");
 
     setGameId(gameId);
 
     return gameId;
-  }
-
-  function createGame() {
-    const gameId = generateGameId();
-    const cookies = new Cookies();
-    const token = cookies.get("csrftoken");
-
-    // Make a POST request to localhost:8000/create-game with the game ID
-    axios
-      .post(
-        "http://localhost:8000/create-game/",
-        { gameid: gameId },
-        {
-          headers: {
-            "X-CSRFToken": token, // Include CSRF token in headers
-          },
-        }
-      )
-      .then((response) => {
-        console.log("Game created successfully:", response.data);
-        var player_list = get_players();
-        setPlayers(player_list);
-        // Handle success, if needed
-      })
-      .catch((error) => {
-        console.error("Error creating game:", error);
-        // Handle error, if needed
-      });
-  }
+  }, []);
 
   function get_players() {
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
 
+    console.log("getting players");
+  
     // Make a POST request to localhost:8000/create-game with the game ID
     axios
       .get(
@@ -84,20 +62,61 @@ const Profile = () => {
       });
   }
 
+  function createGame(id, title, description) {
+    const gameId = generateGameId();
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
+  
+    console.log("inside create game")
+  
+    // Make a POST request to localhost:8000/create-game with the game ID
+    axios
+      .post(
+        "http://localhost:8000/create-game/",
+        { gameid: gameId, id: id, title: title, description: description},
+        {
+          headers: {
+            "X-CSRFToken": token, // Include CSRF token in headers
+          },
+        }
+      )
+      .then((response) => {
+        // Success
+        console.log("Game created successfully:", response.data);
+        var player_list = get_players();
+        setPlayers(player_list);
+      })
+      .catch((error) => {
+        // Error
+        console.error("Error creating game:", error);
+      });
+  }
+
+  // Crearte the game
   useEffect(() => {
-    // temp fix, create game calls get_players, as they run over each other if not
-    var players = createGame();
+  console.log("inside use effect");
+  var players = createGame();
   }, []);
 
-  return (
-    <div>
-      <h1>Game ID: {gameId}</h1>
-      {console.log("player list: ", players)}
-      <h2>Players: {players}</h2>
-      <display_players player_list={players} />
-    </div>
-  );
+  // can i make function calls like this?
+  // console.log("calling create game");
+  // createGame(id, title, description)
+  return players
+  // (
+
+    // <div>
+    //   <h1>Game ID: {gameId}</h1>
+    //   {console.log("player list: ", players)}
+    //   <h2>Players: {players}</h2>
+    //   <display_players player_list={players} />
+    // </div>
+  // );
 };
+
+function display_players(player_list) {
+  console.log(player_list);
+  return player_list.map((player) => <li>{player}</li>);
+}
 
 const gameModes = [
   {
@@ -105,21 +124,31 @@ const gameModes = [
     title: "Night Out",
     description: "Out on the town!",
     imageUrl: bluemargharita,
-    action: () => alert("Joining Night Out!"),
+    action: function() { 
+      console.log("action activated")
+      // var players = LobbyAndRequest(1, "Night Out", "Out on the town!"); 
+    },
   },
   {
     id: 2,
     title: "Family Friendly",
     description: "Family night!",
     imageUrl: familynight,
-    action: () => alert("Joining Family Friendly!"),
+    action: function() { 
+      console.log("action activated")
+      LobbyAndRequest(this.id, this.title, this.description); 
+      
+    },
   },
   {
     id: 3,
     title: "Mountain Hike",
     description: "Into the woods!",
     imageUrl: woods,
-    action: () => alert("Joining Mountain Hike!"),
+    action: function() {
+      console.log("action activated")
+      LobbyAndRequest(this.id, this.title, this.description); 
+    },
   },
 ];
 

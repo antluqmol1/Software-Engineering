@@ -92,6 +92,8 @@ class Game(models.Model):
 
     # Title of the game
     title = models.CharField(max_length=255)
+
+    type = models.CharField(max_length=255)
     
     # Description providing additional details about the game
     description = models.TextField()
