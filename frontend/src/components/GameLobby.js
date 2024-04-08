@@ -1,76 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import '../styles/GameLobby.css';
-import Cookies from "universal-cookie";
 
 function GameLobby() {
     const [showPopup, setShowPopup] = useState(false);
-    const [gameId, setGameId] = useState(null);
-    const [playerList, setPlayerList] = useState(null)
+    const [playerList, setPlayerList] = useState([]);
 
-    function get_players() {
-        const cookies = new Cookies();
-        const token = cookies.get("csrftoken");
-
-        console.log("getting players");
-   
-        
-        // Make a POST request to localhost:8000/create-game with the game ID
-        axios
-        .get(
-            "http://localhost:8000/get-game-participants/",
-            {},
-            {
-            headers: {
-                "X-CSRFToken": token, // Include CSRF token in headers
-            },
-            }
-        )
-        .then((response) => {
-            console.log("participants:", response.data['participants']);
-            setPlayerList(response.data['participants'])
-            return response.data;
-            // Handle success, if needed
-        })
-        .catch((error) => {
-            console.error("Error getting players:", error);
-            return null;
-        });
-    }
-
-    function get_game() {
-
-        const cookies = new Cookies();
-        const token = cookies.get("csrftoken");
-
-        // Make a POST request to localhost:8000/create-game with the game ID
-        axios
-            .get(
-            "http://localhost:8000/get-game/",
-            {},
-            {
-                headers: {
-                "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            }
-            )
-            .then((response) => {
-                console.log("getting game");
-                console.log(response.data['gameid'])
-                return response.data;
-                // Handle success, if needed
+    // Function to fetch the list of participants from the server
+    const fetchPlayerList = () => {
+        axios.get("http://localhost:8000/get-game-participants/")
+            .then(response => {
+                setPlayerList(response.data.participants);
             })
-            .catch((error) => {
-                console.error("Error getting game:", error);
-                return null;
-        });
+            .catch(error => {
+                console.error("Error fetching player list:", error);
+            });
+    };
 
-    }
-
-    useState(() => {
-        get_game();
-        get_players();
-    });
+    useEffect(() => {
+        // Fetch the player list when the component mounts
+        fetchPlayerList();
+    }, []);
 
     // Function to toggle the challenge popup
     const togglePopup = () => {
@@ -80,11 +30,10 @@ function GameLobby() {
     return (
         <div>
             <div className="lobby-container">
-                {/* Participant divs */}
-                <div className="participant">Player 1</div>
-                <div className="participant">Player 2</div>
-                <div className="participant">Player 3</div>
-                {/* Add more participant divs as needed */}
+                {/* Render participant divs dynamically */}
+                {playerList.map((player, index) => (
+                    <div className="participant" key={index}>{player.username}</div>
+                ))}
             </div>
 
             {/* Challenge popup */}
