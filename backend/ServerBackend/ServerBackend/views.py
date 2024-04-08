@@ -271,8 +271,12 @@ def update_profile(request):
 
         user = request.user
 
-        field = request.data['field']
-        new_value = request.data['updatedValue']
+        data = json.loads(request.body)
+
+        field = data.get('field')
+        print(f'field: {field}')
+        new_value = data.get('value')
+        print(f'field: {new_value}')
 
         if user.is_authenticated:
             
@@ -281,6 +285,7 @@ def update_profile(request):
 
             # save it to the database
             user.save()
+            return JsonResponse({'success': True})
 
         else:
             return JsonResponse({'error': 'user not logged in'})

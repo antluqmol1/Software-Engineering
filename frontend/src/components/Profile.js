@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Cookies from "universal-cookie";
 import { Card } from "react-bootstrap";
 import "../styles/Profile.css";
 import defaultProfilePic from "../assets/woods.jpg";
@@ -72,6 +73,10 @@ const Profile = () => {
 
   const handleFieldSave = async (field) => {
     const updatedValue = userData[field];
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
+    console.log(field);
+    console.log(updatedValue);
 
     try {
       // Replace 'http://localhost:8000/profile/update' with your actual backend endpoint
@@ -83,11 +88,9 @@ const Profile = () => {
           value: updatedValue,
         },
         {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-            // Any other headers that your backend requires
-          },
+            headers: {
+              "X-CSRFToken": token, // Include CSRF token in headers
+            },
         }
       );
 

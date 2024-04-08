@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
+import Cookies from "universal-cookie";
 import '../styles/GameLobby.css';
 
 function GameLobby() {
