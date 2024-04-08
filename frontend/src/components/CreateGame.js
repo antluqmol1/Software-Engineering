@@ -13,8 +13,11 @@ import woods from "../assets/woods.jpg";
 const useCreateGame = ( mode, trigger, setTrigger) => {
   const [players, setPlayers] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [error, setError] = useState(null);
+  const [gameError, setGameError] = useState(null);
+  const [partError, setPartError] = useState(null);
   const [gameId, setGameId] = useState(null);
+  const navigate = useNavigate();
+  
 
 
   console.log("Lobby and Request");
@@ -54,6 +57,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
         // Handle success, if needed
       })
       .catch((error) => {
+        setPartError(error)
         console.error("Error creating game:", error);
         return null;
       });
@@ -85,6 +89,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
       })
       .catch((error) => {
         // Error
+        setGameError(error)
         console.error("Error creating game:", error);
       });
   }
@@ -95,10 +100,16 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     if (trigger) {
       console.log("inside use effect - creating game");
       createGameBackend(mode.id, mode.title, mode.description);
-      
+
+      if (!gameError) {
+        console.log("navigating")
+        navigate("/game-lobby")
+      }
+
       console.log("players: ". playerslist)
       // Reset trigger to avoid repeated calls
       setTrigger(false); // You need to provide setTrigger function to this hook
+      // navigate("/game-lobby");
     }
   }, [mode, trigger, setTrigger]); // Include setTrigger in the dependency array
 
@@ -135,11 +146,18 @@ const gameModes = [
 // Individual game mode card component
 // Extracting this component allows for better testability and reusability.
 const GameModeCard = ({ mode }) => {
-  const [trigger, setTrigger] = useState(false)
-  useCreateGame(mode, trigger, setTrigger)
+  const [trigger, setTrigger] = useState(false);
+  var playerlist = useCreateGame(mode, trigger, setTrigger);
+  
+
+  console.log("player list:", playerlist);
+
+  if (playerlist) {
+    console.log("navigating");
+  }
 
   const handleClick = () => {
-    setTrigger(true)
+    setTrigger(true);
   }
 
   return (

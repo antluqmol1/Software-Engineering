@@ -4,6 +4,10 @@ import '../styles/GameLobby.css';
 function GameLobby() {
     const [showPopup, setShowPopup] = useState(false);
 
+    // useState(() => {
+
+    // });
+
     // Function to toggle the challenge popup
     const togglePopup = () => {
         setShowPopup(!showPopup);

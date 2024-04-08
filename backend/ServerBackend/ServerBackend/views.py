@@ -113,6 +113,10 @@ def create_game(request):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False})
+        
+def get_game(request):
+    print("get game")
+    
 
 
 def get_game_participants(request):
