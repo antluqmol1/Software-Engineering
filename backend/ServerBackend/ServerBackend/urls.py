@@ -22,17 +22,21 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('helloworld', views.hello_world, name='hello_world'),
     path('', views.home_page, name='home_page'),
+    path('grabtoken/', views.grab_token, name='grab_token'),
     path('token/', views.grab_token, name='grab_token'),
     path('putuser/', views.put_user, name='put_user'),
     path('putadmin/', views.put_admin, name='put_admin'),
     path('profile/', views.get_profile, name='get_profile'),
+    path('update-profile/', views.update_profile, name='update-prfile'),
     path('login/', views.user_login, name='user_login'),
-    path('grabtoken/', views.grab_token, name='grab_token'),
     path('logout/', views.user_logout, name='user_logout'),
     path('create-game/', views.create_game, name='create_game'),
+    path('delete-game/', views.delete_game, name='delete-game'),
     path('get-game-participants/', views.get_game_participants, name='get_game_participants'),
     path('get-game/', views.get_game, name='get_game'),
     path('join-game/', views.join_game, name='join-game'),
+
+
 
 
 ]
