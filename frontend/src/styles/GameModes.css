@@ -1,0 +1,213 @@
+/* GameModes.css */
+
+/* Enhancing the container styling with a more sophisticated shadow and spacing */
+.gamemodes-container {
+    background-color: #2F4F4F;
+    /* Dark Slate Gray: deep and calm background */
+    padding: 4em;
+    /* Increased padding for a spacious look */
+    border-radius: 15px;
+    /* Softly rounded corners for a modern feel */
+    color: #FFF;
+    /* White text for high contrast and legibility */
+    max-width: 1200px;
+    /* Restricts the maximum width for better design on large screens */
+    margin: 2em auto;
+    /* Adds margin to the top and bottom, centering horizontally */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    /* Deeper shadow for a pop effect */
+}
+
+.gamemodes-header {
+    text-align: center;
+    /* Centers the header text */
+}
+
+/* The title and subtitle styles are fine-tuned for aesthetic alignment */
+.gamemodes-header h1 {
+    color: #FA8072;
+    /* Salmon: warm and welcoming like a tropical sunset */
+    font-size: 4rem;
+    /* More pronounced size for title */
+    font-weight: 700;
+    /* Bold font weight for presence */
+    margin: 0 auto 1em;
+    /* Centered with margin for visual separation */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Subtle text shadow for depth */
+}
+
+.gamemodes-header h2 {
+    color: #FFD700;
+    /* Gold: captures the essence of the golden hour */
+    font-size: 2.2rem;
+    /* Size that complements the main title */
+    margin-bottom: 2.5em;
+    /* More space before the cards start */
+    text-decoration: underline;
+    /* Underlines the text */
+    text-decoration-color: #FFF;
+    /* White underline for contrast */
+    display: inline-block;
+    /* Allows text-decoration to fit content width */
+}
+
+/* The grid is set to ensure cards are well-spaced and aesthetically pleasing */
+.gamemodes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* Adapts to the width of the cards */
+    gap: 2em;
+    /* More space between cards */
+    justify-content: center;
+}
+
+/* Each game mode card is now designed to stand out with a subtle hover effect */
+.gamemode-card {
+    background-color: #FA8072;
+    /* Salmon background to draw attention */
+    border-radius: 15px;
+    /* Rounded corners for stylistic consistency */
+    padding: 2em;
+    /* Comfortable padding inside each card */
+    color: #FFF;
+    /* Maintains legibility */
+    transition: all 0.3s ease-in-out;
+    /* Transition for all properties for smoothness */
+}
+
+/* Enhancing the hover effect for better user engagement */
+.gamemode-card:hover {
+    transform: translateY(-10px);
+    /* Moves up slightly to indicate interactivity */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    /* Stronger shadow for a lifting effect */
+}
+
+/* Image wrapper to encapsulate the round images with a thicker border for prominence */
+.gamemode-image-wrapper {
+    height: 150px;
+    /* Ideal height for visibility */
+    width: 150px;
+    /* Matches height for a perfect circle */
+    margin: 0 auto 1em;
+    /* Centers the image and adds spacing below */
+    border-radius: 50%;
+    overflow: hidden;
+    border: 6px solid #FFF;
+    /* Thicker white border for distinction */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Slight shadow for depth */
+}
+
+.gamemode-image {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease-in-out;
+}
+
+.gamemode-card:hover .gamemode-image {
+    transform: scale(1.05);
+    /* Subtle scale for an interactive feel */
+}
+
+/* The descriptions and buttons are tweaked for consistency and readability */
+.gamemode-card h3 {
+    font-size: 1.4rem;
+    /* Clear font size for readability */
+    color: #FFF;
+    /* White for contrast */
+    margin-bottom: 1.5em;
+    /* Added space above the button */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Text shadow for depth */
+}
+
+/* Buttons get a lively appearance with a neat hover transition */
+.gamemode-button {
+    background-color: #20B2AA;
+    /* Light Sea Green for a refreshing look */
+    color: #FFF;
+    /* White text for contrast */
+    border: none;
+    /* No border for a clean button */
+    border-radius: 8px;
+    /* Slightly rounded edges on buttons */
+    padding: 0.8em 1.6em;
+    /* Generous padding for a tactile feel */
+    cursor: pointer;
+    /* Cursor pointer to indicate button */
+    font-size: 1rem;
+    /* Standard readable size */
+    font-weight: 600;
+    /* Semi-bold weight for emphasis */
+    text-transform: uppercase;
+    /* Uppercase for a consistent and clean look */
+    letter-spacing: 0.05em;
+    /* Spacing out letters for better legibility */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+    /* Smooth background and press effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
+}
+
+/* Interactive states with animation for a more dynamic user experience */
+.gamemode-button:hover,
+.gamemode-button:focus {
+    background-color: #3CB371;
+    /* A lighter shade on hover for a visual cue */
+    transform: translateY(-2px);
+    /* Slight lift on hover for interactivity */
+    box-shadow: 0 6px 12px rgba(32, 178, 170, 0.4);
+    /* Enhanced shadow on hover for depth */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .gamemodes-container {
+        padding: 2em;
+        /* Less padding to fit smaller screens */
+    }
+
+    .gamemodes-header h1 {
+        font-size: 2.5rem;
+        /* Smaller title font on smaller screens */
+    }
+
+    .gamemodes-header h2 {
+        font-size: 1.5rem;
+        /* Smaller subtitle font on smaller screens */
+    }
+
+    .gamemodes-header h1,
+    .gamemodes-header h2 {
+        display: block;
+        /* Stack the title and subtitle vertically on small screens */
+        margin-left: auto;
+        /* Center the text blocks by using auto margins */
+        margin-right: auto;
+    }
+
+    .gamemodes {
+        grid-template-columns: 1fr;
+        /* Single column for cards on smaller screens */
+    }
+
+    .gamemode-image-wrapper {
+        height: 100px;
+        /* Smaller image for smaller screens */
+        width: 100px;
+        /* Maintain aspect ratio */
+    }
+
+    .gamemode-card h3 {
+        font-size: 1rem;
+        /* Smaller description text on smaller screens */
+    }
+
+    .gamemode-button {
+        padding: 0.7em 1.4em;
+        /* Adjust padding for smaller screens */
+    }
+}
