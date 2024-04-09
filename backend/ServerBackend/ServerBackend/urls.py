@@ -36,6 +36,8 @@ urlpatterns = [
     path('get-game/', views.get_game, name='get_game'),
     path('join-game/', views.join_game, name='join-game'),
     path('leave-game/', views.leave_game, name='leave-game'),
+    path('game/next-prompt/', views.next_prompt, name='next-prompt'),
+
 ]
 
 

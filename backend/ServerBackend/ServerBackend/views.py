@@ -1,6 +1,6 @@
 import json
 import datetime
-from .models import User, Game, Participant
+from .models import User, Game, Participant, Task, PickedTasks
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Count
 
 
 @csrf_exempt
@@ -175,6 +176,12 @@ def leave_game(request):
             player.delete()
 
 
+'''
+Used when checking if a player is in game
+Returns 
+@gameId : string
+@isAdmin : boolean
+'''
 # returns game_id and admin boolean, fields 'success', 'gameId', 'isAdmin'  
 def get_game(request):
     print("get game")
@@ -186,23 +193,90 @@ def get_game(request):
         if user.is_authenticated:
             print("user is logged in")
 
+            # Defaults to false
             is_admin = False
 
+            # Checks if player is currently in a game
             potential_participant = Participant.objects.filter(user=user).exists()
-            # potential_participant = Participant.objects.get(user=user)
             if potential_participant:
                 print("in a game, returning game id")
+
+                # Query the participant record for the player
                 part = Participant.objects.get(user=user)
 
+                # checks if player is admin
                 game_id = part.game.game_id
-
                 if user == part.game.admin:
                     is_admin = True
 
                 print(game_id)
                 return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
             else:
-                return JsonResponse({'success': False})
+                return JsonResponse({'success': False, 'msg': 'user not authenticated'})
+        else:
+            return JsonResponse({'success': False, 'msg': "invalid method"})
+        
+'''
+Returns the next prompt of the game type the player is currently in.
+Loops through the PickedTasks table until it finds a unique task for
+the current game.
+Returns:
+@description : string
+@points : int
+'''
+def next_prompt(request):
+
+
+    print("next prompt")
+
+    if request.method == 'GET':
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is authenticated")
+            
+            # get the participant, game, and extract type
+            part = Participant.objects.get(user=user)
+            game = part.game
+            type = game.type
+
+            task_count = Task.objects.filter(type=type).count()
+
+            print(f'total amount of type {type} tasks: {task_count}')
+
+            # Check if task is available
+            for _ in range(task_count):
+                # get a random task, and total tasks
+                # this might not actually work 100, we can't be sure that the random 
+                # will not choose the same "picked" task multiple times, and we thus
+                # we might end report no avaiable task when that is not the case
+                random_task = Task.objects.filter(type = type).order_by('?').first()
+                print(f'Getting random task {random_task.task_id}')
+
+                # incase there are no tasks
+                if random_task in None:
+                    break
+                
+                # check if this task i already picked
+                is_picked = PickedTasks.objects.filter(task=random_task, game=game).exists()
+
+                # if not, we save it to PickedTasks, and return the question
+                if not is_picked:
+                    # Unsure whether it is game_id or game here, might have to change
+                    picked_task = PickedTasks(task=random_task, game=game, user=user, done=False)
+                    picked_task.save()
+                    return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
+
+            # arrive here if all tasks have been checked, or no tasks available        
+            return JsonResponse({'success': False, 'msg': 'no tasks'})
+        
+        else:
+            pass
+    else:
+        return JsonResponse({'success': False, 'msg': 'Invalid method'})
+
 
 
 def get_game_participants(request):
