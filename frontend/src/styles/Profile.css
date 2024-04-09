@@ -13,20 +13,16 @@ html {
     /* Center the children horizontally */
     align-items: center;
     /* Center the children vertically */
-    text-align: left;
-    /* Ensures text is centered */
 }
 
 .profile-container {
-    max-width: 400px;
-    /* Adjust width as needed */
-    margin: 100px auto;
-    /* This will center the container vertically and horizontally */
-    padding: 20px;
-    box-sizing: border-box;
-    /* This ensures padding is included in width */
-    background-color: transparent;
-    /* Make the card background transparent */
+
+    margin: 20px auto;
+    /* Adjust margin as necessary */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* This centers the .profile-wrapper horizontally */
 }
 
 .profile-heading {
@@ -34,9 +30,11 @@ html {
     /* Increase font size */
     color: #FFFFFF;
     /* Change color to white */
-    margin-top: 0;
+    margin: 0 0 20px 0;
+    /* Adjusts spacing around the heading */
+    margin-top: 150px;
     /* Remove margin-top to bring it closer to the wrapper */
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     /* Add some space below the heading */
     text-align: center;
     /* Center the heading */
@@ -72,15 +70,12 @@ html {
     /* Text color set to white for all child elements */
 }
 
-.profile-label-value {
-    flex-grow: 1;
-    /* Allows the label and value to take up the available space */
-}
-
+/* Ensure the buttons align to the right */
 .profile-edit-buttons {
-    /* This will place the buttons on the right */
     display: flex;
     justify-content: flex-end;
+    width: 100%;
+    /* Full width to push buttons to the edge */
 }
 
 .profile-item {
@@ -135,12 +130,35 @@ html {
     /* Adds a glow effect on focus */
 }
 
+/* Ensure the items stack vertically */
+.profile-card .profile-item {
+    flex-direction: column;
+    align-items: flex-start;
+    /* Aligns items to the left */
+}
+
+/* Place the label and value in one block, and buttons in another */
+.profile-card .profile-item>div {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+
+/* Style the container of label and value for better spacing */
+.profile-label-value {
+    display: block;
+    /* Take the full width */
+    margin-bottom: 10px;
+    /* Space between label/value and buttons */
+}
+
 .profile-photo-upload-section {
     text-align: center;
     /* Center align all content */
-    margin-top: 1rem;
+    margin-top: 20px;
     /* Spacing from the top */
-    padding: 20px;
+    padding: 100px;
     background: #FFFFFF;
     /* White background for the section */
     border-radius: 12px;
@@ -149,6 +167,14 @@ html {
     /* Subtle shadow for depth */
     font-family: decoy, serif;
     /* Maintain font consistency */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center elements vertically */
+    width: 100%;
+    /* Full width of its container */
+    margin-bottom: 20px;
+    /* Adds space below this section */
 }
 
 .custom-file-upload {
@@ -189,6 +215,11 @@ html {
     /* Ensure the image covers the area */
     border: 3px solid #FFFFFF;
     /* White border */
+    display: block;
+    /* Change display to block */
+    margin: 0 auto 10px;
+    /* Center the image and add space below */
+
 }
 
 .upload-button {
@@ -256,25 +287,27 @@ html {
     /* Adjust top margin to bring the wrapper up */
     margin-bottom: 20px;
     /* Add some space below the wrapper */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    /* Optional shadow for the wrapper */
+    background: #FFFFFF;
+    /* Background color for the wrapper */
+    border-radius: 12px;
+    /* Rounded corners for the wrapper */
+    overflow: hidden;
+    /* Ensures the children respect border-radius */
+
 }
 
 /* Adjust the .profile-container to fit within the new flexbox layout */
 .profile-container {
-    display: block;
+    display: flex;
     /* Use block display for the container */
     width: 100%;
     /* Full width */
-    max-width: 1200px;
+    max-width: 800px;
     /* Maximum width to match the wrapper */
     margin: auto;
     /* Center the container */
-}
-
-/* Remove margins that are no longer necessary due to flexbox layout */
-.profile-heading,
-.profile-card,
-.profile-photo-upload-section {
-    margin: 0;
 }
 
 /* You may need to adjust the max-width of .profile-card and .profile-photo-upload-section to fit your layout */
@@ -282,8 +315,6 @@ html {
 .profile-photo-upload-section {
     width: 50%;
     /* Each section takes up half the width of the container */
-    margin: 0;
-    /* Remove margin */
     box-shadow: none;
     /* Optional: Remove shadow if preferred */
 }
@@ -301,7 +332,7 @@ html {
 .profile-card .btn {
     font-weight: 600;
     color: #ffffff;
-    background-color: #6A1B9A;
+    background-color: #007BFF;
     border: none;
     border-radius: 20px;
     padding: 8px 15px;
@@ -310,7 +341,9 @@ html {
     transition: all 0.3s ease;
     box-shadow: 0 2px 5px rgba(106, 27, 154, 0.4);
     outline: none;
-    /* Removes the focus outline */
+    white-space: nowrap;
+    margin-left: 100px;
+    /* Space between buttons */
 }
 
 .profile-card .btn:hover {
@@ -334,8 +367,8 @@ html {
     border-radius: 4px;
     padding: 8px;
     margin-bottom: 5px;
-    width: auto;
-    /* Removes the full width, allowing flex-grow to control size */
+    width: calc(100% - 24px);
+    /* Subtract padding for full width */
     box-sizing: border-box;
     /* Include padding and borders in the width */
 }
@@ -343,4 +376,18 @@ html {
 .profile-card input[type="text"]:focus {
     border-color: #5E2A84;
     box-shadow: 0 0 0 2px rgba(94, 42, 132, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-container {
+        max-width: 90%;
+        /* Allows a bit of margin on smaller screens */
+    }
+
+    .profile-card,
+    .profile-photo-upload-section {
+        width: auto;
+        /* Allows internal padding to dictate size */
+    }
 }
