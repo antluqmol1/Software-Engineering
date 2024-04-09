@@ -39,16 +39,35 @@
     align-items: center;
     height: 100vh; /* Adjust as needed */
   }
-  
-  .prompt-text {
-    background-color: lightblue; /* Adjust background color as needed */
+
+  .prompt-points {
+    background-color: rgb(0, 0, 0); /* Adjust background color as needed */
     padding: 20px; /* Adjust padding as needed */
     border-radius: 10px; /* Adjust border radius as needed */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adjust box shadow as needed */
     text-align: center;
-    color: black; /* Change text color to dark red */
-    font-family: 'Arial', sans-serif; /* Change font family */
-    font-size: 18px; /* Change font size */
+    color: #FFF;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+    font-size: 18px;
+  }
+  
+  .prompt-text {
+    background-color: rgb(255, 200, 0); /* Adjust background color as needed */
+    padding: 20px; /* Adjust padding as needed */
+    border-radius: 10px; /* Adjust border radius as needed */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adjust box shadow as needed */
+    text-align: center;
+    color: #FFF;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+    font-size: 18px; 
   }
 
 .fetchPrompt-button {

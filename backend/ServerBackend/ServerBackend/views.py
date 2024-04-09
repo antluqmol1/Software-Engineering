@@ -225,17 +225,11 @@ Returns:
 @points : int
 '''
 def next_prompt(request):
-
-
-    print("next prompt")
-
     if request.method == 'GET':
-        print("valid method")
 
         user = request.user
 
         if user.is_authenticated:
-            print("user is authenticated")
             
             # get the participant, game, and extract type
             part = Participant.objects.get(user=user)
@@ -244,8 +238,6 @@ def next_prompt(request):
 
             task_count = Task.objects.filter(type=type).count()
 
-            print(f'total amount of type {type} tasks: {task_count}')
-
             # Check if task is available
             for _ in range(task_count):
                 # get a random task, and total tasks
@@ -253,19 +245,13 @@ def next_prompt(request):
                 # will not choose the same "picked" task multiple times, and we thus
                 # we might end report no avaiable task when that is not the case
                 random_task = Task.objects.filter(type = type).order_by('?').first()
-                print(f'Getting random task {random_task.task_id}')
-
-                # incase there are no tasks
-                if random_task in None:
-                    break
                 
-                # check if this task i already picked
+                # check if this task is already picked
                 is_picked = PickedTasks.objects.filter(task=random_task, game=game).exists()
 
                 # if not, we save it to PickedTasks, and return the question
                 if not is_picked:
-                    # Unsure whether it is game_id or game here, might have to change
-                    picked_task = PickedTasks(task=random_task, game=game, user=user, done=False)
+                    picked_task = PickedTasks(task=random_task, game=game)
                     picked_task.save()
                     return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
 
@@ -277,6 +263,28 @@ def next_prompt(request):
     else:
         return JsonResponse({'success': False, 'msg': 'Invalid method'})
 
+
+def give_points(request):
+    if request.method == 'PUT':
+        user = request.user
+
+        if user.is_authenticated:
+            data = json.loads(request.body) 
+            points = data.get('points')
+            username = data.get('username')
+
+            # get the participant record for the user receiving the points
+            player = Participant.objects.get(user=User.objects.get(username=username))
+
+            # update the score
+            player.score += points
+            player.save()
+
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'msg': 'not authenticated'})
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method'})
 
 
 def get_game_participants(request):
@@ -384,8 +392,6 @@ def update_profile(request):
             return JsonResponse({'error': 'user not logged in'})
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-
 
 
 def user_login(request):

@@ -9,13 +9,13 @@ function GameLobby() {
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [prompt, setPrompt] = useState(null);
+    const [promptPoints, setPromptPoints] = useState(null);
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     
 
     const handleDelete = () => {
-        // Make a POST request to localhost:8000/delete-game
         axios
         .delete(
             "http://localhost:8000/delete-game/",
@@ -73,7 +73,9 @@ function GameLobby() {
     const fetchPrompt = () => {
         axios.get("http://localhost:8000/game/next-prompt/")
             .then(response => {
-                setPrompt(response.data.prompt);
+                setPrompt(response.data['description']);
+                setPromptPoints(response.data['points']);
+                console.log(prompt);
             })
             .catch(error => {
                 console.error("Error fetching prompt:", error);
@@ -85,7 +87,6 @@ function GameLobby() {
         axios.get("http://localhost:8000/get-game-participants/")
             .then(response => {
                 setPlayerList(response.data.participants);
-                console.log(response.data.participants);
             })
             .catch(error => {
                 console.error("Error fetching player list:", error);
@@ -97,12 +98,40 @@ function GameLobby() {
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
-                console.log(admin);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
             });
     }
+
+    // Function assigns points to player in database, needs to be called by button on website
+    const givePoints = () => {
+        axios
+        .put(
+            "http://localhost:8000/game/give-points/",
+            null,
+            {
+                headers: {
+                    "X-CSRFToken": token, // Include CSRF token in headers
+                },
+            }
+        )
+        .then((response) => {
+            if (response.data['success'] == true) {
+                console.log("succeeded to give points");
+            }
+            else {
+                console.log("failed to give points");
+            }
+
+            return response.data;
+        })
+        .catch((error) => {
+            console.error("Error assigning points:", error);
+            return null;
+        });
+    }
+
 
     useEffect(() => {
         // Fetch the player list and game when the component mounts
@@ -124,9 +153,8 @@ function GameLobby() {
             </div>
 
             <div className="prompt-container">
-                <div className="prompt-text">
-                    {prompt}
-                </div>
+                <div className="prompt-points">Points: {promptPoints}</div>
+                <div className="prompt-text">{prompt}</div>
             </div>
             
            <button className="endGame-button" onClick={admin ? handleDelete : handleLeave}>
