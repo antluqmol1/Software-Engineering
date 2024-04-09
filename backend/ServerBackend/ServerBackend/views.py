@@ -161,19 +161,20 @@ def clean_up_game(game_id):
         print("failed to delete game and players")
 
 def leave_game(request):
-    print("leave game")
 
     if request.method == "PUT":
-        print("valid method")
 
         user = request.user
 
-        if user.authenticated:
-            print("user is authenticated")
-
+        if user.is_authenticated:
             player = Participant.objects.get(user=user)
 
             player.delete()
+
+            return JsonResponse({'success': True})
+        
+        else:
+            return JsonResponse({'success': False, 'msg': 'not authenticated'})
 
 
 '''
@@ -209,7 +210,6 @@ def get_game(request):
                 if user == part.game.admin:
                     is_admin = True
 
-                print(game_id)
                 return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
             else:
                 return JsonResponse({'success': False, 'msg': 'user not authenticated'})
@@ -299,7 +299,7 @@ def get_game_participants(request):
 
             # Extract relevant data to send back (e.g., usernames, scores)
             print("sending back data")
-            participant_data = [{'username': p.user.username, 'score': p.score, 'user_id': p.user.id} 
+            participant_data = [{'username': p.user.username, 'score': p.score} 
                                 for p in participants_in_same_game]
 
             return JsonResponse({'participants': participant_data})

@@ -5,20 +5,16 @@ import Cookies from "universal-cookie";
 import '../styles/GameLobby.css';
 
 function GameLobby() {
-    const [showPopup, setShowPopup] = useState(false);
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
+    const [prompt, setPrompt] = useState(null);
     const navigate = useNavigate();
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
     
 
     const handleDelete = () => {
-
-        const cookies = new Cookies();
-        const token = cookies.get("csrftoken");
-
-        console.log("deleting game, token: ", token);
-
         // Make a POST request to localhost:8000/delete-game
         axios
         .delete(
@@ -44,31 +40,26 @@ function GameLobby() {
             console.error("Error getting players:", error);
             return null;
         });
-
     }
 
+    // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
-
-        const cookies = new Cookies();
-        const token = cookies.get("csrftoken");
-
-        // Make a POST request to localhost:8000/delete-game
         axios
-        .delete(
-            "http://localhost:8000/delete-game/",
+        .put(
+            "http://localhost:8000/leave-game/",
+            null,
             {
-            headers: {
-                "X-CSRFToken": token, // Include CSRF token in headers
-            },
+                headers: {
+                    "X-CSRFToken": token, // Include CSRF token in headers
+                },
             }
         )
         .then((response) => {
             if (response.data['success'] == true) {
-                console.log("successfully deleted game");
                 navigate("/");
             }
             else {
-                console.log("failed to delete game");
+                console.log("failed to leave game");
             }
 
             return response.data;
@@ -77,15 +68,24 @@ function GameLobby() {
             console.error("Error getting players:", error);
             return null;
         });
-
     }
+
+    const fetchPrompt = () => {
+        axios.get("http://localhost:8000/game/next-prompt/")
+            .then(response => {
+                setPrompt(response.data.prompt);
+            })
+            .catch(error => {
+                console.error("Error fetching prompt:", error);
+            });
+    };
 
     // Function to fetch the list of participants from the server
     const fetchPlayerList = () => {
         axios.get("http://localhost:8000/get-game-participants/")
             .then(response => {
                 setPlayerList(response.data.participants);
-                console.log(response.data);
+                console.log(response.data.participants);
             })
             .catch(error => {
                 console.error("Error fetching player list:", error);
@@ -95,9 +95,9 @@ function GameLobby() {
     const fetchGame = () => {
         axios.get("http://localhost:8000/get-game/")
             .then(response => {
-                setAdmin(response.data.admin);
-                setGameID(response.data.game_id);
-                console.log(response.data);
+                setAdmin(response.data["isAdmin"]);
+                setGameID(response.data["gameId"]);
+                console.log(admin);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
@@ -110,13 +110,12 @@ function GameLobby() {
         fetchGame();
     }, []);
 
-    // Function to toggle the challenge popup
-    const togglePopup = () => {
-        setShowPopup(!showPopup);
-    };
-
     return (
         <div>
+            <div className="GameID">
+                GameID: {gameID}
+            </div>
+
             <div className="lobby-container">
                 {/* Render participant divs dynamically */}
                 {playerList.map((player, index) => (
@@ -124,23 +123,18 @@ function GameLobby() {
                 ))}
             </div>
 
-            {/* Challenge popup */}
-            {showPopup && (
-                <div className="popup-container">
-                    <div className="popup">
-                        <span className="popup-close" onClick={togglePopup}>X</span>
-                        <h2>Challenge</h2>
-                        <p>Do you accept the challenge?</p>
-                        <button>Accept</button>
-                        <button onClick={togglePopup}>Decline</button>
-                    </div>
+            <div className="prompt-container">
+                <div className="prompt-text">
+                    {prompt}
                 </div>
-            )}
-           <button className="gamemode-button" onClick={admin ? handleDelete : handleLeave}>
+            </div>
+            
+           <button className="endGame-button" onClick={admin ? handleDelete : handleLeave}>
                 {admin ? "End game" : "Leave game"}
             </button>
+            <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
         </div>
-    );
+    );   
 }
 
 export default GameLobby;

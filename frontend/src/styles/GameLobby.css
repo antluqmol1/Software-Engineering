@@ -1,6 +1,9 @@
 /* GameLobby.css */
 
 .lobby-container {
+    position: absolute;
+    top: 40px;
+    left: 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -16,53 +19,94 @@
     text-align: center;
 }
 
-.popup-container {
+.GameID {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: large;
+    text-align: center;
+    color: #ffffff; /* Change the color to your preference */
+    font-family: Arial, sans-serif; /* Change the font family if needed */
+    /* Add any other styles to make it look stylish */
+}
+
+
+
+.prompt-container {
     display: flex;
     justify-content: center;
     align-items: center;
-}
+    height: 100vh; /* Adjust as needed */
+  }
+  
+  .prompt-text {
+    background-color: lightblue; /* Adjust background color as needed */
+    padding: 20px; /* Adjust padding as needed */
+    border-radius: 10px; /* Adjust border radius as needed */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adjust box shadow as needed */
+    text-align: center;
+    color: black; /* Change text color to dark red */
+    font-family: 'Arial', sans-serif; /* Change font family */
+    font-size: 18px; /* Change font size */
+  }
 
-.popup {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.popup-close {
+.fetchPrompt-button {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-}
-
-.popup h2 {
-    margin-top: 0;
-}
-
-.popup p {
-    margin-bottom: 20px;
-}
-
-.popup button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
+    top: 40px;
+    right: 4px;
+    background-color: #2073b2;
+    /* Light Sea Green for a refreshing look */
+    color: #FFF;
+    /* White text for contrast */
     border: none;
-    border-radius: 5px;
+    /* No border for a clean button */
+    border-radius: 8px;
+    /* Slightly rounded edges on buttons */
+    padding: 0.8em 1.6em;
+    /* Generous padding for a tactile feel */
     cursor: pointer;
+    /* Cursor pointer to indicate button */
+    font-size: 1rem;
+    /* Standard readable size */
+    font-weight: 600;
+    /* Semi-bold weight for emphasis */
+    text-transform: uppercase;
+    /* Uppercase for a consistent and clean look */
+    letter-spacing: 0.05em;
+    /* Spacing out letters for better legibility */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+    /* Smooth background and press effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
 }
 
-.popup button + button {
-    margin-left: 10px;
-}
-
-.popup button:hover {
-    background-color: #0056b3;
+.endGame-button {
+    position: absolute;
+    bottom: 10px;
+    right: 4px;
+    background-color: #b22020;
+    /* Light Sea Green for a refreshing look */
+    color: #FFF;
+    /* White text for contrast */
+    border: none;
+    /* No border for a clean button */
+    border-radius: 8px;
+    /* Slightly rounded edges on buttons */
+    padding: 0.8em 1.6em;
+    /* Generous padding for a tactile feel */
+    cursor: pointer;
+    /* Cursor pointer to indicate button */
+    font-size: 1rem;
+    /* Standard readable size */
+    font-weight: 600;
+    /* Semi-bold weight for emphasis */
+    text-transform: uppercase;
+    /* Uppercase for a consistent and clean look */
+    letter-spacing: 0.05em;
+    /* Spacing out letters for better legibility */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+    /* Smooth background and press effect */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
 }
