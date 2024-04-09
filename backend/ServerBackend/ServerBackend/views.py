@@ -179,10 +179,11 @@ def get_game(request):
                 part = Participant.objects.get(user=user)
 
                 game_id = part.game.game_id
-                print(game_id)
-                return JsonResponse({'success': True, 'gameid': game_id})
+                if user == part.game.admin:
+                    return JsonResponse({'success': True, 'gameid': game_id, 'isAdmin': True})
+                else:
+                    return JsonResponse({'success': True, 'gameid': game_id, 'isAdmin': False})
             else:
-                print("not in a game, fail")
                 return JsonResponse({'success': False})
 
 
@@ -206,7 +207,7 @@ def get_game_participants(request):
 
             # Extract relevant data to send back (e.g., usernames, scores)
             print("sending back data")
-            participant_data = [{'username': p.user.username, 'score': p.score} 
+            participant_data = [{'username': p.user.username, 'score': p.score, 'user_id': p.user.id} 
                                 for p in participants_in_same_game]
 
             return JsonResponse({'participants': participant_data})

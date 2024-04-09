@@ -7,7 +7,8 @@ import '../styles/GameLobby.css';
 function GameLobby() {
     const [showPopup, setShowPopup] = useState(false);
     const [playerList, setPlayerList] = useState([]);
-    const [gameId, setGameId] = useState(null);
+    const [admin, setAdmin] = useState(false);
+    const [gameID, setGameID] = useState(null);
     const navigate = useNavigate();
     
 
@@ -46,20 +47,67 @@ function GameLobby() {
 
     }
 
+    const handleLeave = () => {
+
+        const cookies = new Cookies();
+        const token = cookies.get("csrftoken");
+
+        // Make a POST request to localhost:8000/delete-game
+        axios
+        .delete(
+            "http://localhost:8000/delete-game/",
+            {
+            headers: {
+                "X-CSRFToken": token, // Include CSRF token in headers
+            },
+            }
+        )
+        .then((response) => {
+            if (response.data['success'] == true) {
+                console.log("successfully deleted game");
+                navigate("/");
+            }
+            else {
+                console.log("failed to delete game");
+            }
+
+            return response.data;
+        })
+        .catch((error) => {
+            console.error("Error getting players:", error);
+            return null;
+        });
+
+    }
+
     // Function to fetch the list of participants from the server
     const fetchPlayerList = () => {
         axios.get("http://localhost:8000/get-game-participants/")
             .then(response => {
                 setPlayerList(response.data.participants);
+                console.log(response.data);
             })
             .catch(error => {
                 console.error("Error fetching player list:", error);
             });
     };
 
+    const fetchGame = () => {
+        axios.get("http://localhost:8000/get-game/")
+            .then(response => {
+                setAdmin(response.data.admin);
+                setGameID(response.data.game_id);
+                console.log(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching game ID:", error);
+            });
+    }
+
     useEffect(() => {
-        // Fetch the player list when the component mounts
+        // Fetch the player list and game when the component mounts
         fetchPlayerList();
+        fetchGame();
     }, []);
 
     // Function to toggle the challenge popup
@@ -88,8 +136,8 @@ function GameLobby() {
                     </div>
                 </div>
             )}
-           <button className="gamemode-button" onClick={handleDelete}>
-                End game
+           <button className="gamemode-button" onClick={admin ? handleDelete : handleLeave}>
+                {admin ? "End game" : "Leave game"}
             </button>
         </div>
     );
