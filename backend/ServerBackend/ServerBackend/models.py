@@ -114,14 +114,34 @@ class Game(models.Model):
 Define tasks or challenges that participants need to complete during the game.
 '''
 class Task(models.Model):
+
+    task_id = models.IntegerField(primary_key=True, default=None)
+
     # Description of the task/challenge
     description = models.TextField()
-    
+
     # Points awarded for completing the task
     points = models.IntegerField()
+
+    # Type of task, corresponds to type in game and
+    type = models.IntegerField(default=None)
+
+    # Whether or not a task is individual
+    individual = models.BooleanField(default=False)
+
+class PickedTasks(models.Model):
     
-    # Game to which the task is associated; ForeignKey links to the Game model
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
+
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+    done = models.BooleanField(default=None)
+
+    # this ensures that the combination of task and game must be unique
+    class meta:
+        unique_together = ('task', 'game')
 
 
 '''
@@ -139,7 +159,6 @@ class Response(models.Model):
     
     # Boolean indicating whether the response is correct or not
     is_correct = models.BooleanField(default=False)
-
 
 
 '''
