@@ -48,8 +48,8 @@ function Navbar() {
         <li><Link to="/login" className="navbar-link">Login</Link></li>
         <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
         <li><Link to="/profile" className="navbar-link">Profile</Link></li>
-        <span onClick={handleLogout} className="navbar-link">Logout</span>
-        <span onClick={handleDeleteGame} className="navbar-link">End game</span>
+        <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
+        <li><Link to="/profile" className="navbar-link">About us</Link></li>
       </ul>
     </nav>
   );

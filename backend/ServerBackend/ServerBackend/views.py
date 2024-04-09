@@ -159,9 +159,23 @@ def clean_up_game(game_id):
     except:
         print("failed to delete game and players")
 
+def leave_game(request):
+    print("leave game")
 
-    
-        
+    if request.method == "PUT":
+        print("valid method")
+
+        user = request.user
+
+        if user.authenticated:
+            print("user is authenticated")
+
+            player = Participant.objects.get(user=user)
+
+            player.delete()
+
+
+# returns game_id and admin boolean, fields 'success', 'gameId', 'isAdmin'  
 def get_game(request):
     print("get game")
 
@@ -172,6 +186,8 @@ def get_game(request):
         if user.is_authenticated:
             print("user is logged in")
 
+            is_admin = False
+
             potential_participant = Participant.objects.filter(user=user).exists()
             # potential_participant = Participant.objects.get(user=user)
             if potential_participant:
@@ -179,10 +195,13 @@ def get_game(request):
                 part = Participant.objects.get(user=user)
 
                 game_id = part.game.game_id
+
+                if user == part.game.admin:
+                    is_admin = True
+
                 print(game_id)
-                return JsonResponse({'success': True, 'gameid': game_id})
+                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
             else:
-                print("not in a game, fail")
                 return JsonResponse({'success': False})
 
 
@@ -206,7 +225,7 @@ def get_game_participants(request):
 
             # Extract relevant data to send back (e.g., usernames, scores)
             print("sending back data")
-            participant_data = [{'username': p.user.username, 'score': p.score} 
+            participant_data = [{'username': p.user.username, 'score': p.score, 'user_id': p.user.id} 
                                 for p in participants_in_same_game]
 
             return JsonResponse({'participants': participant_data})
