@@ -44,7 +44,7 @@ const Login = () => {
       });
 
       console.log("Login successful", response.data);
-      navigate('/profile');
+      navigate('/');
       // Handle successful login, e.g., redirect to another page
     } catch (error) {
       console.error("Login failed", error);

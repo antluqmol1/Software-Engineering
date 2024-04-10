@@ -92,8 +92,11 @@ const FrontPage = () => {
 
   return (
     <div className="home-container">
+      <div className = 'wave wave1'></div>
+      <div className = 'wave wave2'></div>
+      <div className = 'wave wave3'></div>
       <div className="home-content">
-        <h1>Funchase</h1>
+        <h1 className='font-style-h'>Funchase</h1>
         {userIsLoggedIn ? (
           <p>Welcome back {userData ? userData.username : "loading..."}</p>
         ) : (

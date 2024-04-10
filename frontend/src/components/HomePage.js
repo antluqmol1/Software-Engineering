@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
+import '../styles/App.css';
 import { useCheckUserLoggedIn } from '../utils/authUtils'; // Import checkUserLoggedIn from authUtils
 
 const HomePage = () => {
@@ -47,7 +48,7 @@ const HomePage = () => {
   return (
     <div className="home-container" style={{ backgroundImage: "url('your-background-image-url.jpg')" }}>
       <div className="home-content">
-        <h1>Boozechase</h1>
+        <p className='font-style-h'>Boozechase</p>
         <p>{message}</p>
         {userIsLoggedIn ? (
           <div className="buttons-container">
@@ -60,6 +61,9 @@ const HomePage = () => {
             <button className="login-button" onClick={handleSignUpClick}>Sign Up</button>
           </div>
         )}
+        <div className = 'wave wave1'></div>
+        <div className = 'wave wave2'></div>
+        <div className = 'wave wave3'></div>
         {/* Add more content or components as needed */}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
 import Cookies from "universal-cookie";
 import '../styles/GameLobby.css';
+import '../styles/App.css';
 
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
@@ -177,8 +178,8 @@ function GameLobby() {
 
             <div className="questions-container">
                 <div className="group-question">
-                    <h2 style={{ color: 'black', fontWeight: 'bold' }}>Prompt: </h2>
-                    <p style={{ color: 'white' }}>{prompt}</p>
+                    <h2 className="font-style-prompt">Prompt</h2>
+                    <p className="font-style">{prompt}</p>
                 </div>
             </div>
             

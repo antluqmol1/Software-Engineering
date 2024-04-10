@@ -1,0 +1,107 @@
+
+@font-face {
+    font-family: 'Pamit';
+    src: url('./../assets/Fonts/Pamit.ttf') format('truetype');
+    /* Add additional src declarations for other font formats if necessary */
+}
+
+@font-face {
+    font-family: 'Boogalo';
+    src: url('./../assets/Fonts/Boogaloo.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Patrick';
+    src: url('./../assets/Fonts/PatrickHand.ttf') format('truetype');
+}
+/* Add additional src declarations for other font formats if necessary */
+
+
+.font-style {
+    color: black;
+    text-align: center;
+    font-family: "Patrick";
+    letter-spacing: 0.6px;
+    font-size: calc(2vw + 2vh); /* Adjust the formula as needed */}
+
+.font-style-h {
+    text-align: center;
+    background-clip: text;
+    font-family: "Pamit";
+    letter-spacing: .55em; /* Increase the letter spacing */
+    color: rgb(157, 82, 157);
+     /* Create a shadow on each side to simulate an outline */
+    font-size: calc(0.1vw + 0.1vh); /* Adjust the formula as needed */   
+
+    }
+
+
+.font-style-prompt {
+    text-align: center;
+    background-clip: text;
+    font-family: "Pamit";
+    letter-spacing: .2em; /* Increase the letter spacing */
+    color: rgb(157, 82, 157);
+    text-shadow: 
+    -1px -1px 0 #ffffff,  
+     1px -1px 0 #000000,
+    -1px  1px 0 #000000,
+     1px  1px 0 #000000fc;
+     /* Create a shadow on each side to simulate an outline */
+    font-size:6vw; /* Increase font size to 20 pixels */
+    
+    }
+
+
+
+.wave {
+    position: absolute;
+    left: 0%;
+    bottom: 0%;
+    background: url('./../assets/wave.png');
+    overflow: hidden;
+    width: 100%;
+    height: 100px;
+    background-size: 1000px 100px;
+
+}
+
+.wave.wave1 {
+    opacity: .1;
+    animation: animate_wave1 30s linear infinite;
+}
+
+.wave.wave2 {
+    opacity: .23;
+    animation: animate_wave1 14s linear infinite;
+}
+
+.wave.wave3 {
+    opacity: .2;
+    animation: animate_wave2 24s linear infinite;
+}
+
+@keyframes animate_wave1 {
+
+    0%
+    {
+        background-position-x: 0px;
+    }
+
+    100%
+    {
+        background-position-x: 1000px;
+    }
+}
+@keyframes animate_wave2 {
+
+    0%
+    {
+        background-position-x: 1000px;
+    }
+
+    100%
+    {
+        background-position-x: 0px;
+    }
+}

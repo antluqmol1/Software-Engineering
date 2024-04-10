@@ -1,5 +1,8 @@
 /* Navbar.css */
 .navbar {
+    position: absolute;
+    top: 0%;
+    width: 100%;
     background-color: #333; /* Background color of the navbar */
     color: #fff; /* Text color */
     padding: 10px 20px; /* Padding around the navbar */
