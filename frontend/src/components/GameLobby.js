@@ -153,6 +153,43 @@ function GameLobby() {
 
     }, []);
 
+
+    return (
+        <div className="game-lobby">
+            
+            <div className="GameID">
+                GameID: {gameID}
+            </div>
+            {/* Leaderboard */}
+            <div className="leaderboard">
+                <h2>Leaderboard</h2>
+                <div className="leaderboard-players">
+                    {/* Display leaderboard content here */}
+                    {/* Map through players array to display each player and their score */}
+                    {playerList.map((player, index) => (
+                        <div className="player" key={index}>
+                            <span>{player.username}</span>
+                            <span className="score">{player.score}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="questions-container">
+                <div className="group-question">
+                    <h2 style={{ color: 'black', fontWeight: 'bold' }}>Prompt: </h2>
+                    <p style={{ color: 'white' }}>{prompt}</p>
+                </div>
+            </div>
+            
+            <button className="endGame-button" onClick={admin ? handleDelete : handleLeave}>
+                {admin ? "End game" : "Leave game"}
+            </button>
+
+            <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
+        </div>
+    );
+
     return (
         <div>
             <div className="GameID">

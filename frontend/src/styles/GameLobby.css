@@ -1,131 +1,260 @@
 /* GameLobby.css */
 
 .lobby-container {
-    position: absolute;
-    top: 40px;
-    left: 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .participant {
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    width: 200px;
-    text-align: center;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 200px;
+  text-align: center;
 }
 
-.GameID {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: large;
-    text-align: center;
-    color: #ffffff; /* Change the color to your preference */
-    font-family: Arial, sans-serif; /* Change the font family if needed */
-    /* Add any other styles to make it look stylish */
+.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+.popup {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
 
+.popup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
 
-.prompt-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Adjust as needed */
-  }
+.popup h2 {
+  margin-top: 0;
+}
 
-  .prompt-points {
-    background-color: rgb(0, 0, 0); /* Adjust background color as needed */
-    padding: 20px; /* Adjust padding as needed */
-    border-radius: 10px; /* Adjust border radius as needed */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adjust box shadow as needed */
-    text-align: center;
-    color: #FFF;
-    font-size: 1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
-    font-size: 18px;
-  }
-  
-  .prompt-text {
-    background-color: rgb(255, 200, 0); /* Adjust background color as needed */
-    padding: 20px; /* Adjust padding as needed */
-    border-radius: 10px; /* Adjust border radius as needed */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adjust box shadow as needed */
-    text-align: center;
-    color: #FFF;
-    font-size: 1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
-    font-size: 18px; 
-  }
+.popup p {
+  margin-bottom: 20px;
+}
+
+.popup button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.popup button + button {
+  margin-left: 10px;
+}
+
+.popup button:hover {
+  background-color: #0056b3;
+}
+
+/* Update your GameLobby.css file */
+
+.question-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}
+
+.question-container h2 {
+  margin-top: 0;
+}
+
+.question-container p {
+  margin-bottom: 10px;
+}
+
+.question-container textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.question-container button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.question-container button:hover {
+  background-color: #0056b3;
+}
+
+.game-lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.questions-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Adjust the gap between questions */
+  margin-top: 250px; /* Add margin to move the containers down */
+}
+
+.individual-question,
+.group-question {
+  width: 400px; /* Adjust the width of each question container */
+  padding: 20px;
+  border: 1px solid #000000;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  color: black; /* Set color to black */
+  font-weight: bold; /* Make text bold */
+}
+
+.individual-question h2,
+.group-question h2 {
+  margin-top: 0;
+}
+
+.game-lobby {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 50px;
+}
+
+.leaderboard {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  width: 200px;
+  position: fixed; /* Position the leaderboard */
+  left: 10px; /* Adjust the left position */
+  top: 18%; /* Align it vertically in the middle */
+  transform: translateY(-50%); /* Center it vertically */
+}
+
+.leaderboard h2 {
+  margin-top: 0;
+}
+
+.leaderboard-players {
+  margin-top: 10px;
+}
+
+.player {
+  padding: 5px;
+  margin-bottom: 5px;
+  background-color: #ddd;
+  border-radius: 5px;
+}
+
+/* Add this CSS to your existing GameLobby.css file */
+.player {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  margin-bottom: 5px;
+  background-color: #ddd;
+  border-radius: 5px;
+}
+
+.score {
+  font-weight: bold;
+}
 
 .fetchPrompt-button {
-    position: absolute;
-    top: 40px;
-    right: 4px;
-    background-color: #2073b2;
-    /* Light Sea Green for a refreshing look */
-    color: #FFF;
-    /* White text for contrast */
-    border: none;
-    /* No border for a clean button */
-    border-radius: 8px;
-    /* Slightly rounded edges on buttons */
-    padding: 0.8em 1.6em;
-    /* Generous padding for a tactile feel */
-    cursor: pointer;
-    /* Cursor pointer to indicate button */
-    font-size: 1rem;
-    /* Standard readable size */
-    font-weight: 600;
-    /* Semi-bold weight for emphasis */
-    text-transform: uppercase;
-    /* Uppercase for a consistent and clean look */
-    letter-spacing: 0.05em;
-    /* Spacing out letters for better legibility */
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
-    /* Smooth background and press effect */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    /* Subtle shadow for depth */
+  position: absolute;
+  top: 40px;
+  right: 4px;
+  background-color: #2073b2;
+  /* Light Sea Green for a refreshing look */
+  color: #FFF;
+  /* White text for contrast */
+  border: none;
+  /* No border for a clean button */
+  border-radius: 8px;
+  /* Slightly rounded edges on buttons */
+  padding: 0.8em 1.6em;
+  /* Generous padding for a tactile feel */
+  cursor: pointer;
+  /* Cursor pointer to indicate button */
+  font-size: 1rem;
+  /* Standard readable size */
+  font-weight: 600;
+  /* Semi-bold weight for emphasis */
+  text-transform: uppercase;
+  /* Uppercase for a consistent and clean look */
+  letter-spacing: 0.05em;
+  /* Spacing out letters for better legibility */
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+  /* Smooth background and press effect */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  /* Subtle shadow for depth */
 }
 
 .endGame-button {
-    position: absolute;
-    bottom: 10px;
-    right: 4px;
-    background-color: #b22020;
-    /* Light Sea Green for a refreshing look */
-    color: #FFF;
-    /* White text for contrast */
-    border: none;
-    /* No border for a clean button */
-    border-radius: 8px;
-    /* Slightly rounded edges on buttons */
-    padding: 0.8em 1.6em;
-    /* Generous padding for a tactile feel */
-    cursor: pointer;
-    /* Cursor pointer to indicate button */
-    font-size: 1rem;
-    /* Standard readable size */
-    font-weight: 600;
-    /* Semi-bold weight for emphasis */
-    text-transform: uppercase;
-    /* Uppercase for a consistent and clean look */
-    letter-spacing: 0.05em;
-    /* Spacing out letters for better legibility */
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
-    /* Smooth background and press effect */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    /* Subtle shadow for depth */
+  position: absolute;
+  bottom: 10px;
+  right: 4px;
+  background-color: #b22020;
+  /* Light Sea Green for a refreshing look */
+  color: #FFF;
+  /* White text for contrast */
+  border: none;
+  /* No border for a clean button */
+  border-radius: 8px;
+  /* Slightly rounded edges on buttons */
+  padding: 0.8em 1.6em;
+  /* Generous padding for a tactile feel */
+  cursor: pointer;
+  /* Cursor pointer to indicate button */
+  font-size: 1rem;
+  /* Standard readable size */
+  font-weight: 600;
+  /* Semi-bold weight for emphasis */
+  text-transform: uppercase;
+  /* Uppercase for a consistent and clean look */
+  letter-spacing: 0.05em;
+  /* Spacing out letters for better legibility */
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+  /* Smooth background and press effect */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  /* Subtle shadow for depth */
+}
+
+
+.GameID {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: large;
+  text-align: center;
+  color: #ffffff; /* Change the color to your preference */
+  font-family: Arial, sans-serif; /* Change the font family if needed */
+  /* Add any other styles to make it look stylish */
 }
