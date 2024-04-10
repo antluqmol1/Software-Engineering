@@ -55,6 +55,9 @@ if you want to branch from the main branch, make sure you are at main, or move t
 4. Once conflicts solved, We can go to our branch, for example: `git checkout antonio-frontend`
 5. And now, merge the changes from main: `git merge main`
 
+# Testing
+
+Coverage - see what code is being tested
 
 # Getting Started with Create React App
 
