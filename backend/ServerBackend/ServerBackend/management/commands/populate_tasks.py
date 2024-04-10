@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 import json
-from ServerBackend.models import Task
+from ServerBackend.models import Task, User
 import os
 from django.conf import settings
 
@@ -12,6 +12,23 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # Hardcoded path relative to the Django project root directory
         json_file_path = os.path.join(settings.BASE_DIR, "ServerBackend", "management", "sourceData", "tasks.json")
+
+        # Create two users
+        user1 = User.objects.create_user(
+            username="bob",
+            email="user1@example.com",
+            password="bob",
+            first_name="Bob",
+            last_name="Doe"
+        )
+
+        user2 = User.objects.create_user(
+            username="alice",
+            email="alice@gmail.com",
+            password="alice",
+            first_name="Alice",
+            last_name="Smith"
+        )
 
         with open(json_file_path, 'r') as file:
             tasks = json.load(file)

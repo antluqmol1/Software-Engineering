@@ -135,9 +135,9 @@ class PickedTasks(models.Model):
 
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
-    # user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
-    # done = models.BooleanField(default=None)
+    done = models.BooleanField(default=False)
 
     # this ensures that the combination of task and game must be unique
     # class meta:

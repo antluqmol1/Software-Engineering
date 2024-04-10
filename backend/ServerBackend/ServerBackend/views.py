@@ -247,11 +247,11 @@ def next_prompt(request):
                 random_task = Task.objects.filter(type = type).order_by('?').first()
                 
                 # check if this task is already picked
-                is_picked = PickedTasks.objects.filter(task=random_task, game=game).exists()
+                is_picked = PickedTasks.objects.filter(task=random_task, game=game, user=user).exists()
 
                 # if not, we save it to PickedTasks, and return the question
                 if not is_picked:
-                    picked_task = PickedTasks(task=random_task, game=game)
+                    picked_task = PickedTasks(task=random_task, game=game, user=user)
                     picked_task.save()
                     return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
 
