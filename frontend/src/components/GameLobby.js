@@ -71,7 +71,13 @@ function GameLobby() {
     }
 
     const fetchPrompt = () => {
-        axios.get("http://localhost:8000/game/next-prompt/")
+        axios.get("http://localhost:8000/game/next-prompt/",
+            {
+                headers: {
+                    "X-CSRFToken": token, // Include CSRF token in headers
+                },
+            }
+        )
             .then(response => {
                 setPrompt(response.data['description']);
                 setPromptPoints(response.data['points']);
@@ -84,7 +90,13 @@ function GameLobby() {
 
     // Function to fetch the list of participants from the server
     const fetchPlayerList = () => {
-        axios.get("http://localhost:8000/get-game-participants/")
+        axios.get("http://localhost:8000/get-game-participants/",
+        {
+            headers: {
+                "X-CSRFToken": token, // Include CSRF token in headers
+            },
+        }
+    )
             .then(response => {
                 setPlayerList(response.data.participants);
             })
@@ -98,6 +110,7 @@ function GameLobby() {
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
+                fetchPrompt();
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
@@ -137,6 +150,7 @@ function GameLobby() {
         // Fetch the player list and game when the component mounts
         fetchPlayerList();
         fetchGame();
+
     }, []);
 
     return (
