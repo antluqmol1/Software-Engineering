@@ -9,8 +9,8 @@ function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
-    const [prompt, setPrompt] = useState(null);
-    const [promptPoints, setPromptPoints] = useState(null);
+    const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || null);
+    const [promptPoints, setPromptPoints] = useState(localStorage.getItem('points') || null);
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
@@ -28,7 +28,8 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] == true) {
-                console.log("successfully deleted game");
+                localStorage.removeItem('prompt');
+                localStorage.removeItem('points');
                 navigate("/");
             }
             else {
@@ -57,6 +58,8 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] == true) {
+                localStorage.removeItem('prompt');
+                localStorage.removeItem('points');
                 navigate("/");
             }
             else {
@@ -82,7 +85,8 @@ function GameLobby() {
             .then(response => {
                 setPrompt(response.data['description']);
                 setPromptPoints(response.data['points']);
-                console.log(prompt);
+                localStorage.setItem('prompt', response.data['description']); 
+                localStorage.setItem('points', response.data['description']);
             })
             .catch(error => {
                 console.error("Error fetching prompt:", error);
@@ -111,7 +115,6 @@ function GameLobby() {
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
-                fetchPrompt();
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
@@ -151,7 +154,6 @@ function GameLobby() {
         // Fetch the player list and game when the component mounts
         fetchPlayerList();
         fetchGame();
-
     }, []);
 
 
@@ -179,7 +181,7 @@ function GameLobby() {
             <div className="questions-container">
                 <div className="group-question">
                     <h2 className="font-style-prompt">Prompt</h2>
-                    <p className="font-style">{prompt}</p>
+                    <p className="font-style">Points: {promptPoints} "{prompt}"</p>
                 </div>
             </div>
             
@@ -189,32 +191,7 @@ function GameLobby() {
 
             <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
         </div>
-    );
-
-    return (
-        <div>
-            <div className="GameID">
-                GameID: {gameID}
-            </div>
-
-            <div className="lobby-container">
-                {/* Render participant divs dynamically */}
-                {playerList.map((player, index) => (
-                    <div className="participant" key={index}>{player.username}</div>
-                ))}
-            </div>
-
-            <div className="prompt-container">
-                <div className="prompt-points">Points: {promptPoints}</div>
-                <div className="prompt-text">{prompt}</div>
-            </div>
-            
-           <button className="endGame-button" onClick={admin ? handleDelete : handleLeave}>
-                {admin ? "End game" : "Leave game"}
-            </button>
-            <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
-        </div>
-    );   
+    );  
 }
 
 export default GameLobby;
