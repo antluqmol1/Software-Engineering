@@ -10,11 +10,11 @@ function GameLobby() {
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || null);
-    const [promptPoints, setPromptPoints] = useState(localStorage.getItem('points') || null);
+    const [promptPoints, setPromptPoints] = useState(parseInt(localStorage.getItem('points') || null));
+    const [showGivePointButton, setShowGivePointButton] = useState(false); // New state
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
-    
 
     const handleDelete = () => {
         axios
@@ -27,7 +27,7 @@ function GameLobby() {
             }
         )
         .then((response) => {
-            if (response.data['success'] == true) {
+            if (response.data['success'] === true) {
                 localStorage.removeItem('prompt');
                 localStorage.removeItem('points');
                 navigate("/");
@@ -57,7 +57,7 @@ function GameLobby() {
             }
         )
         .then((response) => {
-            if (response.data['success'] == true) {
+            if (response.data['success'] === true) {
                 localStorage.removeItem('prompt');
                 localStorage.removeItem('points');
                 navigate("/");
@@ -85,8 +85,9 @@ function GameLobby() {
             .then(response => {
                 setPrompt(response.data['description']);
                 setPromptPoints(response.data['points']);
+                setShowGivePointButton(true); // Show the givePoint button again
                 localStorage.setItem('prompt', response.data['description']); 
-                localStorage.setItem('points', response.data['description']);
+                localStorage.setItem('points', response.data['points']);
             })
             .catch(error => {
                 console.error("Error fetching prompt:", error);
@@ -122,11 +123,14 @@ function GameLobby() {
     }
 
     // Function assigns points to player in database, needs to be called by button on website
-    const givePoints = () => {
+    const givePoints = (username, points) => {
         axios
         .put(
             "http://localhost:8000/game/give-points/",
-            null,
+            { 
+                username: username, 
+                points: points 
+            },
             {
                 headers: {
                     "X-CSRFToken": token, // Include CSRF token in headers
@@ -134,8 +138,9 @@ function GameLobby() {
             }
         )
         .then((response) => {
-            if (response.data['success'] == true) {
+            if (response.data['success'] === true) {
                 console.log("succeeded to give points");
+                setShowGivePointButton(false); // Hide the givePoint button after clicking
             }
             else {
                 console.log("failed to give points");
@@ -172,6 +177,7 @@ function GameLobby() {
                     {playerList.map((player, index) => (
                         <div className="player" key={index}>
                             <span>{player.username}</span>
+                            {showGivePointButton && <button className="givePoint-button" onClick={() => givePoints(player.username, promptPoints)}>Give Points</button>}
                             <span className="score">{player.score}</span>
                         </div>
                     ))}
