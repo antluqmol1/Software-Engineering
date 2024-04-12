@@ -1,5 +1,6 @@
 import json
-import datetime
+import jwt
+from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, Task, PickedTasks
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
@@ -9,6 +10,8 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count
+from django.conf import settings
+
 
 
 @csrf_exempt
@@ -20,6 +23,17 @@ def hello_world(request):
 @csrf_exempt
 def home_page(request):
     return JsonResponse({'message': 'Welcome to boozechase'})
+
+
+def generate_JWT(user):
+    payload = {
+        'user_id': user.id,
+        'exp': dt.now(timezone.utc) + timedelta(hours=12),
+        'iat': dt.now(timezone.utc)
+    }
+
+    JWToken = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    return JWToken.decode('utf-8')
 
 def join_game(request):
     print("joining game")
@@ -110,6 +124,47 @@ def create_game(request):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False, 'msg': 'not authenticated'})
+        
+        '''
+Used when checking if a player is in game
+Returns 
+@gameId : string
+@isAdmin : boolean
+'''
+# returns game_id and admin boolean, fields 'success', 'gameId', 'isAdmin'  
+def get_game(request):
+    print("get game")
+
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in")
+
+            # Defaults to false
+            is_admin = False
+
+            # Checks if player is currently in a game
+            potential_participant = Participant.objects.filter(user=user).exists()
+            if potential_participant:
+                print("in a game, returning game id")
+
+                # Query the participant record for the player
+                part = Participant.objects.get(user=user)
+
+                # checks if player is admin
+                game_id = part.game.game_id
+                if user == part.game.admin:
+                    is_admin = True
+
+                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
+            else:
+                return JsonResponse({'success': False, 'msg': 'user not authenticated'})
+        else:
+            return JsonResponse({'success': False, 'msg': "invalid method"})
+        
+
 
 def delete_game(request):
     print('delete game')
@@ -176,45 +231,6 @@ def leave_game(request):
         else:
             return JsonResponse({'success': False, 'msg': 'not authenticated'})
 
-
-'''
-Used when checking if a player is in game
-Returns 
-@gameId : string
-@isAdmin : boolean
-'''
-# returns game_id and admin boolean, fields 'success', 'gameId', 'isAdmin'  
-def get_game(request):
-    print("get game")
-
-    if request.method == 'GET':
-        print("valid method")
-        user = request.user
-
-        if user.is_authenticated:
-            print("user is logged in")
-
-            # Defaults to false
-            is_admin = False
-
-            # Checks if player is currently in a game
-            potential_participant = Participant.objects.filter(user=user).exists()
-            if potential_participant:
-                print("in a game, returning game id")
-
-                # Query the participant record for the player
-                part = Participant.objects.get(user=user)
-
-                # checks if player is admin
-                game_id = part.game.game_id
-                if user == part.game.admin:
-                    is_admin = True
-
-                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
-            else:
-                return JsonResponse({'success': False, 'msg': 'user not authenticated'})
-        else:
-            return JsonResponse({'success': False, 'msg': "invalid method"})
         
 '''
 Returns the next prompt of the game type the player is currently in.
@@ -417,17 +433,16 @@ def user_login(request):
             print("attempting to login")
             login(request, user)
             print("Login complete!")
+            print("generating JWT")
+            token = generate_JWT(user)
+            print(f'')
             # Return a JSON response or redirect as per your application's flow
-            return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'success', 'JTW': token})
         else:
             print("not valid")
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
     return JsonResponse({'error': 'Only POST method allowed'}, status=405)
-
-    # maybe we should go for this instead?
-    # # If not a POST request, show the login form (or handle accordingly)
-    # return HttpResponse("Login page")
 
 
 @csrf_exempt

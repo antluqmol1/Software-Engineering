@@ -140,8 +140,8 @@ class PickedTasks(models.Model):
     done = models.BooleanField(default=False)
 
     # this ensures that the combination of task and game must be unique
-    # class meta:
-    #     unique_together = ('task', 'game')
+    class meta:
+        unique_together = ('task', 'game')
 
 
 '''
