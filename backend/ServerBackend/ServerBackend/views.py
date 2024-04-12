@@ -32,8 +32,10 @@ def generate_JWT(user):
         'iat': dt.now(timezone.utc)
     }
 
+    print(f'testing datetime: {dt.now(timezone.utc)}')
+
     JWToken = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-    return JWToken.decode('utf-8')
+    return JWToken
 
 def join_game(request):
     print("joining game")
@@ -109,7 +111,7 @@ def create_game(request):
                             type=type,
                             description=description, 
                             admin=user,
-                            start_time=datetime.datetime.now(), 
+                            start_time=dt.now(), 
                             end_time=None)
             
             new_game.save()
@@ -200,6 +202,7 @@ def delete_game(request):
     else:
         return JsonResponse({'success': False, 'msg': 'invalid method'})
 
+
 def clean_up_game(game_id):
 
     try:
@@ -214,6 +217,7 @@ def clean_up_game(game_id):
         players_to_delete.delete()
     except:
         print("failed to delete game and players")
+
 
 def leave_game(request):
 
@@ -435,9 +439,13 @@ def user_login(request):
             print("Login complete!")
             print("generating JWT")
             token = generate_JWT(user)
-            print(f'')
+            print(f'JWT: {token}')
+
+            response = JsonResponse({'status': 'success', 'JWT': token})
+
+            response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
             # Return a JSON response or redirect as per your application's flow
-            return JsonResponse({'status': 'success', 'JTW': token})
+            return response
         else:
             print("not valid")
             return JsonResponse({'error': 'Invalid credentials'}, status=401)

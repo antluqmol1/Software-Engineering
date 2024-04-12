@@ -150,6 +150,34 @@ function GameLobby() {
         // Fetch the player list and game when the component mounts
         fetchPlayerList();
         fetchGame();
+        
+        // Setup WebSocket connection
+        const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+        console.log("token being sent:", token)
+        const webSocket = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
+        // const webSocket = new WebSocket(`wss://localhost:8000/ws/gamelobby/`); # not working
+
+        
+        // WE NEED TO EDIT THE LOGIN VIEW, WE MUST GENERATE A JWT ON THE BACKEND AND SEND IT TO THE BROWSER
+        webSocket.onopen = (event) => {
+            console.log('WebSocket Connected');
+        };
+
+        webSocket.onmessage = (event) => {
+            // Handle incoming messages
+            const data = JSON.parse(event.data);
+            console.log('Message from server ', data.message);
+            // Update state based on message
+        };
+
+        webSocket.onclose = () => {
+            console.log('WebSocket Disconnected');
+        };
+
+        // Clean up on unmount
+        return () => {
+            webSocket.close();
+        };
 
     }, []);
 

@@ -44,6 +44,7 @@ const Login = () => {
       });
 
       console.log("Login successful", response.data);
+      console.log("JWT: ", response.data['JWT']);
       navigate('/profile');
       // Handle successful login, e.g., redirect to another page
     } catch (error) {
