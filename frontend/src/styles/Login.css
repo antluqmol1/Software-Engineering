@@ -5,7 +5,6 @@
   padding: 50px;
   min-height: 100vh;
   /* Ensure it takes the full viewport height */
-  background: #edf2f7;
   /* Add a background color for the whole page */
   box-sizing: border-box;
 }

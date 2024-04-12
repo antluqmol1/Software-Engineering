@@ -6,6 +6,7 @@ import "../styles/Profile.css";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import Cookies from "universal-cookie";
 import "../styles/GameModes.css";
+import "../styles/App.css";
 import bluemargharita from "../assets/bluemargharita.jpg";
 import familynight from "../assets/familynight.png";
 import woods from "../assets/woods.jpg";
@@ -144,11 +145,13 @@ const GameModeCard = ({ mode }) => {
 // Main GameModes component that renders the game mode options
 const GameModes = () => {
   return (
+    <div>
+
     <div className="gamemodes-container">
       {/* Header section for the game title and subtitle */}
       <header className="gamemodes-header">
-        <h1>FunChase</h1>
-        <h2>Game Modes:</h2>
+        <h1 className="font-style-h">FunChase</h1>
+        <h2 className="font-style-prompt">Game Modes:</h2>
       </header>
       {/* Section containing all the game modes */}
       <section className="gamemodes">
@@ -157,6 +160,11 @@ const GameModes = () => {
           <GameModeCard key={mode.id} mode={mode} />
         ))}
       </section>
+  
+    </div>
+        <div className = 'wave wave1'></div>
+        <div className = 'wave wave2'></div>
+        <div className = 'wave wave3'></div>
     </div>
   );
 };

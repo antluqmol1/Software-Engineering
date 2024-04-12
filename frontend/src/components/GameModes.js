@@ -54,7 +54,7 @@ const GameModes = () => {
     <div className="gamemodes-container">
       {/* Header section for the game title and subtitle */}
       <header className="gamemodes-header">
-        <h1>FunChase</h1>
+        <h1 className="">FunChase</h1>
         <h2>Game Modes</h2>
       </header>
       {/* Section containing all the game modes */}

@@ -87,6 +87,9 @@ const Login = () => {
           <a href="/create-user">Sign up</a>
         </div>
       </div>
+      <div className = 'wave wave1'></div>
+        <div className = 'wave wave2'></div>
+        <div className = 'wave wave3'></div>
     </div>
   );
 };

@@ -186,7 +186,7 @@ function GameLobby() {
 
             <div className="questions-container">
                 <div className="group-question">
-                    <h2 className="font-style-prompt">Prompt</h2>
+                    <h2 className="font-style-prompt">Challenge</h2>
                     <p className="font-style">Points: {promptPoints} "{prompt}"</p>
                 </div>
             </div>
@@ -196,6 +196,9 @@ function GameLobby() {
             </button>
 
             <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
+        <div className = 'wave wave1'></div>
+        <div className = 'wave wave2'></div>
+        <div className = 'wave wave3'></div>
         </div>
     );  
 }

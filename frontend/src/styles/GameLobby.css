@@ -123,7 +123,7 @@
 
 .individual-question,
 .group-question {
-  width: 40vw; /* Adjust the width of each question container */
+  width: 50vw; /* Adjust the width of each question container */
   padding: 20px;
   border: 1px solid #000000;
   border-radius: 5px;
@@ -252,6 +252,7 @@
   /* Smooth background and press effect */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   /* Subtle shadow for depth */
+  z-index: 9999;
 }
 
 

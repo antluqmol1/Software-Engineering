@@ -28,7 +28,7 @@
     text-align: center;
     background-clip: text;
     font-family: "Pamit";
-    letter-spacing: .55em; /* Increase the letter spacing */
+    letter-spacing: .3em; /* Increase the letter spacing */
     color: rgb(157, 82, 157);
      /* Create a shadow on each side to simulate an outline */
     font-size: calc(0.1vw + 0.1vh); /* Adjust the formula as needed */   

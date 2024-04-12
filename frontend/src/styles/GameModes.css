@@ -2,15 +2,28 @@
 
 /* Enhancing the container styling with a more sophisticated shadow and spacing */
 .gamemodes-container {
-    background-color: #2F4F4F;
+    /* background-color: #fdfdfd; */
     /* Dark Slate Gray: deep and calm background */
-    padding: 4em;
+    top: 10%;
+    left: 0%;
+    right: 0%;
+    
+    overflow: auto;
+
+    position: absolute;
+    background: white;
+
+    height: 70vh;
+
+    margin-top: 100px;
+
+    padding: 1em;
     /* Increased padding for a spacious look */
     border-radius: 15px;
     /* Softly rounded corners for a modern feel */
     color: #FFF;
     /* White text for high contrast and legibility */
-    max-width: 1200px;
+    width: 60vw;
     /* Restricts the maximum width for better design on large screens */
     margin: 2em auto;
     /* Adds margin to the top and bottom, centering horizontally */
@@ -25,28 +38,35 @@
 
 /* The title and subtitle styles are fine-tuned for aesthetic alignment */
 .gamemodes-header h1 {
-    color: #FA8072;
-    /* Salmon: warm and welcoming like a tropical sunset */
-    font-size: 4rem;
+
+    
+    color: #83478d;
     /* More pronounced size for title */
     font-weight: 700;
     /* Bold font weight for presence */
-    margin: 0 auto 1em;
+    margin: 2rem;
     /* Centered with margin for visual separation */
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     /* Subtle text shadow for depth */
+
+    font-size: calc(5vw + 3vh); /* Adjust the formula as needed */   
+
+    text-shadow: 
+    -1px -1px 0 #ffffff,  
+     1px -1px 0 #000000,
+    -1px  1px 0 #000000,
+     1px  1px 0 #000000fc;
+
+
 }
 
 .gamemodes-header h2 {
-    color: #FFD700;
+    color: #b28dcb;
     /* Gold: captures the essence of the golden hour */
-    font-size: 2.2rem;
+    font-size: calc(2vw + 2vh); /* Adjust the formula as needed */   
     /* Size that complements the main title */
-    margin-bottom: 2.5em;
+    margin-bottom: 3.4rem;
     /* More space before the cards start */
-    text-decoration: underline;
-    /* Underlines the text */
-    text-decoration-color: #FFF;
     /* White underline for contrast */
     display: inline-block;
     /* Allows text-decoration to fit content width */
@@ -64,7 +84,10 @@
 
 /* Each game mode card is now designed to stand out with a subtle hover effect */
 .gamemode-card {
-    background-color: #FA8072;
+
+    align-items: center;
+
+    background-image: linear-gradient(rgb(186, 147, 186), rgb(82, 38, 112));
     /* Salmon background to draw attention */
     border-radius: 15px;
     /* Rounded corners for stylistic consistency */
@@ -73,6 +96,8 @@
     color: #FFF;
     /* Maintains legibility */
     transition: all 0.3s ease-in-out;
+
+    width: auto;
     /* Transition for all properties for smoothness */
 }
 
@@ -126,7 +151,7 @@
 
 /* Buttons get a lively appearance with a neat hover transition */
 .gamemode-button {
-    background-color: #20B2AA;
+    background-image: linear-gradient(rgb(199, 181, 200), purple);
     /* Light Sea Green for a refreshing look */
     color: #FFF;
     /* White text for contrast */
@@ -139,6 +164,8 @@
     cursor: pointer;
     /* Cursor pointer to indicate button */
     font-size: 1rem;
+
+    align-items: center;
     /* Standard readable size */
     font-weight: 600;
     /* Semi-bold weight for emphasis */
@@ -155,7 +182,7 @@
 /* Interactive states with animation for a more dynamic user experience */
 .gamemode-button:hover,
 .gamemode-button:focus {
-    background-color: #3CB371;
+    background-color: #5cb885;
     /* A lighter shade on hover for a visual cue */
     transform: translateY(-2px);
     /* Slight lift on hover for interactivity */
@@ -171,12 +198,14 @@
     }
 
     .gamemodes-header h1 {
-        font-size: 2.5rem;
+        letter-spacing: 0.2rem;
+        font-size: 8vw; /* Adjust the formula as needed */   
+
         /* Smaller title font on smaller screens */
     }
 
     .gamemodes-header h2 {
-        font-size: 1.5rem;
+        font-size: 5vw;
         /* Smaller subtitle font on smaller screens */
     }
 
