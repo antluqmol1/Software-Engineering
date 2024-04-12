@@ -35,7 +35,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     return gameId;
   }, []);
 
-  function createGameBackend(id, title, description) {
+  function createGameBackend(id) {
     const gameId = generateGameId();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
@@ -46,7 +46,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     axios
       .post(
         "http://localhost:8000/create-game/",
-        { gameid: gameId, id: id, title: title, description: description},
+        { gameid: gameId, id: id},
         {
           headers: {
             "X-CSRFToken": token, // Include CSRF token in headers
@@ -74,7 +74,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
   useEffect(() => {
     if (trigger) {
       console.log("inside use effect - creating game");
-      createGameBackend(mode.id, mode.title, mode.description);
+      createGameBackend(mode.id);
 
       if (!gameError) {
         console.log("navigating")

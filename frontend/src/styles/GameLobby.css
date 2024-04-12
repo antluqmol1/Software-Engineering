@@ -240,7 +240,7 @@
   /* Change cursor to indicate interactiveness */
 }
 
-.fetchPrompt-button {
+.fetchTask-button {
   position: absolute;
   top: 40px;
   right: 4px;
