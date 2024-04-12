@@ -28,7 +28,7 @@
     text-align: center;
     background-clip: text;
     font-family: "Pamit";
-    letter-spacing: .3em; /* Increase the letter spacing */
+    letter-spacing: .15em; /* Increase the letter spacing */
     color: rgb(157, 82, 157);
      /* Create a shadow on each side to simulate an outline */
     font-size: calc(0.1vw + 0.1vh); /* Adjust the formula as needed */   
@@ -51,6 +51,10 @@
     font-size:6vw; /* Increase font size to 20 pixels */
     
     }
+
+.input-box {
+    height: 5vh;
+}
 
 
 
@@ -104,4 +108,9 @@
     {
         background-position-x: 0px;
     }
+}
+
+.login2 {
+    position: relative;
+    z-index: 9999;
 }

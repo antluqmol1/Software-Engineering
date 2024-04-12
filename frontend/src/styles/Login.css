@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   padding: 50px;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   /* Ensure it takes the full viewport height */
   /* Add a background color for the whole page */
   box-sizing: border-box;
@@ -75,7 +75,7 @@
 }
 
 .forgot-password {
-  text-align: right;
+  text-align: center;
   width: 100%;
   margin-bottom: 25px;
 }
@@ -285,7 +285,7 @@
 .signup-redirect {
   text-align: center;
   width: 100%;
-  margin-top: 25px;
+  margin-top: 10px;
 }
 
 .signup-redirect a {

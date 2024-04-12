@@ -23,7 +23,7 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 90vh;
   /* Use min-height for full vertical coverage */
   background: linear-gradient(to bottom, #800080, #4B0082);
   /* Refined purple gradient */
@@ -39,7 +39,7 @@ html {
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
   /* Smooth shadow */
   max-width: 400px;
-  width: 100%;
+  width: 70%;
   text-align: center;
 }
 
@@ -70,6 +70,7 @@ html {
   color: #FFFFFF;
   border: 2px solid #5E2A84;
   /* Ensure the button does not change size on hover */
+  /* height: 3vh; */
   border-radius: 10px;
   padding: 0.75rem 1.5rem;
   cursor: pointer;

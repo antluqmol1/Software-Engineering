@@ -81,6 +81,7 @@ const CreateUser = () => {
         <div>
           <label htmlFor="firstname">First Name:</label>
           <input
+            className='input-box'
             type="text"
             id="firstname"
             value={first_name}
@@ -90,6 +91,7 @@ const CreateUser = () => {
         <div>
           <label htmlFor="lastname">Last Name:</label>
           <input
+            className='input-box'
             type="text"
             id="lastname"
             value={last_name}
@@ -99,6 +101,7 @@ const CreateUser = () => {
         <div>
           <label htmlFor="username">Username:</label>
           <input
+            className='input-box'
             type="text"
             id="username"
             value={username}
@@ -108,6 +111,7 @@ const CreateUser = () => {
         <div>
           <label htmlFor="email">E-mail:</label>
           <input
+            className='input-box'
             type="text"
             id="email"
             value={email}
@@ -117,6 +121,7 @@ const CreateUser = () => {
         <div>
           <label htmlFor="password">Password:</label>
           <input
+            className='input-box'
             type="password"
             id="password"
             value={password}
@@ -125,8 +130,8 @@ const CreateUser = () => {
         </div>
         <button type="submit" className="signup-button">Create User</button>
       <div className="signup-redirect">
-        <span>Already have an account? </span>
-          <a href="/login">Log in</a>
+        <span className='login2'>Already have an account? </span>
+          <a className='login2' href="/login">Log in</a>
       </div>
       </form>
 

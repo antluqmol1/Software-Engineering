@@ -18,23 +18,26 @@ html {
     justify-content: center;
     align-items: flex-start;
     /* Align to top */
-    min-height: 100vh;
+    /* min-height: 100vh; */
     padding: 60px 0;
 }
 
 /* Left side - form container */
 .signup-form-container {
-    position: absolute;
-    width: 40%;
+    position: relative;
+    width: 50%;
     /* Adjust based on your design preference */
     padding: 2rem;
     background: #fff;
     margin-right: 2rem;
+    height: 74%;
     /* Spacing between the two containers */
+    max-height: 85vh;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     top: 10%;
     bottom: 18%;
+    overflow: scroll;
 }
 
 /* Right side - information container */
@@ -90,9 +93,12 @@ label {
 /* Button styling */
 button.signup-button {
     width: 100%;
-    padding: 15px;
+    height: 5vh;
+    padding: 1px;
+    left: 0;
+    right: 0;
     font-size: 18px;
-    background-color: #0056b3;
+    background-color: #6a1b9a;
     color: white;
     border: none;
     border-radius: 5px;
@@ -146,7 +152,7 @@ button.signup-button:hover {
 
     .signup-form-container,
     .information-container {
-        width: 80%;
+        width: 60%;
         margin-right: 0;
         margin-bottom: 2rem;
     }
@@ -160,7 +166,7 @@ button.signup-button:hover {
 
     .signup-form-container,
     .information-container {
-        width: 80%;
+        width: 75%;
         margin: 0;
         padding: 1.5rem;
         box-shadow: none;

@@ -44,7 +44,7 @@
     /* More pronounced size for title */
     font-weight: 700;
     /* Bold font weight for presence */
-    margin: 2rem;
+    margin: 1rem;
     /* Centered with margin for visual separation */
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     /* Subtle text shadow for depth */
@@ -65,7 +65,7 @@
     /* Gold: captures the essence of the golden hour */
     font-size: calc(2vw + 2vh); /* Adjust the formula as needed */   
     /* Size that complements the main title */
-    margin-bottom: 3.4rem;
+    /* margin-bottom: 1.4rem; */
     /* More space before the cards start */
     /* White underline for contrast */
     display: inline-block;
