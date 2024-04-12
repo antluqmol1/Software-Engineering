@@ -59,7 +59,7 @@
   cursor: pointer;
 }
 
-.popup button + button {
+.popup button+button {
   margin-left: 10px;
 }
 
@@ -117,27 +117,34 @@
 .questions-container {
   display: flex;
   justify-content: center;
-  gap: 20px; /* Adjust the gap between questions */
-  margin-top: 30vh; /* Add margin to move the containers down */
+  gap: 20px;
+  /* Adjust the gap between questions */
+  margin-top: 30vh;
+  /* Add margin to move the containers down */
 }
 
 .individual-question,
 .group-question {
-  width: 50vw; /* Adjust the width of each question container */
+  width: 50vw;
+  /* Adjust the width of each question container */
   padding: 20px;
   border: 1px solid #000000;
   border-radius: 5px;
   background-color: rgba(255, 255, 255, 0.866);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.704);
-  color: rgb(0, 217, 217); /* Set color to black */
-  font-weight: bold; /* Make text bold */
+  color: rgb(0, 217, 217);
+  /* Set color to black */
+  font-weight: bold;
+  /* Make text bold */
 }
 
 /* Media query for viewport width less than 1050px */
 @media screen and (max-width: 1050px) {
+
   .individual-question,
   .group-question {
-    width: 60vw; /* Adjusted width for smaller screens */
+    width: 60vw;
+    /* Adjusted width for smaller screens */
   }
 }
 
@@ -153,45 +160,84 @@
 }
 
 .leaderboard {
-  background-color: #f0f0f0;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  width: 200px;
-  position: fixed; /* Position the leaderboard */
-  left: 10px; /* Adjust the left position */
-  top: 18%; /* Align it vertically in the middle */
-  transform: translateY(-50%); /* Center it vertically */
+  background-color: #ffffff;
+  /* A cleaner background color */
+  padding: 30px;
+  border-radius: .25rem;
+  /* Bootstrap style border-radius */
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.15);
+  /* Bootstrap style shadow */
+  width: 250px;
+  position: fixed;
+  /* Position the leaderboard */
+  left: 25px;
+  /* Adjust the left position */
+  top: 10%;
+  /* Align it vertically in the middle */
+  z-index: 10;
+  /* Ensure it's above other elements */
+  border: 1px solid #dee2e6;
+  /* Bootstrap style border */
+  font-size: 1.1rem;
+  /* Slightly larger font size for all text inside the leaderboard */
 }
 
+/* Assuming you're using a h2 tag for the leaderboard title */
 .leaderboard h2 {
-  margin-top: 0;
+  color: #6c757d;
+  /* Bootstrap's secondary text color for a professional look */
+  font-size: 1.5rem;
+  font-weight: 500;
+  /* Bootstrap heading font-weight */
+  margin-bottom: .75rem;
+  /* Bootstrap margin-bottom for headings */
+  border-bottom: 2px solid #dee2e6;
+  /* A line to separate title */
+  padding-bottom: .5rem;
+  /* Space above the line */
+  text-align: center;
+  /* Center the title text */
 }
 
-.leaderboard-players {
-  margin-top: 10px;
-}
-
-.player {
-  padding: 5px;
-  margin-bottom: 5px;
-  background-color: #ddd;
-  border-radius: 5px;
-}
-
-/* Add this CSS to your existing GameLobby.css file */
+/* Style for individual players */
 .player {
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
-  padding: 5px;
-  margin-bottom: 5px;
-  background-color: #ddd;
-  border-radius: 5px;
+  padding: .375rem .75rem;
+  /* Bootstrap style padding */
+  margin-bottom: .375rem;
+  /* Bootstrap style margin-bottom */
+  background-color: #e9ecef;
+  /* Bootstrap light background for list items */
+  border-radius: .25rem;
+  /* Consistent with Bootstrap border-radius */
+  color: #495057;
+  /* Bootstrap's default text color */
+  box-shadow: 0 .125rem .25rem rgba(0, 0, 0, 0.075);
+  /* Subtle shadow for depth */
 }
 
+/* Place the "Give Points" button on the right within the .player container */
+.givePoint-button {
+  margin-left: auto;
+  /* Push the button to the far right */
+}
+
+/* Style for the player's score or points */
 .score {
   font-weight: bold;
+  color: #343a40;
+  /* Bootstrap's dark text for contrast */
+  margin-right: .75rem;
+}
+
+/* Optional: Add a hover effect for each player */
+.player:hover {
+  background-color: #f8f9fa;
+  /* A lighter shade for hover effect */
+  cursor: pointer;
+  /* Change cursor to indicate interactiveness */
 }
 
 .fetchPrompt-button {
@@ -263,7 +309,9 @@
   transform: translateX(-50%);
   font-size: large;
   text-align: center;
-  color: #ffffff; /* Change the color to your preference */
-  font-family: Arial, sans-serif; /* Change the font family if needed */
+  color: #ffffff;
+  /* Change the color to your preference */
+  font-family: Arial, sans-serif;
+  /* Change the font family if needed */
   /* Add any other styles to make it look stylish */
 }
