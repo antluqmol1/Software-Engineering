@@ -9,9 +9,9 @@ function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
-    const [prompt, setPrompt] = useState(localStorage.getItem('prompt') || null);
-    const [promptPoints, setPromptPoints] = useState(parseInt(localStorage.getItem('points') || null));
-    const [showGivePointButton, setShowGivePointButton] = useState(false); // New state
+    const [taskText, setTaskText] = useState(null);
+    const [taskPoints, setTaskPoints] = useState(null);
+    const [GivePointButton, setGivePointButton] = useState(false); // New state
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
@@ -28,8 +28,6 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
-                localStorage.removeItem('prompt');
-                localStorage.removeItem('points');
                 navigate("/");
             }
             else {
@@ -58,8 +56,6 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
-                localStorage.removeItem('prompt');
-                localStorage.removeItem('points');
                 navigate("/");
             }
             else {
@@ -74,8 +70,8 @@ function GameLobby() {
         });
     }
 
-    const fetchPrompt = () => {
-        axios.get("http://localhost:8000/game/next-prompt/",
+    const fetchTask = () => {
+        axios.get("http://localhost:8000/game/next-task/",
             {
                 headers: {
                     "X-CSRFToken": token, // Include CSRF token in headers
@@ -83,14 +79,11 @@ function GameLobby() {
             }
         )
             .then(response => {
-                setPrompt(response.data['description']);
-                setPromptPoints(response.data['points']);
-                setShowGivePointButton(true); // Show the givePoint button again
-                localStorage.setItem('prompt', response.data['description']); 
-                localStorage.setItem('points', response.data['points']);
+                setShowGivePointButton(true); // Show the givePoint button again after fetching a new task
+                return response.data;
             })
             .catch(error => {
-                console.error("Error fetching prompt:", error);
+                console.error("Error fetching task:", error);
             });
     };
 
@@ -116,6 +109,8 @@ function GameLobby() {
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
+                setTaskText(response.data["taskText"]);
+                setTaskPoints(response.data["taskPoints"]);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
@@ -139,8 +134,7 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
-                console.log("succeeded to give points");
-                setShowGivePointButton(false); // Hide the givePoint button after clicking
+                setGivePointButton(false); // Hide the givePoint button after clicking
             }
             else {
                 console.log("failed to give points");
@@ -177,7 +171,7 @@ function GameLobby() {
                     {playerList.map((player, index) => (
                         <div className="player" key={index}>
                             <span>{player.username}</span>
-                            {showGivePointButton && <button className="givePoint-button" onClick={() => givePoints(player.username, promptPoints)}>Give Points</button>}
+                            {GivePointButton && <button className="givePoint-button" onClick={() => givePoints(player.username, taskPoints)}>Give Points</button>}
                             <span className="score">{player.score}</span>
                         </div>
                     ))}
@@ -186,8 +180,8 @@ function GameLobby() {
 
             <div className="questions-container">
                 <div className="group-question">
-                    <h2 className="font-style-prompt">Prompt</h2>
-                    <p className="font-style">Points: {promptPoints} "{prompt}"</p>
+                    <h2 className="font-style-prompt">Task</h2>
+                    <p className="font-style">Points: {taskPoints} "{taskText}"</p>
                 </div>
             </div>
             
@@ -195,7 +189,7 @@ function GameLobby() {
                 {admin ? "End game" : "Leave game"}
             </button>
 
-            <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
+            <button className="fetchPrompt-button" onClick={fetchTask}>Fetch Task</button>
         </div>
     );  
 }

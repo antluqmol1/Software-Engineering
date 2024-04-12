@@ -1,6 +1,6 @@
 import json
 import datetime
-from .models import User, Game, Participant, Task, PickedTasks
+from .models import User, Game, Participant, Tasks, PickedTasks
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -57,46 +57,34 @@ def join_game(request):
 
 
 def create_game(request):
-    print("creating game")
-
     if request.method == "POST":
-        print("valid method")
         user = request.user
 
         data = json.loads(request.body)
 
         gameId = data.get('gameid')
         type = data.get('id')
-        title = data.get('title')
-        description = data.get('description')
-        print(gameId)
+        # title = data.get('title')
+        # description = data.get('description')
+        # print(gameId)
 
         if user.is_authenticated:
-            print("creating game")
 
-            # Check if user is already in a game
-            print("checking if player is already in game")
-            #this is not the right way to do it, leads to traceback error on backend
             potential_participant = Participant.objects.filter(user=user).exists()
-            # potential_participant = Participant.objects.get(user=user)
+            
             if potential_participant:
-                print("in a game, deleting user")
                 potential_participant = Participant.objects.filter(user=user)
-                #print for clarity
-                print(potential_participant.values())
+
                 Participant.objects.filter(user=user).delete()
                 return JsonResponse({'success': False})
-            else:
-                print("not in a game")
+
 
             # create game in the database
             new_game = Game(game_id = gameId,
-                            title=title,
                             type=type,
-                            description=description, 
-                            admin=user,
-                            start_time=datetime.datetime.now(), 
-                            end_time=None)
+                            # title=title,
+                            # description=description, 
+                            admin=user)
             
             new_game.save()
             
@@ -205,38 +193,30 @@ def get_game(request):
                 # Query the participant record for the player
                 part = Participant.objects.get(user=user)
 
-                # checks if player is admin
                 game_id = part.game.game_id
+                active_task = part.game.active_task
+
+                # checks if player is admin
                 if user == part.game.admin:
                     is_admin = True
 
-                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
+                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin, 'taskText': active_task.description, 'taskPoints': active_task.points})
             else:
                 return JsonResponse({'success': False, 'msg': 'user not authenticated'})
         else:
             return JsonResponse({'success': False, 'msg': "invalid method"})
         
-'''
-Returns the next prompt of the game type the player is currently in.
-Loops through the PickedTasks table until it finds a unique task for
-the current game.
-Returns:
-@description : string
-@points : int
-'''
-def next_prompt(request):
+
+def next_task(request):
     if request.method == 'GET':
-
         user = request.user
-
         if user.is_authenticated:
-            
             # get the participant, game, and extract type
             part = Participant.objects.get(user=user)
             game = part.game
             type = game.type
 
-            task_count = Task.objects.filter(type=type).count()
+            task_count = Tasks.objects.filter(type=type).count()
 
             # Check if task is available
             for _ in range(task_count):
@@ -244,22 +224,28 @@ def next_prompt(request):
                 # this might not actually work 100, we can't be sure that the random 
                 # will not choose the same "picked" task multiple times, and we thus
                 # we might end report no avaiable task when that is not the case
-                random_task = Task.objects.filter(type = type).order_by('?').first()
+                random_task = Tasks.objects.filter(type = type).order_by('?').first()
                 
                 # check if this task is already picked
                 is_picked = PickedTasks.objects.filter(task=random_task, game=game, user=user).exists()
 
-                # if not, we save it to PickedTasks, and return the question
                 if not is_picked:
+                    # if not, we save it to PickedTasks
                     picked_task = PickedTasks(task=random_task, game=game, user=user)
                     picked_task.save()
+
+                    # Store picked task in Game
+                    game.active_task = random_task
+                    game.save()
+                    
+                    # return the task
                     return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
 
             # arrive here if all tasks have been checked, or no tasks available        
             return JsonResponse({'success': False, 'msg': 'no tasks'})
         
         else:
-            pass
+            return JsonResponse({'success': False, 'msg': 'Not authenticated'})
     else:
         return JsonResponse({'success': False, 'msg': 'Invalid method'})
 

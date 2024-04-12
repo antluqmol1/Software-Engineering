@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 import json
-from ServerBackend.models import Task, User
+from ServerBackend.models import Tasks, User
 import os
 from django.conf import settings
 
@@ -33,7 +33,7 @@ class Command(BaseCommand):
         with open(json_file_path, 'r') as file:
             tasks = json.load(file)
             for task_data in tasks:
-                Task.objects.create(
+                Tasks.objects.create(
                     description=task_data['description'],
                     points=task_data['points'],
                     type=task_data['type'],
