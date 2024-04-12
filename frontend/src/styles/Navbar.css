@@ -21,7 +21,7 @@
   .navbar-links {
     list-style: none; /* Remove bullet points from list */
     margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
+    padding: 10; /* Remove default padding */
   }
   
   .navbar-links li {

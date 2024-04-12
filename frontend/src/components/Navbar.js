@@ -49,7 +49,6 @@ function Navbar() {
         <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
         <li><Link to="/profile" className="navbar-link">Profile</Link></li>
         <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
-        <li><Link to="/profile" className="navbar-link">About us</Link></li>
       </ul>
     </nav>
   );
