@@ -1,5 +1,6 @@
 import json
-import datetime
+import jwt
+from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, Tasks, PickedTasks
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
@@ -9,6 +10,8 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count
+from django.conf import settings
+
 
 
 @csrf_exempt
@@ -20,6 +23,19 @@ def hello_world(request):
 @csrf_exempt
 def home_page(request):
     return JsonResponse({'message': 'Welcome to boozechase'})
+
+
+def generate_JWT(user):
+    payload = {
+        'user_id': user.id,
+        'exp': dt.now(timezone.utc) + timedelta(hours=12),
+        'iat': dt.now(timezone.utc)
+    }
+
+    print(f'testing datetime: {dt.now(timezone.utc)}')
+
+    JWToken = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    return JWToken
 
 def join_game(request):
     print("joining game")
@@ -64,9 +80,9 @@ def create_game(request):
 
         gameId = data.get('gameid')
         type = data.get('id')
-        # title = data.get('title')
-        # description = data.get('description')
-        # print(gameId)
+        title = data.get('title')
+        description = data.get('description')
+        print(gameId)
 
         if user.is_authenticated:
 
@@ -76,15 +92,17 @@ def create_game(request):
                 potential_participant = Participant.objects.filter(user=user)
 
                 Participant.objects.filter(user=user).delete()
-                return JsonResponse({'success': False})
-
+                return JsonResponse({'success': False, 'error': 'already in a game'}, status=409)
+            else:
+                print("not in a game")
 
             # create game in the database
             new_game = Game(game_id = gameId,
                             type=type,
-                            # title=title,
-                            # description=description, 
-                            admin=user)
+                            description=description, 
+                            admin=user,
+                            start_time=dt.now(), 
+                            end_time=None)
             
             new_game.save()
             
@@ -98,73 +116,8 @@ def create_game(request):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False, 'msg': 'not authenticated'})
-
-def delete_game(request):
-    print('delete game')
-    print(request.method)
-
-    if request.method == 'DELETE':
-        print("valid method")
-
-        user = request.user
-
-        if user.is_authenticated:
-            print("user is logged in")
-
-            potential_participant = Participant.objects.filter(user=user).exists()
-            # potential_participant = Participant.objects.get(user=user)
-            if potential_participant:
-                print("in a game, checking if admin")
-                part = Participant.objects.get(user=user)
-
-                admin = part.game.admin
-                print(f'is this a player ID?: {admin}')
-
-                if user == admin:
-                    print("player is an admin, deleting game")
-                    game_id = part.game.game_id
-                    clean_up_game(game_id=game_id)
-                    return JsonResponse({'success': True})
-                else:
-                    return JsonResponse({'success': False, 'msg': 'user is not admin of game'})
-            else:
-                print("not in a game, fail")
-                return JsonResponse({'success': False})
-    else:
-        return JsonResponse({'success': False, 'msg': 'invalid method'})
-
-def clean_up_game(game_id):
-
-    try:
-        games_to_delete = Game.objects.filter(game_id=game_id)
-        players_to_delete = Participant.objects.filter(game_id=game_id)
-    except:
-        print("failed to retrieve game and players")
-        return JsonResponse({'success': False})
-
-    try:
-        games_to_delete.delete()
-        players_to_delete.delete()
-    except:
-        print("failed to delete game and players")
-
-def leave_game(request):
-
-    if request.method == "PUT":
-
-        user = request.user
-
-        if user.is_authenticated:
-            player = Participant.objects.get(user=user)
-
-            player.delete()
-
-            return JsonResponse({'success': True})
         
-        else:
-            return JsonResponse({'success': False, 'msg': 'not authenticated'})
-
-
+        
 '''
 Used when checking if a player is in game
 Returns 
@@ -205,8 +158,83 @@ def get_game(request):
                 return JsonResponse({'success': False, 'msg': 'user not authenticated'})
         else:
             return JsonResponse({'success': False, 'msg': "invalid method"})
-        
 
+def delete_game(request):
+    print('delete game')
+    print(request.method)
+
+    if request.method == 'DELETE':
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in")
+
+            potential_participant = Participant.objects.filter(user=user).exists()
+            # potential_participant = Participant.objects.get(user=user)
+            if potential_participant:
+                print("in a game, checking if admin")
+                part = Participant.objects.get(user=user)
+
+                admin = part.game.admin
+                print(f'is this a player ID?: {admin}')
+
+                if user == admin:
+                    print("player is an admin, deleting game")
+                    game_id = part.game.game_id
+                    clean_up_game(game_id=game_id)
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({'success': False, 'msg': 'user is not admin of game'})
+            else:
+                print("not in a game, fail")
+                return JsonResponse({'success': False})
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method'})
+
+
+def clean_up_game(game_id):
+
+    try:
+        games_to_delete = Game.objects.filter(game_id=game_id)
+        players_to_delete = Participant.objects.filter(game_id=game_id)
+    except:
+        print("failed to retrieve game and players")
+        return JsonResponse({'success': False})
+
+    try:
+        games_to_delete.delete()
+        players_to_delete.delete()
+    except:
+        print("failed to delete game and players")
+
+
+def leave_game(request):
+
+    if request.method == "PUT":
+
+        user = request.user
+
+        if user.is_authenticated:
+            player = Participant.objects.get(user=user)
+
+            player.delete()
+
+            return JsonResponse({'success': True})
+        
+        else:
+            return JsonResponse({'success': False, 'msg': 'not authenticated'})
+
+        
+'''
+Returns the next task of the game type the player is currently in.
+Loops through the PickedTasks table until it finds a unique task for
+the current game.
+Returns:
+@description : string
+@points : int
+'''
 def next_task(request):
     if request.method == 'GET':
         user = request.user
@@ -306,14 +334,13 @@ def get_game_participants(request):
         return JsonResponse({'message': "incorrect method"})
 
 
-# not used, going with @csrf_exempt instead
-
 def grab_token(request):
     # Ensure a CSRF token is set in the user's session
     csrf_token = get_token(request)
     print("returning token: ", csrf_token)
     # Return the token in a JSON response
     return JsonResponse({'csrfToken': csrf_token})
+
 
 def user_logout(request):
     print("logging out")
@@ -322,11 +349,11 @@ def user_logout(request):
         logout(request)
         return JsonResponse({'success': True})
 
-
         # if user.is_authenticated:
         #     return JsonResponse({'success': True})
         # else:
         #     return JsonResponse({'success': False, 'message': 'No user was logged in.'})
+
 
 def get_profile(request):
     print("get profile")    
@@ -403,17 +430,20 @@ def user_login(request):
             print("attempting to login")
             login(request, user)
             print("Login complete!")
+            print("generating JWT")
+            token = generate_JWT(user)
+            print(f'JWT: {token}')
+
+            response = JsonResponse({'status': 'success', 'JWT': token})
+
+            response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
             # Return a JSON response or redirect as per your application's flow
-            return JsonResponse({'status': 'success'})
+            return response
         else:
             print("not valid")
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
     return JsonResponse({'error': 'Only POST method allowed'}, status=405)
-
-    # maybe we should go for this instead?
-    # # If not a POST request, show the login form (or handle accordingly)
-    # return HttpResponse("Login page")
 
 
 @csrf_exempt

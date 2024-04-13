@@ -9,5 +9,6 @@ backend/ServerBackend/.DS_store
 frontend/src/.DS_Store
 backend/ServerBackend/db.sqlite3
 backend/ServerBackend/ServerBackend/migrations
+backend/ServerBackend/ServerBackend/migrations/
 backend/ServerBackend/ServerBackend/management/__pycache__
 .DS_Store

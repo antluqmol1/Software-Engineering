@@ -65,6 +65,7 @@ ALLOWED_HOSTS = [
 # Application definition
 print("before apps")
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -72,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',   
     'corsheaders',
+    'channels',
     'ServerBackend.apps.ServerBackendConfig',
 ]
 
@@ -108,6 +110,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ServerBackend.wsgi.application'
+ASGI_APPLICATION = 'ServerBackend.asgi.application'
 
 
 # Database
@@ -118,6 +121,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+
+
+# Tells the channels package which backend to use (?)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
 }
 
 

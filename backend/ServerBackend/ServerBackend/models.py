@@ -111,25 +111,25 @@ class Game(models.Model):
     game_id = models.CharField(max_length=255, null=False, default=None, primary_key=True)
 
     # # Title of the game
-    # title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
 
     # Type of game, or the "title" in the front end
     type = models.CharField(max_length=255, default=0)
     
     # # Description providing additional details about the game
-    # description = models.TextField()
+    description = models.TextField()
     
     # Admin/user who initiated the game; a ForeignKey links to the User model
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Active task in the game; a ForeignKey links to the Tasks model
-    active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
+    # active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
     
     # # Start time of the game
-    # start_time = models.DateTimeField()
+    start_time = models.DateTimeField()
     
     # # End time of the game; nullable and blank to handle ongoing games
-    # end_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
 
 
 class PickedTasks(models.Model):
@@ -140,11 +140,11 @@ class PickedTasks(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
 
-    # done = models.BooleanField(default=False)
+    done = models.BooleanField(default=False)
 
     # this ensures that the combination of task and game must be unique
-    # class meta:
-    #     unique_together = ('task', 'game')
+    class meta:
+        unique_together = ('task', 'game')
 
 
 '''
