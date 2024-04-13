@@ -81,6 +81,10 @@ function GameLobby() {
         )
             .then(response => {
                 setGivePointButton(true); // Show the givePoint button again after fetching a new task
+                console.log(response.data.description)
+                setTaskText(response.data.description)
+                setTaskText(response.data.description)
+                setTaskPoints(response.data.points)
                 return response.data;
             })
             .catch(error => {
@@ -281,7 +285,10 @@ function GameLobby() {
             <div className="group-question">
               <h2 className="font-style-prompt">Challenge</h2>
               <p className="font-style">
-                Points: {taskPoints} "{taskText}"
+                Points: {taskPoints}
+              </p>
+              <p className="font-style">
+                task: {taskText}
               </p>
             </div>
           </div>
