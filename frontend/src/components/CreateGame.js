@@ -46,7 +46,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     axios
       .post(
         "http://localhost:8000/create-game/",
-        { gameid: gameId, id: id},
+        { gameid: gameId, id: id, description: "desc1", title: 'title1'},
         {
           headers: {
             "X-CSRFToken": token, // Include CSRF token in headers

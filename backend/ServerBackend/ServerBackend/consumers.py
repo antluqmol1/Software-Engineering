@@ -4,7 +4,7 @@ from django.contrib.auth.models import User # not sure if we need this one
 from django.contrib.auth import authenticate
 from django.conf import settings
 from channels.layers import get_channel_layer
-from .models import User, Game, Participant, PickedTasks, Task
+from .models import User, Game, Participant, PickedTasks, Tasks
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
 import jwt

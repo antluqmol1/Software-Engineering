@@ -108,8 +108,9 @@ function GameLobby() {
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
-                setTaskText(response.data["taskText"]);
-                setTaskPoints(response.data["taskPoints"]);
+                console.log(response.data["gameId"]);
+                // setTaskText(response.data["taskText"]);
+                // setTaskPoints(response.data["taskPoints"]);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);

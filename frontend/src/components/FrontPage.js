@@ -97,6 +97,82 @@ const FrontPage = () => {
     <div className = 'wave wave3'></div>
     <div className="home-content">
       <h1 className='font-style-h'>Funchase</h1>
+        {userIsLoggedIn ? (
+          <p>Welcome back {userData ? userData.username : "loading..."}</p>
+        ) : (
+          <p>Please login or create an account</p>
+        )}
+        {userIsLoggedIn ? (
+          <div className="buttons-container">
+            <button
+              className={`button ${activeOption === "join" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("join")}
+            >
+              Join Game
+            </button>
+            <button
+              className={`button ${activeOption === "create" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("create")}
+            >
+              Create Game
+            </button>
+          </div>
+        ) : (
+          <div className="buttons-container">
+            <button
+              className={`button ${activeOption === "join" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("join")}
+            >
+              Join Game
+            </button>
+            <button className="SignUp-button" onClick={handleSignUpClick}>
+              Create Game
+            </button>
+          </div>
+          // <div className="buttons-container">
+          //   {/* add some stuff here*/}
+          //   <button className="login-button" onClick={handleLoginClick}>
+          //     Login
+          //   </button>
+          //   <button className="login-button" onClick={handleSignUpClick}>
+          //     Sign Up
+          //   </button>
+          // </div>
+        )}
+        {activeOption === "join" && (
+          <div className="game-action-container">
+            <input
+              type="text"
+              className="game-code-input"
+              placeholder="Enter game code"
+              value={gameCode}
+              onChange={handleGameCodeChange}
+              maxLength={6}
+            />
+            <button className="button" onClick={handleJoinGameSubmit}>
+              Join
+            </button>
+          </div>
+        )}
+        {activeOption === "create" && (
+          <div className="game-action-container">
+            <button className="button" onClick={handleCreateGameSubmit}>
+              Start a New Game
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Here us your code ali, if you want you can see if you can get this to work?
+  return (
+    <div className="home-container">
+    <div className = 'wave wave1'></div>
+    <div className = 'wave wave2'></div>
+    <div className = 'wave wave3'></div>
+    <div className="home-content">
+      <h1 className='font-style-h'>Funchase</h1>
       {userIsLoggedIn ? (
         <p>Welcome back {userData ? userData.username : "loading..."}</p>
       ) : (

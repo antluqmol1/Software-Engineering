@@ -147,13 +147,12 @@ def get_game(request):
                 part = Participant.objects.get(user=user)
 
                 game_id = part.game.game_id
-                active_task = part.game.active_task
 
                 # checks if player is admin
                 if user == part.game.admin:
                     is_admin = True
 
-                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin, 'taskText': active_task.description, 'taskPoints': active_task.points})
+                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
             else:
                 return JsonResponse({'success': False, 'msg': 'user not authenticated'})
         else:
@@ -239,6 +238,47 @@ def next_task(request):
     if request.method == 'GET':
         user = request.user
         if user.is_authenticated:
+
+
+            ''' 
+            The following commented code is Gjorgons, I do not agree that we should do it this way 
+            thus, as backend wizard, I have vetoed this design for the time being
+            If you wish to make changes to the backend, run it through me first please
+            as I've grown quite fond of it, and I won't let anyone hurt my baby
+            
+            Kind regard
+            - Adrian "Backend" Moen
+            '''
+            # get the participant, game, and extract type
+            # part = Participant.objects.get(user=user)
+            # game = part.game
+            # type = game.type
+
+            # task_count = Tasks.objects.filter(type=type).count()
+
+            # # Check if task is available
+            # for _ in range(task_count):
+            #     # get a random task, and total tasks
+            #     # this might not actually work 100, we can't be sure that the random 
+            #     # will not choose the same "picked" task multiple times, and we thus
+            #     # we might end report no avaiable task when that is not the case
+            #     random_task = Tasks.objects.filter(type = type).order_by('?').first()
+                
+            #     # check if this task is already picked
+            #     is_picked = PickedTasks.objects.filter(task=random_task, game=game, user=user).exists()
+
+            #     if not is_picked:
+            #         # if not, we save it to PickedTasks
+            #         picked_task = PickedTasks(task=random_task, game=game, user=user)
+            #         picked_task.save()
+
+            #         # Store picked task in Game
+            #         game.active_task = random_task
+            #         game.save()
+                    
+            #         # return the task
+            #         return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
+
             # get the participant, game, and extract type
             part = Participant.objects.get(user=user)
             game = part.game
@@ -257,17 +297,12 @@ def next_task(request):
                 # check if this task is already picked
                 is_picked = PickedTasks.objects.filter(task=random_task, game=game, user=user).exists()
 
+                # if not, we save it to PickedTasks, and return the question
                 if not is_picked:
-                    # if not, we save it to PickedTasks
                     picked_task = PickedTasks(task=random_task, game=game, user=user)
                     picked_task.save()
-
-                    # Store picked task in Game
-                    game.active_task = random_task
-                    game.save()
-                    
-                    # return the task
                     return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
+
 
             # arrive here if all tasks have been checked, or no tasks available        
             return JsonResponse({'success': False, 'msg': 'no tasks'})
