@@ -41,14 +41,14 @@ class MyConsumer(AsyncWebsocketConsumer):
             )
 
             # extracting participant list
-            participants_data = await self.get_new_player_list(game)
+            participant_data = await self.get_new_player()
 
             print("\nsending message from ws\n")
             await self.channel_layer.group_send(
             self.game_group_name, 
             {
-                'type': 'Add_Update_player_List',  # This refers to the method name `chat_message`
-                'message': participants_data,
+                'type': 'Add_Update_Player',  # This refers to the method name `chat_message`
+                'message': participant_data,
                 'msg_type': 'join'
             }
             )
@@ -91,7 +91,8 @@ class MyConsumer(AsyncWebsocketConsumer):
             'message': message
         }))
 
-    async def Add_Update_player_List(self, event):
+    # message function
+    async def Add_Update_Player(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
         # Send message to WebSocket; this sends the message to each client in the group
@@ -99,7 +100,8 @@ class MyConsumer(AsyncWebsocketConsumer):
             'message': message,
             'msg_type': msg_type
     }))
-        
+    
+    # message function
     async def Disconnect_Update(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
@@ -109,6 +111,7 @@ class MyConsumer(AsyncWebsocketConsumer):
             'msg_type': msg_type
     }))
 
+    # Database function
     @database_sync_to_async
     def get_participant_game(self, user_id):
         try: 
@@ -118,17 +121,14 @@ class MyConsumer(AsyncWebsocketConsumer):
         except Participant.DoesNotExist:
             return None
     
+    # database function
     @database_sync_to_async
-    def get_new_player_list(self, game):
+    def get_new_player(self):
         try:
             # participants_in_same_game = Participant.objects.filter(game=game)
             new_participant = Participant.objects.get(user=self.user_id)
 
-            # participant_data = [{'username': p.user.username, 'score': p.score} 
-            #                     for p in participants_in_same_game]
-            # print(f'participant in same game: {participant_data}')
-            # print(f'participant in same game: {participants_in_same_game}')
-            print(f'participant in same game: {new_participant.user}')
+            print(f'new participant being added: {new_participant.user}')
 
             participant_data = {
                 'username': new_participant.user.username,
@@ -136,9 +136,10 @@ class MyConsumer(AsyncWebsocketConsumer):
             }
 
             return participant_data
-        except:
-            pass
-
+        except Participant.DoesNotExist:
+            return None
+    
+    # database function
     @database_sync_to_async
     def get_username(self):
         try:
@@ -149,6 +150,10 @@ class MyConsumer(AsyncWebsocketConsumer):
             return None
 
 
+
+'''
+Validate the JWT from the incoming connection.
+'''
 def validate_jwt(token):
     try:
         # Decode the token
