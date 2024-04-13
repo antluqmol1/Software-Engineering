@@ -166,8 +166,28 @@ function GameLobby() {
         webSocket.onmessage = (event) => {
             // Handle incoming messages
             const data = JSON.parse(event.data);
-            console.log('Message from server ', data.message);
+            console.log('Message from ws ', data.message);
             // Update state based on message
+            
+            if (Array.isArray(data.message)) {
+                setPlayerList(data.message);
+            } else {
+                console.error("Received non-array data for player list");
+            }
+
+            setPlayerList(prevPlayerList => {
+                const existingPlayer = prevPlayerList.find(p => p.username === data.message.username);
+                if (existingPlayer) {
+                    // Player exists, update their score
+                    return prevPlayerList.map(p => 
+                        p.username === data.message.username ? { ...p, score: data.message.score } : p
+                    );
+                } else {
+                    // New player, add to the list
+                    return [...prevPlayerList, data.message];
+                }
+            });
+        
         };
 
         webSocket.onclose = () => {

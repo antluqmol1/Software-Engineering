@@ -101,7 +101,7 @@ def create_game(request):
                 #print for clarity
                 print(potential_participant.values())
                 Participant.objects.filter(user=user).delete()
-                return JsonResponse({'success': False})
+                return JsonResponse({'success': False, 'error': 'already in a game'}, status=409)
             else:
                 print("not in a game")
 
@@ -127,7 +127,8 @@ def create_game(request):
         else:
             return JsonResponse({'success': False, 'msg': 'not authenticated'})
         
-        '''
+        
+'''
 Used when checking if a player is in game
 Returns 
 @gameId : string
@@ -340,14 +341,13 @@ def get_game_participants(request):
         return JsonResponse({'message': "incorrect method"})
 
 
-# not used, going with @csrf_exempt instead
-
 def grab_token(request):
     # Ensure a CSRF token is set in the user's session
     csrf_token = get_token(request)
     print("returning token: ", csrf_token)
     # Return the token in a JSON response
     return JsonResponse({'csrfToken': csrf_token})
+
 
 def user_logout(request):
     print("logging out")
@@ -356,11 +356,11 @@ def user_logout(request):
         logout(request)
         return JsonResponse({'success': True})
 
-
         # if user.is_authenticated:
         #     return JsonResponse({'success': True})
         # else:
         #     return JsonResponse({'success': False, 'message': 'No user was logged in.'})
+
 
 def get_profile(request):
     print("get profile")    

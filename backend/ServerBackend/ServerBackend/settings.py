@@ -65,7 +65,7 @@ ALLOWED_HOSTS = [
 # Application definition
 print("before apps")
 INSTALLED_APPS = [
-    'daphne'
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
