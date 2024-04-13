@@ -170,42 +170,62 @@ function GameLobby() {
             console.log('Raw data ', data);
             console.log('Raw event ', event);
             console.log('msg_type ', data.msg_type)
-
-            // Update state based on message
-            // if (data.msg_type)
-
-            if (data.msg_type == 'disconnect') {
-                console.log("player disconnected")
-                console.log(data.message)
-                setPlayerList(prevPlayerList => {
-                    return prevPlayerList.filter(player => player.username !== data.message);
-                });    
-            }
             
-            if (Array.isArray(data.message)) {
-                setPlayerList(data.message);
-            } else {
-                console.error("Received non-array data for player list");
-            }
 
-            setPlayerList(prevPlayerList => {
-                const existingPlayer = prevPlayerList.find(p => p.username === data.message.username);
-                if (existingPlayer) {
-                    // Player exists, update their score
-                    return prevPlayerList.map(p => 
-                        p.username === data.message.username ? { ...p, score: data.message.score } : p
-                    );
-                } else {
-                    // New player, add to the list
-                    return [...prevPlayerList, data.message];
-                }
-            });
+            // Websocket response handler
+            switch (data.msg_type) {
+                case 'disconnect':
+                    console.log("player disconnected");
+                    console.log(data.message);
+                    setPlayerList(prevPlayerList => {
+                        return prevPlayerList.filter(player => player.username !== data.message);
+                    });
+
+                    break;
+                case 'join':
+                    console.log("player joined");
+                    console.log("Updating list");
+                    setPlayerList(prevPlayerList => {
+                        console.log("previous player list: ", prevPlayerList);
+                        const existingPlayer = prevPlayerList.find(p => p.username === data.message.username);
+                        if (existingPlayer) {
+                            console.log("update player");
+                            // Player exists, update their score
+                            return prevPlayerList.map(p => 
+                                p.username === data.message.username ? { ...p, score: data.message.score } : p
+                            );
+                        } else {
+                            console.log("adding player: ", data.message);
+                            // New player, add to the list
+                            return [...prevPlayerList, data.message];
+                        }
+                    });
+                    
+                    break;
+                    
+                case 'new-task':
+                    console.log("\nnew task recieved\n");
+                    break;
+            }
         
         };
 
         webSocket.onclose = () => {
             console.log('WebSocket Disconnected');
         };
+
+        // const sendMessage = (messageContent) => {
+        //     if (webSocket) {
+        //         webSocket.send(JSON.stringify({
+        //             message: messageContent,
+        //             type: 'custom_message_type' // This can be any type identifier you need
+        //         }));
+        //         console.log("Message sent to WS:", messageContent);
+        //     } else {
+        //         console.error("WebSocket not connected!");
+        //     }
+        // };
+        
 
         // Clean up on unmount
         return () => {
@@ -248,6 +268,10 @@ function GameLobby() {
             </button>
 
             <button className="fetchPrompt-button" onClick={fetchPrompt}>Fetch Prompt</button>
+            {/* <button onClick={() => sendMessage("Hello, this is a test message from the client!")}>
+                Send Message to WebSocket
+            </button> */}
+
         </div>
     );
 

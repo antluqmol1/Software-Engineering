@@ -59,8 +59,12 @@ class MyConsumer(AsyncWebsocketConsumer):
         print("connection closed: ", close_code)
         print("Sending message to group...")
 
+        # get the username
         username = await self.get_username()
 
+        print("\nsending message from ws\n")
+
+        # send disconnect message to the group
         await self.channel_layer.group_send(
             self.game_group_name,
             {
@@ -69,50 +73,19 @@ class MyConsumer(AsyncWebsocketConsumer):
                 'msg_type': 'disconnect'
             }
         )
-        # token = self.scope['cookies'].get('auth_token')
 
-        # payload = validate_jwt(token)
-
-        # if token and payload:
-        #     # get the user id from the token payload
-        #     user_id = payload.get('user_id')
-        #     print(f'user connecting is {user_id}')
-
-
-        #     # The problem here is that once we get here, the player 
-        #     # is removed from the database as a participan
-        #     # query the database for the game via participant
-        #     game = await self.get_participant_game(user_id=user_id)
-        #     print(f'the game_id is {game.game_id}')
-
-        #     self.game_group_name = f'game_{game.game_id}'
-
-        #     # Add this channel to a group based on game_id
-        #     print(f'Joining group')
-        #     await self.channel_layer.group_add(
-        #         self.game_group_name,
-        #         self.channel_name
-        #     )
-
-        #     # extracting participant list
-        #     participants_data = await self.get_new_player_list(game)
-
-        #     print("\nsending message from ws\n")
-        #     await self.channel_layer.group_send(
-        #     self.game_group_name, 
-        #     {
-        #         'type': 'chat_message',  # This refers to the method name `chat_message`
-        #         'message': participants_data
-        #     }
-        #     )
-
-        # cleanup
-        # disconnect message?
-        pass
+        # remove channel from group        
+        await self.channel_layer.group_discard(
+            self.game_group_name,
+            self.channel_name
+        )
+        print(f"Removed from group {self.game_group_name}")
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
+
+        print(f'\nmessage: \n{message}\n')
 
         await self.send(text_data=json.dumps({
             'message': message
@@ -120,9 +93,11 @@ class MyConsumer(AsyncWebsocketConsumer):
 
     async def Add_Update_player_List(self, event):
         message = event['message']
+        msg_type = event.get('msg_type', 'No msg_type')
         # Send message to WebSocket; this sends the message to each client in the group
         await self.send(text_data=json.dumps({
-            'message': message
+            'message': message,
+            'msg_type': msg_type
     }))
         
     async def Disconnect_Update(self, event):
@@ -146,11 +121,20 @@ class MyConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_new_player_list(self, game):
         try:
-            participants_in_same_game = Participant.objects.filter(game=game)
+            # participants_in_same_game = Participant.objects.filter(game=game)
+            new_participant = Participant.objects.get(user=self.user_id)
 
-            participant_data = [{'username': p.user.username, 'score': p.score} 
-                                for p in participants_in_same_game]
-            print(f'participant in same game: {participant_data}')
+            # participant_data = [{'username': p.user.username, 'score': p.score} 
+            #                     for p in participants_in_same_game]
+            # print(f'participant in same game: {participant_data}')
+            # print(f'participant in same game: {participants_in_same_game}')
+            print(f'participant in same game: {new_participant.user}')
+
+            participant_data = {
+                'username': new_participant.user.username,
+                'score': new_participant.score
+            }
+
             return participant_data
         except:
             pass
