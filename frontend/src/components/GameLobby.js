@@ -167,7 +167,20 @@ function GameLobby() {
             // Handle incoming messages
             const data = JSON.parse(event.data);
             console.log('Message from ws ', data.message);
+            console.log('Raw data ', data);
+            console.log('Raw event ', event);
+            console.log('msg_type ', data.msg_type)
+
             // Update state based on message
+            // if (data.msg_type)
+
+            if (data.msg_type == 'disconnect') {
+                console.log("player disconnected")
+                console.log(data.message)
+                setPlayerList(prevPlayerList => {
+                    return prevPlayerList.filter(player => player.username !== data.message);
+                });    
+            }
             
             if (Array.isArray(data.message)) {
                 setPlayerList(data.message);

@@ -16,7 +16,6 @@ class MyConsumer(AsyncWebsocketConsumer):
         print("WS gamelobby, connecting...")
         # add to a group? or is the group the participant/game
         token = self.scope['cookies'].get('auth_token')
-        # user = await self.get_user_from_token(token)
 
         payload = validate_jwt(token)
 
@@ -24,12 +23,12 @@ class MyConsumer(AsyncWebsocketConsumer):
             await self.accept()
 
             # get the user id from the token payload
-            user_id = payload.get('user_id')
-            print(f'user connecting is {user_id}')
+            self.user_id = payload.get('user_id')
+            print(f'user connecting is {self.user_id}')
 
 
             # query the database for the game via participant
-            game = await self.get_participant_game(user_id=user_id)
+            game = await self.get_participant_game(user_id=self.user_id)
             print(f'the game_id is {game.game_id}')
 
             self.game_group_name = f'game_{game.game_id}'
@@ -44,20 +43,68 @@ class MyConsumer(AsyncWebsocketConsumer):
             # extracting participant list
             participants_data = await self.get_new_player_list(game)
 
-            message = "heihei"
             print("\nsending message from ws\n")
             await self.channel_layer.group_send(
             self.game_group_name, 
             {
-                'type': 'chat_message',  # This refers to the method name `chat_message`
-                'message': participants_data
+                'type': 'Add_Update_player_List',  # This refers to the method name `chat_message`
+                'message': participants_data,
+                'msg_type': 'join'
             }
-        )
+            )
         else:
             await self.close(reason="Not logged in", code=4001)
 
     async def disconnect(self, close_code):
         print("connection closed: ", close_code)
+        print("Sending message to group...")
+
+        username = await self.get_username()
+
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'Disconnect_Update',
+                'message': username,
+                'msg_type': 'disconnect'
+            }
+        )
+        # token = self.scope['cookies'].get('auth_token')
+
+        # payload = validate_jwt(token)
+
+        # if token and payload:
+        #     # get the user id from the token payload
+        #     user_id = payload.get('user_id')
+        #     print(f'user connecting is {user_id}')
+
+
+        #     # The problem here is that once we get here, the player 
+        #     # is removed from the database as a participan
+        #     # query the database for the game via participant
+        #     game = await self.get_participant_game(user_id=user_id)
+        #     print(f'the game_id is {game.game_id}')
+
+        #     self.game_group_name = f'game_{game.game_id}'
+
+        #     # Add this channel to a group based on game_id
+        #     print(f'Joining group')
+        #     await self.channel_layer.group_add(
+        #         self.game_group_name,
+        #         self.channel_name
+        #     )
+
+        #     # extracting participant list
+        #     participants_data = await self.get_new_player_list(game)
+
+        #     print("\nsending message from ws\n")
+        #     await self.channel_layer.group_send(
+        #     self.game_group_name, 
+        #     {
+        #         'type': 'chat_message',  # This refers to the method name `chat_message`
+        #         'message': participants_data
+        #     }
+        #     )
 
         # cleanup
         # disconnect message?
@@ -71,11 +118,20 @@ class MyConsumer(AsyncWebsocketConsumer):
             'message': message
         }))
 
-    async def chat_message(self, event):
+    async def Add_Update_player_List(self, event):
         message = event['message']
         # Send message to WebSocket; this sends the message to each client in the group
         await self.send(text_data=json.dumps({
             'message': message
+    }))
+        
+    async def Disconnect_Update(self, event):
+        message = event['message']
+        msg_type = event.get('msg_type', 'No msg_type')
+        # Send message to WebSocket; this sends the message to each client in the group
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'msg_type': msg_type
     }))
 
     @database_sync_to_async
@@ -98,6 +154,15 @@ class MyConsumer(AsyncWebsocketConsumer):
             return participant_data
         except:
             pass
+
+    @database_sync_to_async
+    def get_username(self):
+        try:
+            player = User.objects.get(id=self.user_id)
+
+            return player.username
+        except User.DoesNotExist:
+            return None
 
 
 def validate_jwt(token):
