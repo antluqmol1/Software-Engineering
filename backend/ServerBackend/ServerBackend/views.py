@@ -54,9 +54,11 @@ def join_game(request):
             # should return a unique game
             try:
                 game = Game.objects.get(game_id = gameId)
+                game.num_players += 1
+                game.save()
             except:
                 print("game not found")
-                return JsonResponse({'success': False, 'msg': 'invalid game code'})
+                return JsonResponse({'success': False, 'msg': 'invalid game code'}, status=404)
             
             print("joining game")
             player = Participant(game = game,
@@ -69,7 +71,41 @@ def join_game(request):
             
         else:
             print("user not authenticated")
-            return JsonResponse({'success': False, 'msg': 'not logged in/authenticated'})
+            return JsonResponse({'success': False, 'msg': 'not logged in/authenticated'}, status=401)
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method'}, status= 405)
+        
+
+def leave_game(request):
+    print("leaving game")
+
+    if request.method == "PUT":
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is authenticated")
+            player = Participant.objects.get(user=user)
+            print(f'player {player.user.username} leaving game with id: {player.game.game_id}')
+
+            game = Game.objects.get(game_id=player.game.game_id)
+            game.num_players -= 1
+            print(f'new game num_players: {game.num_players}')
+            game.save()
+            print("saved game to database")
+
+            player.delete()
+            print("player deleted from participants")
+
+            return JsonResponse({'success': True})
+        
+        else:
+            return JsonResponse({'success': False, 'msg': 'not authenticated'}, status=401)
+        
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method'}, status= 405)
+
 
 
 def create_game(request):
@@ -207,23 +243,6 @@ def clean_up_game(game_id):
         players_to_delete.delete()
     except:
         print("failed to delete game and players")
-
-
-def leave_game(request):
-
-    if request.method == "PUT":
-
-        user = request.user
-
-        if user.is_authenticated:
-            player = Participant.objects.get(user=user)
-
-            player.delete()
-
-            return JsonResponse({'success': True})
-        
-        else:
-            return JsonResponse({'success': False, 'msg': 'not authenticated'})
 
         
 '''

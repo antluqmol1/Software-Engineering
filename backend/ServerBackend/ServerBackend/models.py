@@ -122,6 +122,9 @@ class Game(models.Model):
     # Admin/user who initiated the game; a ForeignKey links to the User model
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    # Number of players in the game
+    num_players = models.IntegerField(default=0)
+
     # Active task in the game; a ForeignKey links to the Tasks model
     # active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
     

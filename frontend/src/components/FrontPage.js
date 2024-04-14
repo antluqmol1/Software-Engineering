@@ -10,6 +10,7 @@ const FrontPage = () => {
   const [userData, setUserData] = useState(null);
   const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
   const [gameCode, setGameCode] = useState("");
+  const [invalidGameCode, setInvalidGameCode] = useState("");
   const navigate = useNavigate(); // Initialize useHistory hook
 
   const userIsLoggedIn = useCheckUserLoggedIn();
@@ -82,6 +83,7 @@ const FrontPage = () => {
         })
         .catch((error) => {
           console.error("There was an error!", error);
+          setInvalidGameCode("invalidGameCode")
         });
   };
   
@@ -152,6 +154,9 @@ const FrontPage = () => {
             <button className="button" onClick={handleJoinGameSubmit}>
               Join
             </button>
+            {invalidGameCode && <p>
+              Invalid game code, try again
+              </p>}
           </div>
         )}
         {activeOption === "create" && (

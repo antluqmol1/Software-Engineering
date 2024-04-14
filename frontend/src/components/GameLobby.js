@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
 import Cookies from "universal-cookie";
@@ -13,9 +13,11 @@ function GameLobby() {
     const [taskText, setTaskText] = useState(null);
     const [taskPoints, setTaskPoints] = useState(null);
     const [GivePointButton, setGivePointButton] = useState(false); // New state
+    const [taskDoneNotification, setTaskDoneNotification] = useState([])
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
+    const webSocketRef = useRef(null);
 
     const handleDelete = () => {
         axios
@@ -152,6 +154,28 @@ function GameLobby() {
       });
   };
 
+  const taskDone = () => {
+    console.log("Task text and points:", taskText, taskPoints);
+    if (webSocketRef.current) {
+        webSocketRef.current.send(JSON.stringify({
+            type: 'task_done', // Ensure this matches what your backend expects
+            taskText: taskText,
+            taskPoints: taskPoints
+        }));
+    }
+
+  }
+
+  const voteTaskDone = (user, vote) => {
+    console.log("voting on task done, you have voted: ", vote);
+    if (webSocketRef.current) {
+        webSocketRef.current.send(JSON.stringify({
+            type: 'task_done_vote', // Ensure this matches what your backend expects
+            taskVote: vote
+        }));
+    }
+  }
+
   useEffect(() => {
     // Fetch the player list and game when the component mounts
     fetchPlayerList();
@@ -167,16 +191,16 @@ function GameLobby() {
         // Setup WebSocket connection
         const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:";
         console.log("token being sent:", token)
-        const webSocket = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
+        webSocketRef.current = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
         // const webSocket = new WebSocket(`wss://localhost:8000/ws/gamelobby/`); # not working
 
         
         // WE NEED TO EDIT THE LOGIN VIEW, WE MUST GENERATE A JWT ON THE BACKEND AND SEND IT TO THE BROWSER
-        webSocket.onopen = (event) => {
+        webSocketRef.current.onopen = (event) => {
             console.log('WebSocket Connected');
         };
 
-        webSocket.onmessage = (event) => {
+        webSocketRef.current.onmessage = (event) => {
             // Handle incoming messages
             const data = JSON.parse(event.data);
             console.log('Message from ws ', data.message);
@@ -216,14 +240,33 @@ function GameLobby() {
                     
                     break;
                     
-                case 'new-task':
+                case 'new_task':
+                    // implement new task logic, if needed
                     console.log("\nnew task recieved\n");
                     break;
+                
+                case 'task_done':
+                    // implement task done logic
+                    console.log("\nanother player has completed their task!\n");
+                    console.log(data.message);
+                    console.log("user", data.message['username'])
+
+                    var username = data.message['username']
+
+                    const newTaskDoneNotification = {
+                        id: data.message['username'],
+                        taskText: data.message['task'],
+                        taskPoints: data.message['points']
+                    };
+                    // add the taskdonenotification to the lists
+                    setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
+                
+                    break
             }
         
         };
 
-        webSocket.onclose = () => {
+        webSocketRef.current.onclose = () => {
             console.log('WebSocket Disconnected');
         };
 
@@ -242,7 +285,7 @@ function GameLobby() {
 
         // Clean up on unmount
         return () => {
-            webSocket.close();
+            webSocketRef.current.close();
         };
 
     }, []);
@@ -280,6 +323,23 @@ function GameLobby() {
               </div>
             </div>
           </div>
+
+          <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
+            {taskDoneNotification.map((notification) => (
+                <div key={notification.id} className="notification" style={{ background: 'lightgray', margin: '5px', padding: '10px' }}>
+                    <p>Player: {notification.id}</p>
+                    <p>Task: {notification.taskText}</p>
+                    <p>Points: {notification.taskPoints}</p>
+                    <p>Did the player complete this?</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <button className="givePoint-button btn btn-sm btn-primary"
+                            onClick={() => voteTaskDone(notification.id, 'yes')}>Yes</button>
+                        <button className="givePoint-button btn btn-sm btn-primary"
+                            onClick={() => voteTaskDone(notification.id, 'no')}>No</button>
+                    </div>
+                </div>
+            ))}
+          </div>
     
           <div className="questions-container">
             <div className="group-question">
@@ -290,6 +350,12 @@ function GameLobby() {
               <p className="font-style">
                 task: {taskText}
               </p>
+              {taskText && <button
+              className="givePoint-button btn btn-sm btn-primary"
+              onClick={() => taskDone()}
+              >
+                DONE
+              </button>}
             </div>
           </div>
     

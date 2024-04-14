@@ -11,7 +11,7 @@ import jwt
 import json
 
 
-class MyConsumer(AsyncWebsocketConsumer):
+class GameLobby(AsyncWebsocketConsumer):
     async def connect(self):
         print("WS gamelobby, connecting...")
         # add to a group? or is the group the participant/game
@@ -31,6 +31,7 @@ class MyConsumer(AsyncWebsocketConsumer):
             game = await self.get_participant_game(user_id=self.user_id)
             print(f'the game_id is {game.game_id}')
 
+            # set the name of the group, all people in same group has the same name
             self.game_group_name = f'game_{game.game_id}'
 
             # Add this channel to a group based on game_id
@@ -83,13 +84,44 @@ class MyConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        print("\ninside recieve...\nchecking message type")
+        # message = text_data_json['message']
+        msg_type = text_data_json['type']
 
-        print(f'\nmessage: \n{message}\n')
+        print(f'\nmessage: \n{text_data_json}\n')
+
+        match msg_type:
+            case "task_done":
+                print("message is task_done\n sending response to group")
+                points = str(text_data_json['taskPoints'])
+
+                username = await self.get_username()
+
+                response = {
+                    'username': username,
+                    'task': text_data_json['taskText'],
+                    'points': points
+                }
+                print(response)
+                await self.channel_layer.group_send(
+                self.game_group_name, 
+                {
+                    'type': 'Task_Done',  # This refers to the method name `Task_Done`
+                    'message': response,
+                    'msg_type': 'task_done'
+                }
+                )
+        
+
+    async def Task_Done(self, event):
+        message = event['message']
+        msg_type = event.get('msg_type', 'No msg_type')
 
         await self.send(text_data=json.dumps({
-            'message': message
+            'message': message,
+            'msg_type': msg_type
         }))
+        
 
     # message function
     async def Add_Update_Player(self, event):
