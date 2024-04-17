@@ -128,12 +128,14 @@ class Game(models.Model):
     # Active task in the game; a ForeignKey links to the Tasks model
     # active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
     
-    # # Start time of the game
+    # Start time of the game
     start_time = models.DateTimeField()
-    
-    # # End time of the game; nullable and blank to handle ongoing games
+  
+    # End time of the game; nullable and blank to handle ongoing games
     end_time = models.DateTimeField(null=True, blank=True)
 
+    # boolen to check if game is started.
+    game_started = models.BooleanField(default=False)
 
 class PickedTasks(models.Model):
     
@@ -162,6 +164,9 @@ class Participant(models.Model):
     
     # Score achieved by the participant; default is set to 0
     score = models.IntegerField(default=0)
+
+    # Boolean indicating whether the user has been picked once during a round
+    isPicked = models.BooleanField(default=False)
 
 
 # '''

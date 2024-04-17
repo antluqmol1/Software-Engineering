@@ -10,9 +10,10 @@ function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
+    const [gameStarted, setGameStarted] = useState(false);
     const [taskText, setTaskText] = useState(null);
     const [taskPoints, setTaskPoints] = useState(null);
-    const [GivePointButton, setGivePointButton] = useState(false); // New state
+    const [pickedPlayer, setPickedPlayer] = useState(null);
     const [taskDoneNotification, setTaskDoneNotification] = useState([])
     const navigate = useNavigate();
     const cookies = new Cookies();
@@ -82,11 +83,15 @@ function GameLobby() {
             }
         )
             .then(response => {
-                setGivePointButton(true); // Show the givePoint button again after fetching a new task
-                console.log(response.data.description)
-                setTaskText(response.data.description)
-                setTaskText(response.data.description)
-                setTaskPoints(response.data.points)
+                if (webSocketRef.current) {
+                    webSocketRef.current.send(JSON.stringify({
+                    type: 'new_task',
+                    taskText: response.data.description,
+                    taskPoints: response.data.points,
+                    pickedPlayer: response.data.pickedPlayer,
+                    gameStarted: true
+                }));
+              }
                 return response.data;
             })
             .catch(error => {
@@ -110,18 +115,41 @@ function GameLobby() {
   };
 
     const fetchGame = () => {
-        axios.get("http://localhost:8000/get-game/")
+        axios.get("http://localhost:8000/get-game/",
+            {
+                headers: {
+                    "X-CSRFToken": token, // Include CSRF token in headers
+                },
+            })
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
-                console.log(response.data["gameId"]);
-                // setTaskText(response.data["taskText"]);
-                // setTaskPoints(response.data["taskPoints"]);
+                setGameStarted(response.data["gameStarted"]);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
             });
-    }
+
+            // Condition to fetch the current task if the game is started
+            if (gameStarted) {
+              axios.get("http://localhost:8000/game/current-task/",
+              {
+                  headers: {
+                      "X-CSRFToken": token, // Include CSRF token in headers
+                  },
+              })
+              .then(response => {
+                  setTaskText(response.data.description)
+                  setTaskPoints(response.data.points)
+                  setPickedPlayer(response.data.pickedPlayer)
+                  return response.data;
+              })
+              .catch(error => {
+                  console.error("Error fetching task:", error);
+              });
+            }
+
+    };
 
     // Function assigns points to player in database, needs to be called by button on website
     const givePoints = (username, points) => {
@@ -140,7 +168,6 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
-                setGivePointButton(false); // Hide the givePoint button after clicking
             }
             else {
                 console.log("failed to give points");
@@ -175,12 +202,6 @@ function GameLobby() {
         }));
     }
   }
-
-  useEffect(() => {
-    // Fetch the player list and game when the component mounts
-    fetchPlayerList();
-    fetchGame();
-  }, []);
 
   //incoming change, this return is incoming change
     useEffect(() => {
@@ -241,8 +262,10 @@ function GameLobby() {
                     break;
                     
                 case 'new_task':
-                    // implement new task logic, if needed
-                    console.log("\nnew task recieved\n");
+                    setTaskText(data.message.taskText);
+                    setTaskPoints(data.message.taskPoints);
+                    setPickedPlayer(data.message.pickedPlayer);
+                    setGameStarted(data.message.gameStarted);
                     break;
                 
                 case 'task_done':
@@ -270,19 +293,6 @@ function GameLobby() {
             console.log('WebSocket Disconnected');
         };
 
-        // const sendMessage = (messageContent) => {
-        //     if (webSocket) {
-        //         webSocket.send(JSON.stringify({
-        //             message: messageContent,
-        //             type: 'custom_message_type' // This can be any type identifier you need
-        //         }));
-        //         console.log("Message sent to WS:", messageContent);
-        //     } else {
-        //         console.error("WebSocket not connected!");
-        //     }
-        // };
-        
-
         // Clean up on unmount
         return () => {
             webSocketRef.current.close();
@@ -304,27 +314,16 @@ function GameLobby() {
                 {playerList.map((player, index) => (
                   <div
                     className="list-group-item d-flex align-items-center justify-content-start"
-                    key={index}
-                  >
+                    key={index}>
                     <span className="me-2">{player.username}</span>
-                    <span className="badge bg-secondary ms-auto me-3">
-                      {player.score}
-                    </span>
-                    {GivePointButton && (
-                      <button
-                        className="givePoint-button btn btn-sm btn-primary"
-                        onClick={() => givePoints(player.username, taskPoints)}
-                      >
-                        Give Points
-                      </button>
-                    )}
+                    <span className="badge bg-secondary ms-auto me-3">{player.score}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
+          {/* <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
             {taskDoneNotification.map((notification) => (
                 <div key={notification.id} className="notification" style={{ background: 'lightgray', margin: '5px', padding: '10px' }}>
                     <p>Player: {notification.id}</p>
@@ -339,7 +338,7 @@ function GameLobby() {
                     </div>
                 </div>
             ))}
-          </div>
+          </div> */}
     
           <div className="questions-container">
             <div className="group-question">
@@ -350,7 +349,7 @@ function GameLobby() {
               <p className="font-style">
                 task: {taskText}
               </p>
-              {taskText && <button
+              {taskText && <button      // Only player that is prompted with task should have this button.
               className="givePoint-button btn btn-sm btn-primary"
               onClick={() => taskDone()}
               >
@@ -366,9 +365,14 @@ function GameLobby() {
             {admin ? "End game" : "Leave game"}
           </button>
     
-          <button className="fetchTask-button" onClick={fetchTask}>
-            Next challenge
-          </button>
+          {admin && !gameStarted && ( // Only render the button if the user is an admin
+            <button 
+              className="fetchTask-button" 
+              onClick={fetchTask}
+            >
+              Start Game
+            </button>
+          )}
           <div className="wave wave1"></div>
           <div className="wave wave2"></div>
           <div className="wave wave3"></div>
