@@ -12,6 +12,7 @@ function GameLobby() {
     const [gameID, setGameID] = useState(null);
     const [taskText, setTaskText] = useState(null);
     const [taskPoints, setTaskPoints] = useState(null);
+    const [taskId, setTaskId] = useState(null);
     const [GivePointButton, setGivePointButton] = useState(false); // New state
     const [taskDoneNotification, setTaskDoneNotification] = useState([])
     const navigate = useNavigate();
@@ -85,8 +86,9 @@ function GameLobby() {
                 setGivePointButton(true); // Show the givePoint button again after fetching a new task
                 console.log(response.data.description)
                 setTaskText(response.data.description)
-                setTaskText(response.data.description)
+                // setTaskText(response.data.description) // why where there two of thesem happened to setTaskId aswell
                 setTaskPoints(response.data.points)
+                setTaskId(response.data.taskId)
                 return response.data;
             })
             .catch(error => {
@@ -158,19 +160,22 @@ function GameLobby() {
     console.log("Task text and points:", taskText, taskPoints);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
-            type: 'task_done', // Ensure this matches what your backend expects
+            type: 'task_done', 
             taskText: taskText,
-            taskPoints: taskPoints
+            taskPoints: taskPoints,
+            taskId: taskId
         }));
     }
 
   }
 
-  const voteTaskDone = (user, vote) => {
+  const voteTaskDone = (user, vote, task) => {
     console.log("voting on task done, you have voted: ", vote);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
-            type: 'task_done_vote', // Ensure this matches what your backend expects
+            type: 'task_vote',
+            username: user,
+            taskText: task,
             taskVote: vote
         }));
     }
@@ -256,11 +261,16 @@ function GameLobby() {
                     const newTaskDoneNotification = {
                         id: data.message['username'],
                         taskText: data.message['task'],
-                        taskPoints: data.message['points']
+                        taskPoints: data.message['points'],
+                        taskId: data.message['taskId']
                     };
                     // add the taskdonenotification to the lists
                     setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
                 
+                    break
+
+                case 'task_vote_confirmation':
+                    console.log("Another player has voted on a task")
                     break
             }
         
@@ -333,9 +343,9 @@ function GameLobby() {
                     <p>Did the player complete this?</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'yes')}>Yes</button>
+                            onClick={() => voteTaskDone(notification.id, 'yes', notification.taskId)}>Yes</button>
                         <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'no')}>No</button>
+                            onClick={() => voteTaskDone(notification.id, 'no', notification.taskId)}>No</button>
                     </div>
                 </div>
             ))}

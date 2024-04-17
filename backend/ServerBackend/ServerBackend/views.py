@@ -303,6 +303,16 @@ def next_task(request):
             game = part.game
             type = game.type
 
+            task_user = None
+
+            # Snakk med jørgen: han har gjort en del akkurat her.
+            # Burde jobbe mer med Sockets, og samkjøre med jørgen når det lar sæ gjøres
+
+            for _ in range(game.num_players):
+                task_user = Participant.objects.filter(game=game).order_by('?').first
+                # here we need to find a random player. 
+                # is_picked = PickedTasks
+
             task_count = Tasks.objects.filter(type=type).count()
 
             # Check if task is available
@@ -320,7 +330,7 @@ def next_task(request):
                 if not is_picked:
                     picked_task = PickedTasks(task=random_task, game=game, user=user)
                     picked_task.save()
-                    return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
+                    return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'taskId': random_task.task_id})
 
 
             # arrive here if all tasks have been checked, or no tasks available        

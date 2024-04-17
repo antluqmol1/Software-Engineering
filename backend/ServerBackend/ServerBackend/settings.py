@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'ServerBackend.apps.ServerBackendConfig',
+    'django_extensions',
 ]
 
 print("before apps")
