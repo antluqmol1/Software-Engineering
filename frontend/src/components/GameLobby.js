@@ -14,7 +14,7 @@ function GameLobby() {
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
     const [GivePointButton, setGivePointButton] = useState(false); // New state
-    const [taskDoneNotification, setTaskDoneNotification] = useState([])
+    const [taskDoneInformation, setTaskDoneInformation] = useState({})
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
