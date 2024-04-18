@@ -7,6 +7,9 @@ from channels.layers import get_channel_layer
 from .models import User, Game, Participant, PickedTasks, Tasks, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError
+
 import jwt
 import json
 
@@ -139,7 +142,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
                 # HERE WE NEED TO UPDATE THE DATABASE, WAS THINKING WE USE THE RESPONSE TABLE
 
-                vote_input
+                vote_input = None
 
                 match vote:
                     case 'yes':
@@ -152,7 +155,7 @@ class GameLobby(AsyncWebsocketConsumer):
                 print(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
 
                 # Create new vote.
-                new_vote = await self.add_new_vote(vote_user, task, game, vote)
+                new_vote = await self.add_new_vote(vote_user, task, game, vote_input)
 
                 # Check if more that half the game has voted
 
@@ -314,8 +317,14 @@ class GameLobby(AsyncWebsocketConsumer):
                                 vote=vote)
             new_vote.save()
             return new_vote
-        except:
-            print("WS: failed to add Response record")
+        except IntegrityError as e:
+            print(f"WS: IntegrityError - {str(e)}")
+            return None
+        except ValidationError as e:
+            print(f"WS: ValidationError - {str(e)}")
+            return None
+        except Exception as e:
+            print(f"WS: Unexpected error - {str(e)}")
             return None
     
     # database function
