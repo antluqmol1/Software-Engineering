@@ -161,21 +161,21 @@ function GameLobby() {
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_done', 
-            taskText: taskText,
-            taskPoints: taskPoints,
+            // taskText: taskText,
+            // taskPoints: taskPoints,
             taskId: taskId
         }));
     }
 
   }
 
-  const voteTaskDone = (user, vote, task) => {
+  const voteTaskDone = (user, vote, taskId) => {
     console.log("voting on task done, you have voted: ", vote);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_vote',
             username: user,
-            taskText: task,
+            taskId: taskId,
             taskVote: vote
         }));
     }
