@@ -316,7 +316,10 @@ function GameLobby() {
                     className="list-group-item d-flex align-items-center justify-content-start"
                     key={index}>
                     <span className="me-2">{player.username}</span>
-                    <span className="badge bg-secondary ms-auto me-3">{player.score}</span>
+                    <span className="badge bg-secondary ms-auto me-3">
+                      {player.score}
+                    </span>
+                    
                   </div>
                 ))}
               </div>
@@ -341,25 +344,34 @@ function GameLobby() {
           </div> */}
     
           <div className="questions-container">
-            <div className="group-question">
-              <h2 className="font-style-prompt">Challenge</h2>
-              <p className="font-style">
-                Player: {pickedPlayer}
-              </p>
-              <p className="font-style">
-                Points: {taskPoints}
-              </p>
-              <p className="font-style">
-                task: {taskText}
-              </p>
-              {taskText && <button      // Only player that is prompted with task should have this button.
-              className="givePoint-button btn btn-sm btn-primary"
-              onClick={() => taskDone()}
-              >
-                DONE
-              </button>}
-            </div>
-          </div>
+  <div className="group-question">
+    <h2 className="font-style-prompt">Challenge</h2>
+    <p className="font-style">Points: {taskPoints}</p>
+    <p className="font-style">task: {taskText}</p>
+    {taskText && (
+      <div>
+        <button
+          className="yes-button btn btn-sm btn-primary"
+          onClick={() => taskDone()}
+        >
+          Yes
+        </button>
+        <button
+          className="no-button btn btn-sm btn-danger"
+          onClick={() => taskDone()}
+        >
+          No
+        </button>
+        <button
+          className="undecided-button btn btn-sm btn-warning"
+          onClick={() => taskDone()}
+        >
+          Undecided
+        </button>
+      </div>
+    )}
+  </div>
+</div>
     
           <button
             className="endGame-button"
