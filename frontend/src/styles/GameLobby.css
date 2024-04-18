@@ -315,3 +315,56 @@
   /* Change the font family if needed */
   /* Add any other styles to make it look stylish */
 }
+
+.group-question .yes-button {
+  background-color: green; /* Set the background color to green */
+}
+
+.group-question .no-button {
+  background-color: red; /* Set the background color to red */
+}
+
+.questions-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Adjust the gap between questions */
+  margin-top: 30vh; /* Add margin to move the containers down */
+}
+
+.group-question {
+  width: 50vw; /* Adjust the width of each question container */
+  padding: 20px;
+  border: 1px solid #000000;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.866);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.704);
+  color: rgb(0, 217, 217);
+  font-weight: bold;
+}
+
+.group-question button {
+  margin-right: 26px; /* Add spacing between the buttons */
+}
+
+group-question button {
+  width: 100px; /* Set a fixed width for each button */
+  margin-right: 10px; /* Add spacing between the buttons */
+}
+
+.yes-button {
+  background-color: green; /* Set background color to green */
+  color: white; /* Set text color to white */
+  width: 100px; /* Set a fixed width for each button */
+}
+
+.no-button {
+  background-color: red; /* Set background color to red */
+  color: white; /* Set text color to white */
+  width: 100px; /* Set a fixed width for each button */
+}
+
+.undecided-button {
+  background-color: yellow; /* Set background color to yellow */
+  color: rgb(255, 255, 255) !important; /* Set text color to black */
+  width: 100px; /* Set a fixed width for each button */
+}
