@@ -131,7 +131,7 @@ function GameLobby() {
             });
 
             // Condition to fetch the current task if the game is started
-            if (gameStarted) {
+            if (!gameStarted) {
               axios.get("http://localhost:8000/game/current-task/",
               {
                   headers: {
@@ -182,7 +182,6 @@ function GameLobby() {
   };
 
   const taskDone = () => {
-    console.log("Task text and points:", taskText, taskPoints);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_done', // Ensure this matches what your backend expects
@@ -262,10 +261,11 @@ function GameLobby() {
                     break;
                     
                 case 'new_task':
-                    setTaskText(data.message.taskText);
-                    setTaskPoints(data.message.taskPoints);
-                    setPickedPlayer(data.message.pickedPlayer);
-                    setGameStarted(data.message.gameStarted);
+                    console.log("new task received");
+                    setTaskText(data.message['taskText']);
+                    setTaskPoints(data.message['taskPoints']);
+                    setPickedPlayer(data.message['pickedPlayer']);
+                    setGameStarted(data.message['gameStarted']);
                     break;
                 
                 case 'task_done':
@@ -343,6 +343,9 @@ function GameLobby() {
           <div className="questions-container">
             <div className="group-question">
               <h2 className="font-style-prompt">Challenge</h2>
+              <p className="font-style">
+                Player: {pickedPlayer}
+              </p>
               <p className="font-style">
                 Points: {taskPoints}
               </p>

@@ -91,7 +91,7 @@ class GameLobby(AsyncWebsocketConsumer):
         print(f'\nmessage: \n{text_data_json}\n')
 
         match msg_type:
-            case "task_done":
+            case 'task_done':
                 print("message is task_done\n sending response to group")
                 points = str(text_data_json['taskPoints'])
 
@@ -106,14 +106,31 @@ class GameLobby(AsyncWebsocketConsumer):
                 await self.channel_layer.group_send(
                 self.game_group_name, 
                 {
-                    'type': 'Task_Done',  # This refers to the method name `Task_Done`
+                    'type': 'Task',  # This refers to the method name Task
                     'message': response,
                     'msg_type': 'task_done'
                 }
                 )
+
+            case 'new_task':
+                response = {
+                    'taskText': text_data_json['taskText'],
+                    'taskPoints': text_data_json['taskPoints'],
+                    'pickedPlayer': text_data_json['pickedPlayer'],
+                    'gameStarted': text_data_json['gameStarted'],
+                }
+
+                await self.channel_layer.group_send(
+                self.game_group_name, 
+                {
+                    'type': 'Task',  # This refers to the method name Task
+                    'message': response,
+                    'msg_type': 'new_task'
+                }
+                )
         
 
-    async def Task_Done(self, event):
+    async def Task(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
 
@@ -121,7 +138,7 @@ class GameLobby(AsyncWebsocketConsumer):
             'message': message,
             'msg_type': msg_type
         }))
-        
+    
 
     # message function
     async def Add_Update_Player(self, event):

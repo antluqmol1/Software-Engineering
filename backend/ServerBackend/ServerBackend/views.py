@@ -309,7 +309,7 @@ def current_task(request):
             part = Participant.objects.get(user=user)
             game = part.game
 
-            currTask = PickedTasks.objects.filter(game=game, done=False).exists()
+            currTask = PickedTasks.objects.filter(game=game, done=False).first()
             
             if currTask:
                 return JsonResponse({'success': True, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
