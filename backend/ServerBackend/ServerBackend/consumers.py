@@ -4,7 +4,7 @@ from django.contrib.auth.models import User # not sure if we need this one
 from django.contrib.auth import authenticate
 from django.conf import settings
 from channels.layers import get_channel_layer
-from .models import User, Game, Participant, PickedTasks, Tasks
+from .models import User, Game, Participant, PickedTasks, Tasks, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
 import jwt
@@ -127,12 +127,39 @@ class GameLobby(AsyncWebsocketConsumer):
                 task_id = text_data_json['taskId']
                 vote = text_data_json['taskVote']
 
+                
+
                 vote_user = await self.get_user()
                 task_user = await self.get_user_from_username(vote_task_username)
+
+                game = await self.get_participant_game(vote_user)
+                task = await self.get_task_from_id(task_id)
 
                 print(f'WS: {vote_user.username} voted {vote} on {task_user.username}\'s task')
 
                 # HERE WE NEED TO UPDATE THE DATABASE, WAS THINKING WE USE THE RESPONSE TABLE
+
+                vote_input
+
+                match vote:
+                    case 'yes':
+                        vote_input = True
+                    case 'no':
+                        vote_input = False
+                    case "skip":
+                        vote_input = None
+
+                print(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
+
+                # Create new vote.
+                new_vote = await self.add_new_vote(vote_user, task, game, vote)
+
+                # Check if more that half the game has voted
+
+                vote_list = await self.get_game_votes(game)
+
+                # for i in range(vote_list):
+                #     print(f'{vote_list.user.username} has voted')
 
                 # WE SHOULD MAYBE DEAL WITH TASK ID INSTEAD OF THE TEXT
                 response = {
@@ -145,14 +172,24 @@ class GameLobby(AsyncWebsocketConsumer):
                 {
                     'type': 'Task',  # This refers to the method name `Task_Done`
                     'message': response,
-                    'msg_type': 'task_vote_confirmation'
+                    'msg_type': 'task_new_vote'
                 }
                 )
 
             case 'new_task':
+
+                print("WS: new_task")
+
+                task = await self.get_task_from_id(text_data_json['taskId'])
+
+                task_text = task.description
+                task_points = task.points
+
+
                 response = {
-                    'taskText': text_data_json['taskText'],
-                    'taskPoints': text_data_json['taskPoints'],
+                    'taskId': task.task_id,
+                    'taskText': task_text,
+                    'taskPoints': task_points,
                     'pickedPlayer': text_data_json['pickedPlayer'],
                     'gameStarted': text_data_json['gameStarted'],
                 }
@@ -253,6 +290,42 @@ class GameLobby(AsyncWebsocketConsumer):
 
             return player
         except User.DoesNotExist:
+            return None
+        
+    # database function
+    @database_sync_to_async
+    def get_task_from_id(self, task_id):
+        try:
+            task = Tasks.objects.get(task_id=task_id)
+
+            return task
+        except Tasks.DoesNotExist:
+            return None
+
+    # database function
+    @database_sync_to_async
+    def add_new_vote(self, user, task, game, vote):
+        try:
+            print("WS: adding Reponse record")
+            # create new Response record
+            new_vote = Response(user=user,
+                                task=task,
+                                game=game,
+                                vote=vote)
+            new_vote.save()
+            return new_vote
+        except:
+            print("WS: failed to add Response record")
+            return None
+    
+    # database function
+    @database_sync_to_async
+    def get_game_votes(self, game):
+        try:
+            votes = Response.objects.get(game=game)
+
+            return votes
+        except Response.DoesNotExist:
             return None
 
 

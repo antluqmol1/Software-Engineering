@@ -190,8 +190,8 @@ class Response(models.Model):
     # Textual content of the user's response
     # vote = models.TextField()
     
-    # Marks the vote as yes or no (true or false)
-    vote = models.BooleanField(default=False)
+    # Marks the vote as yes or no (true or false), (null for skip?)
+    vote = models.BooleanField(default=False, null=True)
     
     # this ensures that the combination of task and game must be unique
     class meta:

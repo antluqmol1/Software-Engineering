@@ -299,7 +299,7 @@ def next_task(request):
 
                     game.game_started = True
                     game.save()
-
+                    print(f'response: description: random_task.description, points: random_task.points, pickedPlayer: random_player.user.username, taskId: random_task.task_id')
                     return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id})
                 
 

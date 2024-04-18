@@ -14,8 +14,9 @@ function GameLobby() {
     const [taskText, setTaskText] = useState(null);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
+    const [voteList, setVoteList] = useState([])
     const [GivePointButton, setGivePointButton] = useState(false); // New state
-    const [taskDoneInformation, setTaskDoneInformation] = useState({})
+    // const [taskDoneInformation, setTaskDoneInformation] = useState({})
     const [pickedPlayer, setPickedPlayer] = useState(null);
     const navigate = useNavigate();
     const cookies = new Cookies();
@@ -85,6 +86,7 @@ function GameLobby() {
             }
         )
             .then(response => {
+                console.log("response: ", response.data.taskId)
                 if (webSocketRef.current) {
                     webSocketRef.current.send(JSON.stringify({
                     type: 'new_task',
@@ -194,8 +196,8 @@ function GameLobby() {
 
   }
 
-  const voteTaskDone = (user, vote, taskId) => {
-    console.log("voting on task done, you have voted: ", vote);
+  const voteTask = (user, vote, taskId) => {
+    console.log("voting ", vote ,", on task with id ", taskId);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_vote',
@@ -266,6 +268,7 @@ function GameLobby() {
                     
                 case 'new_task':
                     console.log("new task received");
+                    setTaskId(data.message['taskId']);
                     setTaskText(data.message['taskText']);
                     setTaskPoints(data.message['taskPoints']);
                     setPickedPlayer(data.message['pickedPlayer']);
@@ -280,18 +283,20 @@ function GameLobby() {
 
                     var username = data.message['username']
 
-                    const newTaskDoneNotification = {
-                        id: data.message['username'],
-                        taskText: data.message['task'],
-                        taskPoints: data.message['points'],
-                        taskId: data.message['taskId']
-                    };
-                    // add the taskdonenotification to the lists
-                    setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
+                    // setPickedPlayer()
+
+                    // const newTaskDoneNotification = {
+                    //     id: data.message['username'],
+                    //     taskText: data.message['task'],
+                    //     taskPoints: data.message['points'],
+                    //     taskId: data.message['taskId']
+                    // };
+                    // // add the taskdonenotification to the lists
+                    // setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
                 
                     break
 
-                case 'task_vote_confirmation':
+                case 'task_new_vote':
                     console.log("Another player has voted on a task")
                     break
             }
@@ -355,27 +360,28 @@ function GameLobby() {
           <div className="questions-container">
   <div className="group-question">
     <h2 className="font-style-prompt">Challenge</h2>
+    <p className="font-style">{pickedPlayer}'s task</p>
     <p className="font-style">Points: {taskPoints}</p>
     <p className="font-style">task: {taskText}</p>
     {taskText && (
       <div>
         <button
           className="yes-button btn btn-sm btn-primary"
-          onClick={() => taskDone()}
+          onClick={() => voteTask(pickedPlayer, "yes", taskId)}
         >
           Yes
         </button>
         <button
           className="no-button btn btn-sm btn-danger"
-          onClick={() => taskDone()}
+          onClick={() => voteTask(pickedPlayer, "no", taskId)}
         >
           No
         </button>
         <button
           className="undecided-button btn btn-sm btn-warning"
-          onClick={() => taskDone()}
+          onClick={() => voteTask(pickedPlayer, "skip", taskId)}
         >
-          Undecided
+          Skip
         </button>
       </div>
     )}
