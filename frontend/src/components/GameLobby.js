@@ -5,7 +5,24 @@ import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Wheel } from 'react-custom-roulette'
 
+
+const wheel_data = [
+  { option: '0' },
+  { option: '1' },
+  { option: '2' },
+  { option: '3' },
+  { option: '4' },
+  { option: '5' },
+  { option: '6' },
+  { option: '7' },
+  { option: '8' },
+  { option: '9' },
+  { option: '10' },
+  { option: '11' },
+  { option: '12' },
+]
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
@@ -18,6 +35,17 @@ function GameLobby() {
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
+
+    const [mustSpin, setMustSpin] = useState(false);
+    const [prizeNumber, setPrizeNumber] = useState(0);
+
+    const handleSpinClick = () => {
+      if (!mustSpin) {
+        const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
+        setPrizeNumber(newPrizeNumber);
+        setMustSpin(true);
+      }
+    }
 
     const handleDelete = () => {
         axios
@@ -341,7 +369,7 @@ function GameLobby() {
             ))}
           </div>
     
-          <div className="questions-container">
+          {/* <div className="questions-container">
             <div className="group-question">
               <h2 className="font-style-prompt">Challenge</h2>
               <p className="font-style">
@@ -357,7 +385,7 @@ function GameLobby() {
                 DONE
               </button>}
             </div>
-          </div>
+          </div> */}
     
           <button
             className="endGame-button"
@@ -372,6 +400,19 @@ function GameLobby() {
           <div className="wave wave1"></div>
           <div className="wave wave2"></div>
           <div className="wave wave3"></div>
+        <div className='roulette-wheel'>
+          
+        <Wheel
+        mustStartSpinning={mustSpin}
+        prizeNumber={prizeNumber}
+        data={wheel_data}
+        
+        onStopSpinning={() => {
+          setMustSpin(false);
+        }}
+        />
+        <button onClick={handleSpinClick}>SPIN</button>
+        </div>
         </div>
       );
     

@@ -114,3 +114,8 @@
     position: relative;
     z-index: 9999;
 }
+
+.roulette-wheel {
+    position: absolute;
+    top: 40%;
+}
