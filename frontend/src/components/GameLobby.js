@@ -4,7 +4,8 @@ import axios from "axios";
 import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/css/bootstrap.min.css"; 
+
 
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
@@ -14,9 +15,9 @@ function GameLobby() {
     const [taskText, setTaskText] = useState(null);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
-    const [voteList, setVoteList] = useState([])
-    const [GivePointButton, setGivePointButton] = useState(false); // New state
-    // const [taskDoneInformation, setTaskDoneInformation] = useState({})
+    const [yesVotes, setYesVotes] = useState(0);
+    const [noVotes, setNoVotes] = useState(0);
+    const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
     const navigate = useNavigate();
     const cookies = new Cookies();
@@ -154,54 +155,53 @@ function GameLobby() {
 
     };
 
-    // Function assigns points to player in database, needs to be called by button on website
-    const givePoints = (username, points) => {
-        axios
-        .put(
-            "http://localhost:8000/game/give-points/",
-            { 
-                username: username, 
-                points: points 
-            },
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            }
-        )
-        .then((response) => {
-            if (response.data['success'] === true) {
-            }
-            else {
-                console.log("failed to give points");
-            }
+  //   // Function assigns points to player in database, needs to be called by button on website
+  //   const givePoints = (username, points) => {
+  //       axios
+  //       .put(
+  //           "http://localhost:8000/game/give-points/",
+  //           { 
+  //               username: username, 
+  //               points: points 
+  //           },
+  //           {
+  //               headers: {
+  //                   "X-CSRFToken": token, // Include CSRF token in headers
+  //               },
+  //           }
+  //       )
+  //       .then((response) => {
+  //           if (response.data['success'] === true) {
+  //           }
+  //           else {
+  //               console.log("failed to give points");
+  //           }
 
-        return response.data;
-      })
-      .catch((error) => {
-        console.error("Error assigning points:", error);
-        return null;
-      });
-  };
+  //       return response.data;
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error assigning points:", error);
+  //       return null;
+  //     });
+  // };
 
-  const taskDone = () => {
-    if (webSocketRef.current) {
-        webSocketRef.current.send(JSON.stringify({
-            type: 'task_done', 
-            // taskText: taskText,
-            // taskPoints: taskPoints,
-            taskId: taskId
-        }));
-    }
+  // const taskDone = () => {
+  //   if (webSocketRef.current) {
+  //       webSocketRef.current.send(JSON.stringify({
+  //           type: 'task_done', 
+  //           // taskText: taskText,
+  //           // taskPoints: taskPoints,
+  //           taskId: taskId
+  //       }));
+  //   }
 
-  }
+  // }
 
-  const voteTask = (user, vote, taskId) => {
+  const voteTask = (vote, taskId) => {
     console.log("voting ", vote ,", on task with id ", taskId);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_vote',
-            username: user,
             taskId: taskId,
             taskVote: vote
         }));
@@ -218,8 +218,6 @@ function GameLobby() {
         const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:";
         console.log("token being sent:", token)
         webSocketRef.current = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
-        // const webSocket = new WebSocket(`wss://localhost:8000/ws/gamelobby/`); # not working
-
         
         // WE NEED TO EDIT THE LOGIN VIEW, WE MUST GENERATE A JWT ON THE BACKEND AND SEND IT TO THE BROWSER
         webSocketRef.current.onopen = (event) => {
@@ -276,28 +274,17 @@ function GameLobby() {
                     break;
                 
                 case 'task_done':
-                    // implement task done logic
-                    console.log("\nanother player has completed their task!\n");
-                    console.log(data.message);
-                    console.log("user", data.message['username'])
-
-                    var username = data.message['username']
-
-                    // setPickedPlayer()
-
-                    // const newTaskDoneNotification = {
-                    //     id: data.message['username'],
-                    //     taskText: data.message['task'],
-                    //     taskPoints: data.message['points'],
-                    //     taskId: data.message['taskId']
-                    // };
-                    // // add the taskdonenotification to the lists
-                    // setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
-                
+                    console.log("task done");
+                    setYesVotes(0)
+                    setNoVotes(0)
+                    setSkipVotes(0)
+                    fetchTask();
                     break
 
                 case 'task_new_vote':
-                    console.log("Another player has voted on a task")
+                    setYesVotes(data.message['yesVotes'])
+                    setNoVotes(data.message['noVotes'])
+                    setSkipVotes(data.message['skipVotes'])
                     break
             }
         
@@ -339,23 +326,6 @@ function GameLobby() {
               </div>
             </div>
           </div>
-
-          {/* <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
-            {taskDoneNotification.map((notification) => (
-                <div key={notification.id} className="notification" style={{ background: 'lightgray', margin: '5px', padding: '10px' }}>
-                    <p>Player: {notification.id}</p>
-                    <p>Task: {notification.taskText}</p>
-                    <p>Points: {notification.taskPoints}</p>
-                    <p>Did the player complete this?</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'yes', notification.taskId)}>Yes</button>
-                        <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'no', notification.taskId)}>No</button>
-                    </div>
-                </div>
-            ))}
-          </div> */}
     
           <div className="questions-container">
   <div className="group-question">
@@ -363,23 +333,27 @@ function GameLobby() {
     <p className="font-style">{pickedPlayer}'s task</p>
     <p className="font-style">Points: {taskPoints}</p>
     <p className="font-style">task: {taskText}</p>
+    <p className="font-style" style={{fontSize: 'smaller'}}>Yes: {yesVotes}</p>
+    <p className="font-style" style={{fontSize: 'smaller'}}>No: {noVotes}</p>
+    <p className="font-style" style={{fontSize: 'smaller'}}>skip: {skipVotes}</p>
+
     {taskText && (
       <div>
         <button
           className="yes-button btn btn-sm btn-primary"
-          onClick={() => voteTask(pickedPlayer, "yes", taskId)}
+          onClick={() => voteTask( "yes", taskId)}
         >
           Yes
         </button>
         <button
           className="no-button btn btn-sm btn-danger"
-          onClick={() => voteTask(pickedPlayer, "no", taskId)}
+          onClick={() => voteTask("no", taskId)}
         >
           No
         </button>
         <button
           className="undecided-button btn btn-sm btn-warning"
-          onClick={() => voteTask(pickedPlayer, "skip", taskId)}
+          onClick={() => voteTask("skip", taskId)}
         >
           Skip
         </button>

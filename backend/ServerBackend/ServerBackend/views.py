@@ -256,15 +256,15 @@ def next_task(request):
             game = part.game
             type = game.type
 
-            task_user = None
+            # task_user = None
 
-            # Snakk med jørgen: han har gjort en del akkurat her.
-            # Burde jobbe mer med Sockets, og samkjøre med jørgen når det lar sæ gjøres
+            # # Snakk med jørgen: han har gjort en del akkurat her.
+            # # Burde jobbe mer med Sockets, og samkjøre med jørgen når det lar sæ gjøres
 
-            for _ in range(game.num_players):
-                task_user = Participant.objects.filter(game=game).order_by('?').first
-                # here we need to find a random player. 
-                # is_picked = PickedTasks
+            # for _ in range(game.num_players):
+            #     task_user = Participant.objects.filter(game=game).order_by('?').first
+            #     # here we need to find a random player. 
+            #     # is_picked = PickedTasks
 
             task_count = Tasks.objects.filter(type=type).count()
 
@@ -277,10 +277,10 @@ def next_task(request):
                 random_task = Tasks.objects.filter(type = type).order_by('?').first()
                 
                 # check if this task is already picked
-                is_picked = PickedTasks.objects.filter(task=random_task, game=game).exists()
+                taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
 
                 # if not, we save it to PickedTasks, and return the question
-                if not is_picked:
+                if not taskExist:
 
                     random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
 
@@ -289,7 +289,7 @@ def next_task(request):
                         for p in participants:
                             p.isPicked = False
                             p.save()
-                        random_player = Participant.objects.filter(game=game, done=False).order_by('?').first()
+                        random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
 
                     random_player.isPicked = True
                     random_player.save()
