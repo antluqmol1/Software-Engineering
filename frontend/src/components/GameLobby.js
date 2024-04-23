@@ -4,53 +4,41 @@ import axios from "axios";
 import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/css/bootstrap.min.css"; 
 import { Wheel } from 'react-custom-roulette'
 
 
 const wheel_data = [
-  { option: 'bob'},
-  { option: 'alice'},
-  { option: 'frank'},
+  // { option: 'bob'},
+  // { option: 'alice'},
+  // { option: 'frank'},
 
 ]
+
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
     const [taskText, setTaskText] = useState(null);
-    const [spinWheel, setSpinWheel] = useState(false);
+    const [spunWheel, setSpunWheel] = useState(false);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
-    const [voteList, setVoteList] = useState([])
-    const [GivePointButton, setGivePointButton] = useState(false); // New state
-    // const [taskDoneInformation, setTaskDoneInformation] = useState({})
+    const [yesVotes, setYesVotes] = useState(0);
+    const [noVotes, setNoVotes] = useState(0);
+    const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
+    const [nextTask, setNextTask] = useState(false)
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
-    const [usernameArray, setUsernameArray] = useState([]);
+    const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
 
 
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
 
-    const handleSpinClick = () => {
-      if (!mustSpin) {
-        const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
-        setPrizeNumber(newPrizeNumber);
-        setMustSpin(true);
-        console.log(spinWheel)
-        console.log(playerList)
-            // Set up a setTimeout to change the state back to false after 7 seconds
-          setTimeout(() => {
-            console.log(spinWheel)
-            setSpinWheel(true);
-          }, 12000);
-      }
-    }
 
     const handleDelete = () => {
         axios
@@ -106,30 +94,30 @@ function GameLobby() {
       });
   };
 
-    const fetchTask = () => {
-        axios.get("http://localhost:8000/game/next-task/",
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            }
-        )
-            .then(response => {
-                console.log("response: ", response.data.taskId)
-                if (webSocketRef.current) {
-                    webSocketRef.current.send(JSON.stringify({
-                    type: 'new_task',
-                    taskId: response.data.taskId,
-                    pickedPlayer: response.data.pickedPlayer,
-                    gameStarted: true
-                }));
-              }
-                return response.data;
-            })
-            .catch(error => {
-                console.error("Error fetching task:", error);
-            });
-    };
+  //   const fetchTask = () => {
+  //       axios.get("http://localhost:8000/game/next-task/",
+  //           {
+  //               headers: {
+  //                   "X-CSRFToken": token, // Include CSRF token in headers
+  //               },
+  //           }
+  //       )
+  //           .then(response => {
+  //               console.log("response: ", response.data.taskId)
+  //               if (webSocketRef.current) {
+  //                   webSocketRef.current.send(JSON.stringify({
+  //                   type: 'new_task',
+  //                   taskId: response.data.taskId,
+  //                   pickedPlayer: response.data.pickedPlayer,
+  //                   gameStarted: true
+  //               }));
+  //             }
+  //               return response.data;
+  //           })
+  //           .catch(error => {
+  //               console.error("Error fetching task:", error);
+  //           });
+  //   };
 
   // Function to fetch the list of participants from the server
   const fetchPlayerList = () => {
@@ -140,8 +128,12 @@ function GameLobby() {
       })
       .then((response) => {
         setPlayerList(response.data.participants);
-        console.log(response.data.participants[0].username)
-        console.log(response.data.participants)
+        const usernames = Array.from(response.data.participants.values()).map(player => ({ option: player.username }));
+        setUsernameArray(usernames);
+
+        console.log('Username array:', usernames);
+        console.log('Username array2222:', wheel_data);
+
       })
       .catch((error) => {
         console.error("Error fetching player list:", error);
@@ -149,103 +141,134 @@ function GameLobby() {
   };
 
   useEffect(() => {
+    console.log('uuuuuuuusseeeerrr22222222222: ', usernameArray);
+  }, [usernameArray]);
 
-      const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
-      setUsernameArray(Array.from(playerList.values()).map(player => ({ option: player.username })));
-      console.log("USEEEEERNAMES", usernameArray)
+  // useEffect(() => {
 
-  }, [playerList]);
+  //     const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
+  //     setUsernameArray(Array.from(playerList.values()).map(player => ({ option: player.username })));
+  //     console.log("USEEEEERNAMES", usernameArray)
 
-    const fetchGame = () => {
-        axios.get("http://localhost:8000/get-game/",
+  // }, [playerList]);
+
+  const fetchGame = () => {
+      axios.get("http://localhost:8000/get-game/",
+          {
+              headers: {
+                  "X-CSRFToken": token, // Include CSRF token in headers
+              },
+          })
+          .then(response => {
+              setAdmin(response.data["isAdmin"]);
+              setGameID(response.data["gameId"]);
+              setGameStarted(response.data["gameStarted"]);
+          })
+          .catch(error => {
+              console.error("Error fetching game ID:", error);
+          });
+
+          // Condition to fetch the current task if the game is started
+          if (!gameStarted) {
+            axios.get("http://localhost:8000/game/current-task/",
             {
                 headers: {
                     "X-CSRFToken": token, // Include CSRF token in headers
                 },
             })
             .then(response => {
-                setAdmin(response.data["isAdmin"]);
-                setGameID(response.data["gameId"]);
-                setGameStarted(response.data["gameStarted"]);
+                setTaskText(response.data.description)
+                setTaskPoints(response.data.points)
+                setPickedPlayer(response.data.pickedPlayer)
+                return response.data;
             })
             .catch(error => {
-                console.error("Error fetching game ID:", error);
+                console.error("Error fetching task:", error);
             });
-
-            // Condition to fetch the current task if the game is started
-            if (!gameStarted) {
-              axios.get("http://localhost:8000/game/current-task/",
-              {
-                  headers: {
-                      "X-CSRFToken": token, // Include CSRF token in headers
-                  },
-              })
-              .then(response => {
-                  setTaskText(response.data.description)
-                  setTaskPoints(response.data.points)
-                  setPickedPlayer(response.data.pickedPlayer)
-                  return response.data;
-              })
-              .catch(error => {
-                  console.error("Error fetching task:", error);
-              });
-            }
+          }
 
     };
 
-    // Function assigns points to player in database, needs to be called by button on website
-    const givePoints = (username, points) => {
-        axios
-        .put(
-            "http://localhost:8000/game/give-points/",
-            { 
-                username: username, 
-                points: points 
-            },
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            }
-        )
-        .then((response) => {
-            if (response.data['success'] === true) {
-            }
-            else {
-                console.log("failed to give points");
-            }
+  //   // Function assigns points to player in database, needs to be called by button on website
+  //   const givePoints = (username, points) => {
+  //       axios
+  //       .put(
+  //           "http://localhost:8000/game/give-points/",
+  //           { 
+  //               username: username, 
+  //               points: points 
+  //           },
+  //           {
+  //               headers: {
+  //                   "X-CSRFToken": token, // Include CSRF token in headers
+  //               },
+  //           }
+  //       )
+  //       .then((response) => {
+  //           if (response.data['success'] === true) {
+  //           }
+  //           else {
+  //               console.log("failed to give points");
+  //           }
 
-        return response.data;
-      })
-      .catch((error) => {
-        console.error("Error assigning points:", error);
-        return null;
-      });
-  };
+  //       return response.data;
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error assigning points:", error);
+  //       return null;
+  //     });
+  // };
 
-  const taskDone = () => {
-    if (webSocketRef.current) {
-        webSocketRef.current.send(JSON.stringify({
-            type: 'task_done', 
-            // taskText: taskText,
-            // taskPoints: taskPoints,
-            taskId: taskId
-        }));
-    }
+  // const taskDone = () => {
+  //   if (webSocketRef.current) {
+  //       webSocketRef.current.send(JSON.stringify({
+  //           type: 'task_done', 
+  //           // taskText: taskText,
+  //           // taskPoints: taskPoints,
+  //           taskId: taskId
+  //       }));
+  //   }
 
-  }
+  // }
 
-  const voteTask = (user, vote, taskId) => {
-    console.log("voting ", vote ,", on task with id ", taskId);
+  const voteTask = (vote, taskId) => {
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_vote',
-            username: user,
             taskId: taskId,
             taskVote: vote
         }));
     }
   }
+
+  const fetchTask = () => {
+
+    if (webSocketRef.current) {
+      webSocketRef.current.send(JSON.stringify({
+          type: 'new_task'
+      }));
+  }
+  }
+  const getNextTask = () => {
+
+    if (webSocketRef.current) {
+      webSocketRef.current.send(JSON.stringify({
+          type: 'new_task'
+      }));
+  }
+  }
+
+  // Log the updated playerList within a useEffect hook
+  useEffect(() => {
+    console.log('Updating userNameArray', playerList.size)
+    if (playerList.length > 0) {
+      console.log('LISSSSSSSTTTTfakookaokgoTT: ', playerList);
+      const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
+      setUsernameArray(usernames);
+    }
+
+  }, [playerList]);
+
 
   //incoming change, this return is incoming change
     useEffect(() => {
@@ -257,8 +280,6 @@ function GameLobby() {
         const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:";
         console.log("token being sent:", token)
         webSocketRef.current = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
-        // const webSocket = new WebSocket(`wss://localhost:8000/ws/gamelobby/`); # not working
-
         
         // WE NEED TO EDIT THE LOGIN VIEW, WE MUST GENERATE A JWT ON THE BACKEND AND SEND IT TO THE BROWSER
         webSocketRef.current.onopen = (event) => {
@@ -286,7 +307,7 @@ function GameLobby() {
                     break;
                 case 'join':
                     console.log("player joined");
-                    console.log("Updating list");
+                    console.log("Updating list: ", playerList);
                     setPlayerList(prevPlayerList => {
                         console.log("previous player list: ", prevPlayerList);
                         const existingPlayer = prevPlayerList.find(p => p.username === data.message.username);
@@ -300,47 +321,45 @@ function GameLobby() {
                             console.log("adding player: ", data.message);
                             // New player, add to the list
                             return [...prevPlayerList, data.message];
-                        }
-                    });
-                    
+                          }
+                        });
                     // Update the list of usernames as well
-                    setUsernameArray(prevUsernames => [...prevUsernames, data.message.username]);
 
                     break;
                     
                 case 'new_task':
-                    console.log("new task received");
+                    console.log('player list from socket rqu8rqeouqo: ', data.message['participants'])
                     setTaskId(data.message['taskId']);
                     setTaskText(data.message['taskText']);
                     setTaskPoints(data.message['taskPoints']);
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
+                    handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
                     break;
                 
                 case 'task_done':
-                    // implement task done logic
-                    console.log("\nanother player has completed their task!\n");
-                    console.log(data.message);
-                    console.log("user", data.message['username'])
+                    setYesVotes(0)
+                    setNoVotes(0)
+                    setSkipVotes(0)
 
-                    var username = data.message['username']
+                    // setNextTask(true);
+                    setSpunWheel(false);
+                    setNextTask(true);
 
-                    // setPickedPlayer()
+                    setTaskId(data.message['taskId']);
+                    setTaskText(data.message['taskText']);
+                    setTaskPoints(data.message['taskPoints']);
+                    setPickedPlayer(data.message['pickedPlayer']);
+                    setGameStarted(data.message['gameStarted']);
+                    setPlayerList(data.message['participants']);
 
-                    // const newTaskDoneNotification = {
-                    //     id: data.message['username'],
-                    //     taskText: data.message['task'],
-                    //     taskPoints: data.message['points'],
-                    //     taskId: data.message['taskId']
-                    // };
-                    // // add the taskdonenotification to the lists
-                    // setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
-                
-                    break
+                    break;
 
                 case 'task_new_vote':
-                    console.log("Another player has voted on a task")
-                    break
+                    setYesVotes(data.message['yesVotes'])
+                    setNoVotes(data.message['noVotes'])
+                    setSkipVotes(data.message['skipVotes'])
+                    break;
             }
         
         };
@@ -355,6 +374,33 @@ function GameLobby() {
         };
 
     }, []);
+
+
+    const handleSpinClick = (username, usernames) => {
+      if (!mustSpin) {
+
+        const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
+        
+        console.log('USEEEEERNAMEEEMEME', username)
+        console.log('plaaaaaayyyeerList: ', usernameArray)
+        console.log('plaaaaaayyyeerList425364534334: ', usernames)
+
+        const index = usernames.findIndex(player => player.username === username);
+        
+        console.log('Prizeee number: ', index)
+
+        setPrizeNumber(index);
+        setMustSpin(true);
+        console.log(spunWheel)
+        console.log('plaaaayerLLIIIIISSSTTTT',playerList)
+            // Set up a setTimeout to change the state back to false after 7 seconds
+          setTimeout(() => {
+            console.log(spunWheel)
+            setSpunWheel(true);
+          }, 12000);
+      }
+    }
+
 
 
     return (
@@ -382,49 +428,36 @@ function GameLobby() {
             </div>
           </div>
 
-          {/* <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
-            {taskDoneNotification.map((notification) => (
-                <div key={notification.id} className="notification" style={{ background: 'lightgray', margin: '5px', padding: '10px' }}>
-                    <p>Player: {notification.id}</p>
-                    <p>Task: {notification.taskText}</p>
-                    <p>Points: {notification.taskPoints}</p>
-                    <p>Did the player complete this?</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'yes', notification.taskId)}>Yes</button>
-                        <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'no', notification.taskId)}>No</button>
-                    </div>
-                </div>
-            ))}
-          </div> */}
-
-{spinWheel &&
+{spunWheel &&
       <div className="questions-container">
         <div className="group-question">
               <h2 className="font-style-prompt">Challenge</h2>
               <p className="font-style">{pickedPlayer}'s task</p>
               <p className="font-style">Points: {taskPoints}</p>
               <p className="font-style">task: {taskText}</p>
+    <p className="font-style" style={{fontSize: 'smaller'}}>Yes: {yesVotes}</p>
+    <p className="font-style" style={{fontSize: 'smaller'}}>No: {noVotes}</p>
+    <p className="font-style" style={{fontSize: 'smaller'}}>skip: {skipVotes}</p>
+
         
     {taskText && 
     
           <div>
             <button
               className="yes-button btn btn-sm btn-primary"
-              onClick={() => voteTask(pickedPlayer, "yes", taskId)}
+              onClick={() => voteTask( "yes", taskId)}
             >
               Yes
             </button>
             <button
               className="no-button btn btn-sm btn-danger"
-              onClick={() => voteTask(pickedPlayer, "no", taskId)}
+              onClick={() => voteTask("no", taskId)}
             >
               No
             </button>
             <button
               className="undecided-button btn btn-sm btn-warning"
-              onClick={() => voteTask(pickedPlayer, "skip", taskId)}
+              onClick={() => voteTask("skip", taskId)}
             >
               Skip
             </button>
@@ -440,6 +473,17 @@ function GameLobby() {
           >
             {admin ? "End game" : "Leave game"}
           </button>
+          
+          {admin && nextTask && (
+            <button 
+            className="fetchTask-button" 
+            onClick={getNextTask}
+          >
+            Next Challenge
+          </button>
+          )}
+
+
     
           {admin && !gameStarted && ( // Only render the button if the user is an admin
             <button 
@@ -453,20 +497,20 @@ function GameLobby() {
           <div className="wave wave2"></div>
           <div className="wave wave3"></div>
         
-        { !spinWheel &&
+        { !spunWheel &&
           <div className='roulette-wheel'>
               
             <Wheel
             mustStartSpinning={mustSpin}
             prizeNumber={prizeNumber}
-            data={wheel_data}
+            data={usernameArray}
             backgroundColors={['#a35cb5', '#c971d9', '#c251d6']}
             textColors={['white']}
             onStopSpinning={() => {
               setMustSpin(false);
             }}
             />
-            <button onClick={handleSpinClick}>SPIN</button>
+            {/* <button onClick={handleSpinClick}>SPIN</button> */}
             </div>
           }
 

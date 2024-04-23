@@ -101,101 +101,79 @@ class GameLobby(AsyncWebsocketConsumer):
         print("WS: checking message type\n")
 
         match msg_type:
-            case 'task_done':
-                print("WS: task_done\n sending response to group")
-                points = str(text_data_json['taskPoints'])
-
-                username = await self.get_username()
-
-                response = {
-                    'username': username,
-                    'task': text_data_json['taskText'],
-                    'points': points,
-                    'taskId': text_data_json['taskId']
-                }
-                print(response)
-                await self.channel_layer.group_send(
-                self.game_group_name, 
-                {
-                    'type': 'Task',  # This refers to the method name Task
-                    'message': response,
-                    'msg_type': 'task_done'
-                }
-                )
-
             case "task_vote":
                 print("WS: task_vote")
 
-                vote_task_username = text_data_json['username']
                 task_id = text_data_json['taskId']
                 vote = text_data_json['taskVote']
 
-                
-
                 vote_user = await self.get_user()
-                task_user = await self.get_user_from_username(vote_task_username)
 
                 game = await self.get_participant_game(vote_user)
+                participants = await self.get_participants(game)
                 task = await self.get_task_from_id(task_id)
 
-                print(f'WS: {vote_user.username} voted {vote} on {task_user.username}\'s task')
-
-                # HERE WE NEED TO UPDATE THE DATABASE, WAS THINKING WE USE THE RESPONSE TABLE
 
                 vote_input = None
-
                 match vote:
                     case 'yes':
                         vote_input = True
                     case 'no':
                         vote_input = False
-                    case "skip":
-                        vote_input = None
 
                 print(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
-
+                
                 # Create new vote.
-                new_vote = await self.add_new_vote(vote_user, task, game, vote_input)
+                await self.add_new_vote(vote_user, task, game, vote_input)
 
-                # Check if more that half the game has voted
+                # Obtain the different types of votes from DB.
+                yesVotes, noVotes, skipVotes = await self.get_game_votes(game)  
 
-                vote_list = await self.get_game_votes(game)
+                # Check if the overwhelming majority has voted, and end game if one-sided.
+                if (participants/2 - skipVotes) <= yesVotes:                                    # Player wins
+                    # Removes responses for specific task, in specific game.
+                    await self.next_task_preperation(game, task)
+                    # Gives player points
+                    await self.give_player_points(game, task)
 
-                # for i in range(vote_list):
-                #     print(f'{vote_list.user.username} has voted')
 
-                # WE SHOULD MAYBE DEAL WITH TASK ID INSTEAD OF THE TEXT
-                response = {
-                    'vote': vote,
-                    'task': task_id
-                }
+                elif (participants/2 - skipVotes) < noVotes:                                    # Player loses
+                    # Removes responses for specific task, in specific game.
+                    await self.next_task_preperation(game, task)
 
+                else:                                                                           # Vote continues
+                    response = {
+                        'yesVotes': yesVotes,
+                        'noVotes': noVotes,
+                        'skipVotes': skipVotes,
+                    }
+
+                    await self.channel_layer.group_send(
+                    self.game_group_name, 
+                    {
+                        'type': 'Task',  # This refers to the method name `Task`
+                        'message': response,
+                        'msg_type': 'task_new_vote'
+                    }
+                    )
+                    return          # Return here if vote continues
+                
+                response = await self.next_task(game)
+
+                # Next task will be fetched from the frontend.
                 await self.channel_layer.group_send(
-                self.game_group_name, 
-                {
-                    'type': 'Task',  # This refers to the method name `Task_Done`
-                    'message': response,
-                    'msg_type': 'task_new_vote'
-                }
-                )
+                    self.game_group_name, 
+                    {
+                        'type': 'Task',  # This refers to the method name `Task`
+                        'message': response,
+                        'msg_type': 'task_done'
+                    }
+                    )
 
             case 'new_task':
 
-                print("WS: new_task")
-
-                task = await self.get_task_from_id(text_data_json['taskId'])
-
-                task_text = task.description
-                task_points = task.points
-
-
-                response = {
-                    'taskId': task.task_id,
-                    'taskText': task_text,
-                    'taskPoints': task_points,
-                    'pickedPlayer': text_data_json['pickedPlayer'],
-                    'gameStarted': text_data_json['gameStarted'],
-                }
+                game = await self.get_participant_game(self.user_id)
+                response = await self.next_task(game)
 
                 await self.channel_layer.group_send(
                 self.game_group_name, 
@@ -215,6 +193,8 @@ class GameLobby(AsyncWebsocketConsumer):
             'message': message,
             'msg_type': msg_type
         }))
+
+
     
 
     # message function
@@ -246,6 +226,86 @@ class GameLobby(AsyncWebsocketConsumer):
             return game
         except Participant.DoesNotExist:
             return None
+        
+    # Database function
+    @database_sync_to_async
+    def get_participants(self, game):
+        try:
+            participants = Participant.objects.filter(game=game).count()
+            return participants
+        except Participant.DoesNotExist:
+            return None
+    
+    # Database function
+    @database_sync_to_async
+    def next_task_preperation(self, game, task):
+        # Clears responses for specific task/game in Response.
+        respones = Response.objects.filter(game=game, task=task)
+        respones.delete()
+        # Sets task as done in PickedTasks.
+        current_task = PickedTasks.objects.get(game=game, task=task)
+        current_task.done = True
+        current_task.save()
+
+
+    # Database function
+    @database_sync_to_async
+    def give_player_points(self, game, task):
+        current_task = PickedTasks.objects.get(game=game, task=task)
+        player = Participant.objects.get(user=current_task.user)
+        player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
+        player.save()
+
+    # Database function
+    @database_sync_to_async
+    def next_task(self, game):
+        
+        task_count = Tasks.objects.filter(type=game.type).count()
+
+        # Check if task is available
+        for _ in range(task_count):
+
+            random_task = Tasks.objects.filter(type = game.type).order_by('?').first()
+            # check if this task is already picked
+            taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
+
+            # if not, we save it to PickedTasks, and return the question
+            if not taskExist:
+                random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+
+                if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
+                    participants = Participant.objects.filter(game=game)
+                    for p in participants:
+                        p.isPicked = False
+                        p.save()
+
+                    random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+
+                random_player.isPicked = True
+                random_player.save()
+
+                picked_task = PickedTasks(task=random_task, game=game, user=random_player.user)
+                picked_task.save()
+
+                game.game_started = True
+                game.save()
+
+                participants_in_same_game = Participant.objects.filter(game=game)
+                participant_data = [{'username': p.user.username, 'score': p.score} 
+                                    for p in participants_in_same_game]
+
+                response = {
+                    'taskId': random_task.task_id,
+                    'taskText': random_task.description,
+                    'taskPoints': random_task.points,
+                    'pickedPlayer': random_player.user.username,
+                    'gameStarted': game.game_started,
+                    'participants': participant_data,
+                }
+
+                return response
+
+
     
     # database function
     @database_sync_to_async
@@ -309,14 +369,20 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def add_new_vote(self, user, task, game, vote):
         try:
-            print("WS: adding Reponse record")
-            # create new Response record
-            new_vote = Response(user=user,
-                                task=task,
-                                game=game,
-                                vote=vote)
-            new_vote.save()
-            return new_vote
+            existing_vote = Response.objects.filter(user=user).first()
+            if existing_vote:   # check for existing Response record and edit it
+                existing_vote.vote = vote
+                existing_vote.save()
+                return existing_vote
+            
+            else:    # create new Response record
+                new_vote = Response(user=user,
+                                    task=task,
+                                    game=game,
+                                    vote=vote)
+                new_vote.save()
+                return new_vote
+            
         except IntegrityError as e:
             print(f"WS: IntegrityError - {str(e)}")
             return None
@@ -331,9 +397,21 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_game_votes(self, game):
         try:
-            votes = Response.objects.get(game=game)
+            votes = Response.objects.filter(game=game)
+            yesVotes = 0
+            noVotes = 0
+            skipVotes = 0
 
-            return votes
+            for i in votes:
+                match i.vote:
+                    case True:
+                        yesVotes += 1
+                    case False:
+                        noVotes += 1
+                    case None:
+                        skipVotes += 1
+
+            return yesVotes, noVotes, skipVotes
         except Response.DoesNotExist:
             return None
 
