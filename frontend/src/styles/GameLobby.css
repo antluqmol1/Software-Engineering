@@ -346,25 +346,40 @@
   margin-right: 26px; /* Add spacing between the buttons */
 }
 
-group-question button {
+.group-question button {
   width: 100px; /* Set a fixed width for each button */
   margin-right: 10px; /* Add spacing between the buttons */
+  flex-grow: 1; /* Allow buttons to grow and fill available space */
+  margin: 0 5px; /* Add margin between buttons */
 }
 
 .yes-button {
   background-color: green; /* Set background color to green */
   color: white; /* Set text color to white */
   width: 100px; /* Set a fixed width for each button */
+  order: 1; /* Move the Yes button to the left */
 }
 
 .no-button {
   background-color: red; /* Set background color to red */
   color: white; /* Set text color to white */
   width: 100px; /* Set a fixed width for each button */
+  order: 2; /* Move the Yes button to the left */
 }
 
 .undecided-button {
   background-color: yellow; /* Set background color to yellow */
   color: rgb(255, 255, 255) !important; /* Set text color to black */
   width: 100px; /* Set a fixed width for each button */
+  order: 3; /* Move the Yes button to the left */
+}
+
+/* Style for the vote count */
+.vote-count {
+  position: fixed;
+  top: 20%; /* Adjust the top position to move it down */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  margin-left: 5px; /* Adjust margin as needed */
 }

@@ -5,6 +5,8 @@ import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
 import "bootstrap/dist/css/bootstrap.min.css"; 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
 
 function GameLobby() {
@@ -19,10 +21,14 @@ function GameLobby() {
     const [noVotes, setNoVotes] = useState(0);
     const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
+    const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
+    const [checkmarksLine1, setCheckmarksLine1] = useState([]);
+    const [exesLine2, setExesLine2] = useState([]);
+    const [questionLine3, setQuestionLine3] = useState([]);
 
     const handleDelete = () => {
         axios
@@ -78,30 +84,6 @@ function GameLobby() {
       });
   };
 
-  //   const fetchTask = () => {
-  //       axios.get("http://localhost:8000/game/next-task/",
-  //           {
-  //               headers: {
-  //                   "X-CSRFToken": token, // Include CSRF token in headers
-  //               },
-  //           }
-  //       )
-  //           .then(response => {
-  //               console.log("response: ", response.data.taskId)
-  //               if (webSocketRef.current) {
-  //                   webSocketRef.current.send(JSON.stringify({
-  //                   type: 'new_task',
-  //                   taskId: response.data.taskId,
-  //                   pickedPlayer: response.data.pickedPlayer,
-  //                   gameStarted: true
-  //               }));
-  //             }
-  //               return response.data;
-  //           })
-  //           .catch(error => {
-  //               console.error("Error fetching task:", error);
-  //           });
-  //   };
 
   // Function to fetch the list of participants from the server
   const fetchPlayerList = () => {
@@ -155,57 +137,33 @@ function GameLobby() {
 
     };
 
-  //   // Function assigns points to player in database, needs to be called by button on website
-  //   const givePoints = (username, points) => {
-  //       axios
-  //       .put(
-  //           "http://localhost:8000/game/give-points/",
-  //           { 
-  //               username: username, 
-  //               points: points 
-  //           },
-  //           {
-  //               headers: {
-  //                   "X-CSRFToken": token, // Include CSRF token in headers
-  //               },
-  //           }
-  //       )
-  //       .then((response) => {
-  //           if (response.data['success'] === true) {
-  //           }
-  //           else {
-  //               console.log("failed to give points");
-  //           }
 
-  //       return response.data;
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error assigning points:", error);
-  //       return null;
-  //     });
-  // };
+    const voteTask = (vote, taskId) => {
 
-  // const taskDone = () => {
-  //   if (webSocketRef.current) {
-  //       webSocketRef.current.send(JSON.stringify({
-  //           type: 'task_done', 
-  //           // taskText: taskText,
-  //           // taskPoints: taskPoints,
-  //           taskId: taskId
-  //       }));
-  //   }
+      
+      if (webSocketRef.current) {
+          webSocketRef.current.send(JSON.stringify({
+              type: 'task_vote',
+              taskId: taskId,
+              taskVote: vote
+          }));
+          // Add icons to the respective lists based on the vote
+          if (vote === "yes") {
+            setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
+          } 
+    
+          else if (vote === "no") {
+            setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
+          } 
+    
+          else if (vote === "skip") {
+            setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
+          }
+    
+        };
+      }
+  
 
-  // }
-
-  const voteTask = (vote, taskId) => {
-    if (webSocketRef.current) {
-        webSocketRef.current.send(JSON.stringify({
-            type: 'task_vote',
-            taskId: taskId,
-            taskVote: vote
-        }));
-    }
-  }
 
   const fetchTask = () => {
     if (webSocketRef.current) {
@@ -227,7 +185,6 @@ function GameLobby() {
         console.log("token being sent:", token)
         webSocketRef.current = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
         
-        // WE NEED TO EDIT THE LOGIN VIEW, WE MUST GENERATE A JWT ON THE BACKEND AND SEND IT TO THE BROWSER
         webSocketRef.current.onopen = (event) => {
             console.log('WebSocket Connected');
         };
@@ -297,6 +254,12 @@ function GameLobby() {
                     setYesVotes(data.message['yesVotes'])
                     setNoVotes(data.message['noVotes'])
                     setSkipVotes(data.message['skipVotes'])
+
+                    setTotalVotes(prevTotalVotes => prevTotalVotes + 1);
+                    
+
+                    
+
                     break;
             }
         
@@ -318,6 +281,39 @@ function GameLobby() {
         <div className="game-lobby">
           <div className="GameID">GameID: {gameID}</div>
           {/* Leaderboard */}
+
+          {/* Display total votes count */}
+          <div className="game-lobby">
+            <div className="vote-count">
+              <h3>Total votes: {totalVotes}</h3>
+              {/* <p>Yes votes: {yesVotes}</p>
+              <p>No votes: {noVotes}</p>
+              <p>Skip votes: {skipVotes}</p> */}
+          {/* Display checkmarks for "Yes" votes */}
+          <div>
+              {checkmarksLine1.map((checkmark, index) => (
+              <span key={index}>{checkmark}</span>
+            ))}
+          </div>
+
+          {/* Display X's for "No" votes */}
+          <div>
+            {exesLine2.map((ex, index) => (
+              <span key={index}>{ex}</span>
+            ))}
+        </div>
+  
+        {/* Display question's for "Question" votes */}
+          <div>
+            {questionLine3.map((question, index) => (
+              <span key={index}>{question}</span>
+            ))}
+          </div>
+        </div>
+
+
+        </div>
+
           <div className="leaderboard card position-fixed top-10 p-3">
             <h2 className="card-header text-center">Leaderboard</h2>
             <div className="card-body p-0">
@@ -345,19 +341,20 @@ function GameLobby() {
     <p className="font-style">{pickedPlayer}'s task</p>
     <p className="font-style">Points: {taskPoints}</p>
     <p className="font-style">task: {taskText}</p>
-    <p className="font-style" style={{fontSize: 'smaller'}}>Yes: {yesVotes}</p>
-    <p className="font-style" style={{fontSize: 'smaller'}}>No: {noVotes}</p>
-    <p className="font-style" style={{fontSize: 'smaller'}}>skip: {skipVotes}</p>
+
 
     {taskText && (
       <div>
+
         <button
           className="yes-button btn btn-sm btn-primary"
           onClick={() => voteTask( "yes", taskId)}
         >
           Yes
+          
         </button>
         <button
+        
           className="no-button btn btn-sm btn-danger"
           onClick={() => voteTask("no", taskId)}
         >
@@ -369,11 +366,13 @@ function GameLobby() {
         >
           Skip
         </button>
+        
       </div>
     )}
   </div>
 </div>
     
+
           <button
             className="endGame-button"
             onClick={admin ? handleDelete : handleLeave}
