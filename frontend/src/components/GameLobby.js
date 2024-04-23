@@ -11,6 +11,7 @@ import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons"
 
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
+    const [username, setUsername] = useState(null);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
@@ -111,12 +112,14 @@ function GameLobby() {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
                 setGameStarted(response.data["gameStarted"]);
+                setUsername(response.data['username']);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
             });
 
             // Condition to fetch the current task if the game is started
+            // Im confused, why do we fetch current task if the game is NOT started???
             if (!gameStarted) {
               axios.get("http://localhost:8000/game/current-task/",
               {
@@ -128,6 +131,7 @@ function GameLobby() {
                   setTaskText(response.data.description)
                   setTaskPoints(response.data.points)
                   setPickedPlayer(response.data.pickedPlayer)
+                  setTaskId(response.data.taskId)
                   return response.data;
               })
               .catch(error => {
@@ -343,7 +347,7 @@ function GameLobby() {
     <p className="font-style">task: {taskText}</p>
 
 
-    {taskText && (
+    {pickedPlayer != username && taskText && (
       <div>
 
         <button
@@ -388,9 +392,10 @@ function GameLobby() {
               Start Game
             </button>
           )}
-          <div className="wave wave1"></div>
-          <div className="wave wave2"></div>
-          <div className="wave wave3"></div>
+          {/* WE NEED TO FIX THE Z VALUES OF THESE BEFORE WE COMMENT THEM IN AGAIN*/}
+          {/* {<div className="wave wave1"></div>} */}
+          {/* {<div className="wave wave2"></div>} */}
+          {/* {<div className="wave wave3"></div>} */}
         </div>
       );
     

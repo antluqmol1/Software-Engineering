@@ -181,7 +181,7 @@ def get_game(request):
                 if user == part.game.admin:
                     is_admin = True
 
-                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'gameStarted': part.game.game_started})
+                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started})
             else:
                 return JsonResponse({'success': False, 'msg': 'user not authenticated'})
         else:
@@ -323,7 +323,7 @@ def current_task(request):
             currTask = PickedTasks.objects.filter(game=game, done=False).first()
             
             if currTask:
-                return JsonResponse({'success': True, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
+                return JsonResponse({'success': True, 'taskId': currTask.task.task_id, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
             
             return JsonResponse({'success': False, 'msg': 'no current task'})
         
