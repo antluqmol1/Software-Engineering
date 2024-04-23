@@ -38,7 +38,7 @@ urlpatterns = [
     path('leave-game/', views.leave_game, name='leave-game'),
     path('game/next-task/', views.next_task, name='next-task'),
     path('game/give-points/', views.give_points, name='give-points'),
-
+    path('game/current-task/', views.current_task, name='current-task'),
 ]
 
 

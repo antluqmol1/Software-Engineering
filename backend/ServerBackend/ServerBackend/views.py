@@ -138,7 +138,8 @@ def create_game(request):
                             description=description, 
                             admin=user,
                             start_time=dt.now(), 
-                            end_time=None)
+                            end_time=None,
+                            game_started=False)
             
             new_game.save()
             
@@ -162,33 +163,25 @@ Returns
 '''
 # returns game_id and admin boolean, fields 'success', 'gameId', 'isAdmin'  
 def get_game(request):
-    print("get game")
-
     if request.method == 'GET':
-        print("valid method")
         user = request.user
 
         if user.is_authenticated:
-            print("user is logged in")
-
             # Defaults to false
             is_admin = False
 
             # Checks if player is currently in a game
             potential_participant = Participant.objects.filter(user=user).exists()
             if potential_participant:
-                print("in a game, returning game id")
 
                 # Query the participant record for the player
                 part = Participant.objects.get(user=user)
-
-                game_id = part.game.game_id
 
                 # checks if player is admin
                 if user == part.game.admin:
                     is_admin = True
 
-                return JsonResponse({'success': True, 'gameId': game_id, 'isAdmin': is_admin})
+                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'gameStarted': part.game.game_started})
             else:
                 return JsonResponse({'success': False, 'msg': 'user not authenticated'})
         else:
@@ -258,50 +251,20 @@ def next_task(request):
         user = request.user
         if user.is_authenticated:
 
-
-            ''' 
-            The following commented code is Gjorgons, I do not agree that we should do it this way 
-            thus, as backend wizard, I have vetoed this design for the time being
-            If you wish to make changes to the backend, run it through me first please
-            as I've grown quite fond of it, and I won't let anyone hurt my baby
-            
-            Kind regard
-            - Adrian "Backend" Moen
-            '''
-            # get the participant, game, and extract type
-            # part = Participant.objects.get(user=user)
-            # game = part.game
-            # type = game.type
-
-            # task_count = Tasks.objects.filter(type=type).count()
-
-            # # Check if task is available
-            # for _ in range(task_count):
-            #     # get a random task, and total tasks
-            #     # this might not actually work 100, we can't be sure that the random 
-            #     # will not choose the same "picked" task multiple times, and we thus
-            #     # we might end report no avaiable task when that is not the case
-            #     random_task = Tasks.objects.filter(type = type).order_by('?').first()
-                
-            #     # check if this task is already picked
-            #     is_picked = PickedTasks.objects.filter(task=random_task, game=game, user=user).exists()
-
-            #     if not is_picked:
-            #         # if not, we save it to PickedTasks
-            #         picked_task = PickedTasks(task=random_task, game=game, user=user)
-            #         picked_task.save()
-
-            #         # Store picked task in Game
-            #         game.active_task = random_task
-            #         game.save()
-                    
-            #         # return the task
-            #         return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
-
             # get the participant, game, and extract type
             part = Participant.objects.get(user=user)
             game = part.game
             type = game.type
+
+            task_user = None
+
+            # Snakk med jørgen: han har gjort en del akkurat her.
+            # Burde jobbe mer med Sockets, og samkjøre med jørgen når det lar sæ gjøres
+
+            for _ in range(game.num_players):
+                task_user = Participant.objects.filter(game=game).order_by('?').first
+                # here we need to find a random player. 
+                # is_picked = PickedTasks
 
             task_count = Tasks.objects.filter(type=type).count()
 
@@ -314,13 +277,31 @@ def next_task(request):
                 random_task = Tasks.objects.filter(type = type).order_by('?').first()
                 
                 # check if this task is already picked
-                is_picked = PickedTasks.objects.filter(task=random_task, game=game, user=user).exists()
+                is_picked = PickedTasks.objects.filter(task=random_task, game=game).exists()
 
                 # if not, we save it to PickedTasks, and return the question
                 if not is_picked:
-                    picked_task = PickedTasks(task=random_task, game=game, user=user)
+
+                    random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+
+                    if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
+                        participants = Participant.objects.filter(game=game)
+                        for p in participants:
+                            p.isPicked = False
+                            p.save()
+                        random_player = Participant.objects.filter(game=game, done=False).order_by('?').first()
+
+                    random_player.isPicked = True
+                    random_player.save()
+
+                    picked_task = PickedTasks(task=random_task, game=game, user=random_player.user)
                     picked_task.save()
-                    return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points})
+
+                    game.game_started = True
+                    game.save()
+                    print(f'response: description: random_task.description, points: random_task.points, pickedPlayer: random_player.user.username, taskId: random_task.task_id')
+                    return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id})
+                
 
 
             # arrive here if all tasks have been checked, or no tasks available        
@@ -331,6 +312,25 @@ def next_task(request):
     else:
         return JsonResponse({'success': False, 'msg': 'Invalid method'})
 
+def current_task(request):
+    if request.method == 'GET':
+        user = request.user
+
+        if user.is_authenticated:
+            part = Participant.objects.get(user=user)
+            game = part.game
+
+            currTask = PickedTasks.objects.filter(game=game, done=False).first()
+            
+            if currTask:
+                return JsonResponse({'success': True, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
+            
+            return JsonResponse({'success': False, 'msg': 'no current task'})
+        
+        else:
+            return JsonResponse({'success': False, 'msg': 'not authenticated'})
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method'})
 
 def give_points(request):
     if request.method == 'PUT':

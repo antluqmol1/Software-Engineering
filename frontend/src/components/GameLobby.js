@@ -9,32 +9,30 @@ import { Wheel } from 'react-custom-roulette'
 
 
 const wheel_data = [
-  { option: '0' },
-  { option: '1' },
-  { option: '2' },
-  { option: '3' },
-  { option: '4' },
-  { option: '5' },
-  { option: '6' },
-  { option: '7' },
-  { option: '8' },
-  { option: '9' },
-  { option: '10' },
-  { option: '11' },
-  { option: '12' },
+  { option: 'bob'},
+  { option: 'alice'},
+  { option: 'frank'},
+
 ]
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
+    const [gameStarted, setGameStarted] = useState(false);
     const [taskText, setTaskText] = useState(null);
+    const [spinWheel, setSpinWheel] = useState(false);
     const [taskPoints, setTaskPoints] = useState(null);
+    const [taskId, setTaskId] = useState(null);
+    const [voteList, setVoteList] = useState([])
     const [GivePointButton, setGivePointButton] = useState(false); // New state
-    const [taskDoneNotification, setTaskDoneNotification] = useState([])
+    // const [taskDoneInformation, setTaskDoneInformation] = useState({})
+    const [pickedPlayer, setPickedPlayer] = useState(null);
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
+    const [usernameArray, setUsernameArray] = useState([]);
+
 
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
@@ -44,6 +42,13 @@ function GameLobby() {
         const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
         setPrizeNumber(newPrizeNumber);
         setMustSpin(true);
+        console.log(spinWheel)
+        console.log(playerList)
+            // Set up a setTimeout to change the state back to false after 7 seconds
+          setTimeout(() => {
+            console.log(spinWheel)
+            setSpinWheel(true);
+          }, 12000);
       }
     }
 
@@ -110,11 +115,15 @@ function GameLobby() {
             }
         )
             .then(response => {
-                setGivePointButton(true); // Show the givePoint button again after fetching a new task
-                console.log(response.data.description)
-                setTaskText(response.data.description)
-                setTaskText(response.data.description)
-                setTaskPoints(response.data.points)
+                console.log("response: ", response.data.taskId)
+                if (webSocketRef.current) {
+                    webSocketRef.current.send(JSON.stringify({
+                    type: 'new_task',
+                    taskId: response.data.taskId,
+                    pickedPlayer: response.data.pickedPlayer,
+                    gameStarted: true
+                }));
+              }
                 return response.data;
             })
             .catch(error => {
@@ -131,25 +140,58 @@ function GameLobby() {
       })
       .then((response) => {
         setPlayerList(response.data.participants);
+        console.log(response.data.participants[0].username)
+        console.log(response.data.participants)
       })
       .catch((error) => {
         console.error("Error fetching player list:", error);
       });
   };
 
+  useEffect(() => {
+
+      const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
+      setUsernameArray(Array.from(playerList.values()).map(player => ({ option: player.username })));
+      console.log("USEEEEERNAMES", usernameArray)
+
+  }, [playerList]);
+
     const fetchGame = () => {
-        axios.get("http://localhost:8000/get-game/")
+        axios.get("http://localhost:8000/get-game/",
+            {
+                headers: {
+                    "X-CSRFToken": token, // Include CSRF token in headers
+                },
+            })
             .then(response => {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
-                console.log(response.data["gameId"]);
-                // setTaskText(response.data["taskText"]);
-                // setTaskPoints(response.data["taskPoints"]);
+                setGameStarted(response.data["gameStarted"]);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
             });
-    }
+
+            // Condition to fetch the current task if the game is started
+            if (!gameStarted) {
+              axios.get("http://localhost:8000/game/current-task/",
+              {
+                  headers: {
+                      "X-CSRFToken": token, // Include CSRF token in headers
+                  },
+              })
+              .then(response => {
+                  setTaskText(response.data.description)
+                  setTaskPoints(response.data.points)
+                  setPickedPlayer(response.data.pickedPlayer)
+                  return response.data;
+              })
+              .catch(error => {
+                  console.error("Error fetching task:", error);
+              });
+            }
+
+    };
 
     // Function assigns points to player in database, needs to be called by button on website
     const givePoints = (username, points) => {
@@ -168,7 +210,6 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
-                setGivePointButton(false); // Hide the givePoint button after clicking
             }
             else {
                 console.log("failed to give points");
@@ -183,32 +224,28 @@ function GameLobby() {
   };
 
   const taskDone = () => {
-    console.log("Task text and points:", taskText, taskPoints);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
-            type: 'task_done', // Ensure this matches what your backend expects
-            taskText: taskText,
-            taskPoints: taskPoints
+            type: 'task_done', 
+            // taskText: taskText,
+            // taskPoints: taskPoints,
+            taskId: taskId
         }));
     }
 
   }
 
-  const voteTaskDone = (user, vote) => {
-    console.log("voting on task done, you have voted: ", vote);
+  const voteTask = (user, vote, taskId) => {
+    console.log("voting ", vote ,", on task with id ", taskId);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
-            type: 'task_done_vote', // Ensure this matches what your backend expects
+            type: 'task_vote',
+            username: user,
+            taskId: taskId,
             taskVote: vote
         }));
     }
   }
-
-  useEffect(() => {
-    // Fetch the player list and game when the component mounts
-    fetchPlayerList();
-    fetchGame();
-  }, []);
 
   //incoming change, this return is incoming change
     useEffect(() => {
@@ -266,11 +303,18 @@ function GameLobby() {
                         }
                     });
                     
+                    // Update the list of usernames as well
+                    setUsernameArray(prevUsernames => [...prevUsernames, data.message.username]);
+
                     break;
                     
                 case 'new_task':
-                    // implement new task logic, if needed
-                    console.log("\nnew task recieved\n");
+                    console.log("new task received");
+                    setTaskId(data.message['taskId']);
+                    setTaskText(data.message['taskText']);
+                    setTaskPoints(data.message['taskPoints']);
+                    setPickedPlayer(data.message['pickedPlayer']);
+                    setGameStarted(data.message['gameStarted']);
                     break;
                 
                 case 'task_done':
@@ -281,14 +325,21 @@ function GameLobby() {
 
                     var username = data.message['username']
 
-                    const newTaskDoneNotification = {
-                        id: data.message['username'],
-                        taskText: data.message['task'],
-                        taskPoints: data.message['points']
-                    };
-                    // add the taskdonenotification to the lists
-                    setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
+                    // setPickedPlayer()
+
+                    // const newTaskDoneNotification = {
+                    //     id: data.message['username'],
+                    //     taskText: data.message['task'],
+                    //     taskPoints: data.message['points'],
+                    //     taskId: data.message['taskId']
+                    // };
+                    // // add the taskdonenotification to the lists
+                    // setTaskDoneNotification(prevTaskDoneNotification => [...prevTaskDoneNotification, newTaskDoneNotification])
                 
+                    break
+
+                case 'task_new_vote':
+                    console.log("Another player has voted on a task")
                     break
             }
         
@@ -297,19 +348,6 @@ function GameLobby() {
         webSocketRef.current.onclose = () => {
             console.log('WebSocket Disconnected');
         };
-
-        // const sendMessage = (messageContent) => {
-        //     if (webSocket) {
-        //         webSocket.send(JSON.stringify({
-        //             message: messageContent,
-        //             type: 'custom_message_type' // This can be any type identifier you need
-        //         }));
-        //         console.log("Message sent to WS:", messageContent);
-        //     } else {
-        //         console.error("WebSocket not connected!");
-        //     }
-        // };
-        
 
         // Clean up on unmount
         return () => {
@@ -332,27 +370,19 @@ function GameLobby() {
                 {playerList.map((player, index) => (
                   <div
                     className="list-group-item d-flex align-items-center justify-content-start"
-                    key={index}
-                  >
+                    key={index}>
                     <span className="me-2">{player.username}</span>
                     <span className="badge bg-secondary ms-auto me-3">
                       {player.score}
                     </span>
-                    {GivePointButton && (
-                      <button
-                        className="givePoint-button btn btn-sm btn-primary"
-                        onClick={() => givePoints(player.username, taskPoints)}
-                      >
-                        Give Points
-                      </button>
-                    )}
+                    
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
+          {/* <div className="notification-area" style={{ position: 'fixed', right: 0, top: '20%', width: '250px' }}>
             {taskDoneNotification.map((notification) => (
                 <div key={notification.id} className="notification" style={{ background: 'lightgray', margin: '5px', padding: '10px' }}>
                     <p>Player: {notification.id}</p>
@@ -361,31 +391,48 @@ function GameLobby() {
                     <p>Did the player complete this?</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'yes')}>Yes</button>
+                            onClick={() => voteTaskDone(notification.id, 'yes', notification.taskId)}>Yes</button>
                         <button className="givePoint-button btn btn-sm btn-primary"
-                            onClick={() => voteTaskDone(notification.id, 'no')}>No</button>
+                            onClick={() => voteTaskDone(notification.id, 'no', notification.taskId)}>No</button>
                     </div>
                 </div>
             ))}
-          </div>
-    
-          {/* <div className="questions-container">
-            <div className="group-question">
-              <h2 className="font-style-prompt">Challenge</h2>
-              <p className="font-style">
-                Points: {taskPoints}
-              </p>
-              <p className="font-style">
-                task: {taskText}
-              </p>
-              {taskText && <button
-              className="givePoint-button btn btn-sm btn-primary"
-              onClick={() => taskDone()}
-              >
-                DONE
-              </button>}
-            </div>
           </div> */}
+
+{spinWheel &&
+      <div className="questions-container">
+        <div className="group-question">
+              <h2 className="font-style-prompt">Challenge</h2>
+              <p className="font-style">{pickedPlayer}'s task</p>
+              <p className="font-style">Points: {taskPoints}</p>
+              <p className="font-style">task: {taskText}</p>
+        
+    {taskText && 
+    
+          <div>
+            <button
+              className="yes-button btn btn-sm btn-primary"
+              onClick={() => voteTask(pickedPlayer, "yes", taskId)}
+            >
+              Yes
+            </button>
+            <button
+              className="no-button btn btn-sm btn-danger"
+              onClick={() => voteTask(pickedPlayer, "no", taskId)}
+            >
+              No
+            </button>
+            <button
+              className="undecided-button btn btn-sm btn-warning"
+              onClick={() => voteTask(pickedPlayer, "skip", taskId)}
+            >
+              Skip
+            </button>
+          </div>
+    }
+        </div>
+      </div>
+}
     
           <button
             className="endGame-button"
@@ -394,25 +441,36 @@ function GameLobby() {
             {admin ? "End game" : "Leave game"}
           </button>
     
-          <button className="fetchTask-button" onClick={fetchTask}>
-            Next challenge
-          </button>
+          {admin && !gameStarted && ( // Only render the button if the user is an admin
+            <button 
+              className="fetchTask-button" 
+              onClick={fetchTask}
+            >
+              Start Game
+            </button>
+          )}
           <div className="wave wave1"></div>
           <div className="wave wave2"></div>
           <div className="wave wave3"></div>
-        <div className='roulette-wheel'>
-          
-        <Wheel
-        mustStartSpinning={mustSpin}
-        prizeNumber={prizeNumber}
-        data={wheel_data}
         
-        onStopSpinning={() => {
-          setMustSpin(false);
-        }}
-        />
-        <button onClick={handleSpinClick}>SPIN</button>
-        </div>
+        { !spinWheel &&
+          <div className='roulette-wheel'>
+              
+            <Wheel
+            mustStartSpinning={mustSpin}
+            prizeNumber={prizeNumber}
+            data={wheel_data}
+            backgroundColors={['#a35cb5', '#c971d9', '#c251d6']}
+            textColors={['white']}
+            onStopSpinning={() => {
+              setMustSpin(false);
+            }}
+            />
+            <button onClick={handleSpinClick}>SPIN</button>
+            </div>
+          }
+
+        
         </div>
       );
     

@@ -128,12 +128,14 @@ class Game(models.Model):
     # Active task in the game; a ForeignKey links to the Tasks model
     # active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
     
-    # # Start time of the game
+    # Start time of the game
     start_time = models.DateTimeField()
-    
-    # # End time of the game; nullable and blank to handle ongoing games
+  
+    # End time of the game; nullable and blank to handle ongoing games
     end_time = models.DateTimeField(null=True, blank=True)
 
+    # boolen to check if game is started.
+    game_started = models.BooleanField(default=False)
 
 class PickedTasks(models.Model):
     
@@ -147,7 +149,7 @@ class PickedTasks(models.Model):
 
     # this ensures that the combination of task and game must be unique
     class meta:
-        unique_together = ('task', 'game')
+        unique_together = ('task', 'game', 'user')
 
 
 '''
@@ -162,24 +164,38 @@ class Participant(models.Model):
     
     # Score achieved by the participant; default is set to 0
     score = models.IntegerField(default=0)
+    # her har jørgen adda is_game
+
+    # Boolean indicating whether the user has been picked once during a round
+    isPicked = models.BooleanField(default=False)
 
 
 # '''
 # Store user responses to challenges/tasks within a game.
 # '''
-# class Response(models.Model):
-#     # User who submitted the response; ForeignKey links to the User model
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
-#     # Task to which the response is associated; ForeignKey links to the Task model
-#     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
-    
-#     # Textual content of the user's response
-#     response_text = models.TextField()
-    
-#     # Boolean indicating whether the response is correct or not
-#     is_correct = models.BooleanField(default=False)
+class Response(models.Model):
 
+    # User who submitted the response; ForeignKey links to the User model
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Task to which the response is associated; ForeignKey links to the Task model
+    task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
+
+    # not sure if we should have a pointer to a game here, the pointer to the game
+    # can be extracted from Participant via User, but the game will be deleted when over
+    # We need to think about what happens when we move a game from Game to a future 
+    # ArchivedGame perhaps
+    game = models.ForeignKey(Game, on_delete=models.DO_NOTHING)
+    
+    # Textual content of the user's response
+    # vote = models.TextField()
+    
+    # Marks the vote as yes or no (true or false), (null for skip?)
+    vote = models.BooleanField(default=False, null=True)
+    
+    # this ensures that the combination of task and game must be unique
+    class meta:
+        unique_together = ('user', 'task')
 
 
 
