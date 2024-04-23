@@ -14,7 +14,7 @@ import jwt
 import json
 
 '''
-We use http cookies that contain JWT given upon login to validate connections
+We use http cookies that contain JWT, given upon login, to validate connections
 '''
 class GameLobby(AsyncWebsocketConsumer):
     async def connect(self):
@@ -106,6 +106,8 @@ class GameLobby(AsyncWebsocketConsumer):
 
                 task_id = text_data_json['taskId']
                 vote = text_data_json['taskVote']
+
+                print(f'WS: taskId: {task_id}, vote: {vote}')
 
                 vote_user = await self.get_user()
 
@@ -228,6 +230,8 @@ class GameLobby(AsyncWebsocketConsumer):
             return None
         
     # Database function
+    # gets the amount of players in the game
+    # returns INT
     @database_sync_to_async
     def get_participants(self, game):
         try:
@@ -307,7 +311,12 @@ class GameLobby(AsyncWebsocketConsumer):
 
 
     
-    # database function
+    '''
+    DATABASE FUNCTION
+    DESC: gets the participant data of a newly joined player
+    Same information/structure that the playerlist in frontend use
+    Returns: Dictionary, containing username and score
+    '''
     @database_sync_to_async
     def get_new_player(self):
         try:
@@ -325,7 +334,11 @@ class GameLobby(AsyncWebsocketConsumer):
         except Participant.DoesNotExist:
             return None
     
-    # database function
+    '''
+    DATABASE FUNCTION 
+    DESC: gets the current connecting clients username
+    Returns: String
+    '''
     @database_sync_to_async
     def get_username(self):
         try:
@@ -335,7 +348,11 @@ class GameLobby(AsyncWebsocketConsumer):
         except User.DoesNotExist:
             return None
         
-    # database function
+    '''
+    DATABASE FUNCTION
+    DESC: fets the user profile of the player making the connection
+    Returns: User model object
+    '''
     @database_sync_to_async
     def get_user(self):
         try:
@@ -345,7 +362,11 @@ class GameLobby(AsyncWebsocketConsumer):
         except User.DoesNotExist:
             return None
         
-    # database function
+    '''
+    DATABASE FUNCTION
+    DESC: gets the user corresponding to the input username
+    Returns: User model object
+    '''
     @database_sync_to_async
     def get_user_from_username(self, username):
         try:
@@ -355,7 +376,11 @@ class GameLobby(AsyncWebsocketConsumer):
         except User.DoesNotExist:
             return None
         
-    # database function
+    '''
+    DATABASE FUNCTION
+    DESC: gets the task record based on input task_id
+    Returns: Task model object
+    '''
     @database_sync_to_async
     def get_task_from_id(self, task_id):
         try:
@@ -369,13 +394,15 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def add_new_vote(self, user, task, game, vote):
         try:
-            existing_vote = Response.objects.filter(user=user).first()
+            existing_vote = Response.objects.filter(user=user, game=game, task=task).first()
             if existing_vote:   # check for existing Response record and edit it
+                print("WS: vote exists, editing the vote")
                 existing_vote.vote = vote
                 existing_vote.save()
                 return existing_vote
             
             else:    # create new Response record
+                print("WS: Creatig new vote")
                 new_vote = Response(user=user,
                                     task=task,
                                     game=game,
