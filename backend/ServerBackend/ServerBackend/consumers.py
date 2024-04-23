@@ -101,28 +101,6 @@ class GameLobby(AsyncWebsocketConsumer):
         print("WS: checking message type\n")
 
         match msg_type:
-            # case 'task_done':
-            #     print("WS: task_done\n sending response to group")
-            #     points = str(text_data_json['taskPoints'])
-
-            #     username = await self.get_username()
-
-            #     response = {
-            #         'username': username,
-            #         'task': text_data_json['taskText'],
-            #         'points': points,
-            #         'taskId': text_data_json['taskId']
-            #     }
-            #     print(response)
-            #     await self.channel_layer.group_send(
-            #     self.game_group_name, 
-            #     {
-            #         'type': 'Task',  # This refers to the method name Task
-            #         'message': response,
-            #         'msg_type': 'task_done'
-            #     }
-            #     )
-
             case "task_vote":
                 print("WS: task_vote")
 
@@ -180,33 +158,22 @@ class GameLobby(AsyncWebsocketConsumer):
                     )
                     return          # Return here if vote continues
                 
+                response = await self.next_task(game)
+
                 # Next task will be fetched from the frontend.
                 await self.channel_layer.group_send(
                     self.game_group_name, 
                     {
                         'type': 'Task',  # This refers to the method name `Task`
-                        'message': None,
+                        'message': response,
                         'msg_type': 'task_done'
                     }
                     )
 
             case 'new_task':
 
-                print("WS: new_task")
-
-                task = await self.get_task_from_id(text_data_json['taskId'])
-
-                task_text = task.description
-                task_points = task.points
-
-
-                response = {
-                    'taskId': task.task_id,
-                    'taskText': task_text,
-                    'taskPoints': task_points,
-                    'pickedPlayer': text_data_json['pickedPlayer'],
-                    'gameStarted': text_data_json['gameStarted'],
-                }
+                game = await self.get_participant_game(self.user_id)
+                response = await self.next_task(game)
 
                 await self.channel_layer.group_send(
                 self.game_group_name, 
@@ -288,6 +255,55 @@ class GameLobby(AsyncWebsocketConsumer):
         player = Participant.objects.get(user=current_task.user)
         player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
         player.save()
+
+    # Database function
+    @database_sync_to_async
+    def next_task(self, game):
+        
+        task_count = Tasks.objects.filter(type=game.type).count()
+
+        # Check if task is available
+        for _ in range(task_count):
+
+            random_task = Tasks.objects.filter(type = game.type).order_by('?').first()
+            # check if this task is already picked
+            taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
+
+            # if not, we save it to PickedTasks, and return the question
+            if not taskExist:
+                random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+
+                if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
+                    participants = Participant.objects.filter(game=game)
+                    for p in participants:
+                        p.isPicked = False
+                        p.save()
+
+                    random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+
+                random_player.isPicked = True
+                random_player.save()
+
+                picked_task = PickedTasks(task=random_task, game=game, user=random_player.user)
+                picked_task.save()
+
+                game.game_started = True
+                game.save()
+
+                participants_in_same_game = Participant.objects.filter(game=game)
+                participant_data = [{'username': p.user.username, 'score': p.score} 
+                                    for p in participants_in_same_game]
+
+                response = {
+                    'taskId': random_task.task_id,
+                    'taskText': random_task.description,
+                    'taskPoints': random_task.points,
+                    'pickedPlayer': random_player.user.username,
+                    'gameStarted': game.game_started,
+                    'participants': participant_data,
+                }
+
+                return response
 
 
     

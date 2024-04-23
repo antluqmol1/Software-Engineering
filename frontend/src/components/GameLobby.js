@@ -78,30 +78,30 @@ function GameLobby() {
       });
   };
 
-    const fetchTask = () => {
-        axios.get("http://localhost:8000/game/next-task/",
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            }
-        )
-            .then(response => {
-                console.log("response: ", response.data.taskId)
-                if (webSocketRef.current) {
-                    webSocketRef.current.send(JSON.stringify({
-                    type: 'new_task',
-                    taskId: response.data.taskId,
-                    pickedPlayer: response.data.pickedPlayer,
-                    gameStarted: true
-                }));
-              }
-                return response.data;
-            })
-            .catch(error => {
-                console.error("Error fetching task:", error);
-            });
-    };
+  //   const fetchTask = () => {
+  //       axios.get("http://localhost:8000/game/next-task/",
+  //           {
+  //               headers: {
+  //                   "X-CSRFToken": token, // Include CSRF token in headers
+  //               },
+  //           }
+  //       )
+  //           .then(response => {
+  //               console.log("response: ", response.data.taskId)
+  //               if (webSocketRef.current) {
+  //                   webSocketRef.current.send(JSON.stringify({
+  //                   type: 'new_task',
+  //                   taskId: response.data.taskId,
+  //                   pickedPlayer: response.data.pickedPlayer,
+  //                   gameStarted: true
+  //               }));
+  //             }
+  //               return response.data;
+  //           })
+  //           .catch(error => {
+  //               console.error("Error fetching task:", error);
+  //           });
+  //   };
 
   // Function to fetch the list of participants from the server
   const fetchPlayerList = () => {
@@ -198,7 +198,6 @@ function GameLobby() {
   // }
 
   const voteTask = (vote, taskId) => {
-    console.log("voting ", vote ,", on task with id ", taskId);
     if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
             type: 'task_vote',
@@ -207,6 +206,15 @@ function GameLobby() {
         }));
     }
   }
+
+  const fetchTask = () => {
+    if (webSocketRef.current) {
+      webSocketRef.current.send(JSON.stringify({
+          type: 'new_task'
+      }));
+  }
+  }
+
 
   //incoming change, this return is incoming change
     useEffect(() => {
@@ -265,7 +273,6 @@ function GameLobby() {
                     break;
                     
                 case 'new_task':
-                    console.log("new task received");
                     setTaskId(data.message['taskId']);
                     setTaskText(data.message['taskText']);
                     setTaskPoints(data.message['taskPoints']);
@@ -274,18 +281,23 @@ function GameLobby() {
                     break;
                 
                 case 'task_done':
-                    console.log("task done");
                     setYesVotes(0)
                     setNoVotes(0)
                     setSkipVotes(0)
-                    fetchTask();
-                    break
+
+                    setTaskId(data.message['taskId']);
+                    setTaskText(data.message['taskText']);
+                    setTaskPoints(data.message['taskPoints']);
+                    setPickedPlayer(data.message['pickedPlayer']);
+                    setGameStarted(data.message['gameStarted']);
+                    setPlayerList(data.message['participants']);
+                    break;
 
                 case 'task_new_vote':
                     setYesVotes(data.message['yesVotes'])
                     setNoVotes(data.message['noVotes'])
                     setSkipVotes(data.message['skipVotes'])
-                    break
+                    break;
             }
         
         };
