@@ -124,9 +124,10 @@ class GameLobby(AsyncWebsocketConsumer):
                         vote_input = False
 
                 print(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
+                print(f'WS: vote_input: {vote_input}')
                 
                 # Create new vote.
-                await self.add_new_vote(vote_user, task, game, vote_input)
+                previous_vote, newVote = await self.add_new_vote(vote_user, task, game, vote_input)
 
                 # Obtain the different types of votes from DB.
                 yesVotes, noVotes, skipVotes = await self.get_game_votes(game)  
@@ -143,12 +144,31 @@ class GameLobby(AsyncWebsocketConsumer):
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
 
-                else:                                                                           # Vote continues
+                else: 
+                                                                                                # Vote continues
+                    # This is jørgens, i suggest we send each new vote to every 
+                    # participant, instead of the entire list all the time                                                                                    
+                    # response = {
+                    #     'yesVotes': yesVotes,
+                    #     'noVotes': noVotes,
+                    #     'skipVotes': skipVotes,
+                    # }
+
                     response = {
-                        'yesVotes': yesVotes,
-                        'noVotes': noVotes,
-                        'skipVotes': skipVotes,
+
                     }
+
+                    if previous_vote == None:
+                        response = {
+                            'newVote': 'yes' if newVote.vote is True else 'no' if newVote.vote is False else 'skip'
+                        }
+                    else:
+                        response = {
+                            'prevVote': previous_vote,
+                            'newVote': 'yes' if newVote.vote is True else 'no' if newVote.vote is False else 'skip'
+                        }
+
+                    print(f'WS: Vote response: {response}')
 
                     await self.channel_layer.group_send(
                     self.game_group_name, 
@@ -390,25 +410,41 @@ class GameLobby(AsyncWebsocketConsumer):
         except Tasks.DoesNotExist:
             return None
 
-    # database function
+    '''
+    DATABASE FUNCTION
+    DESC: Adds a new or edits existing vote:
+    Returns: true, if new vote, false, if edited vote
+    '''
     @database_sync_to_async
     def add_new_vote(self, user, task, game, vote):
         try:
             existing_vote = Response.objects.filter(user=user, game=game, task=task).first()
             if existing_vote:   # check for existing Response record and edit it
                 print("WS: vote exists, editing the vote")
+
+                previous_vote = None
+                
+                # Set the corresponding prev vote for return
+                if existing_vote.vote == True:
+                    previous_vote = 'yes'
+                elif existing_vote.vote == False:
+                    previous_vote = 'no'
+                else: 
+                    previous_vote = 'skip'
+
                 existing_vote.vote = vote
                 existing_vote.save()
-                return existing_vote
+                return previous_vote, existing_vote
             
             else:    # create new Response record
                 print("WS: Creatig new vote")
+                print(f'WS: New record: user: {user}, task: {task}, game: {game}, vote: {vote}')
                 new_vote = Response(user=user,
                                     task=task,
                                     game=game,
                                     vote=vote)
                 new_vote.save()
-                return new_vote
+                return None, new_vote
             
         except IntegrityError as e:
             print(f"WS: IntegrityError - {str(e)}")

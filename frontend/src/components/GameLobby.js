@@ -152,17 +152,17 @@ function GameLobby() {
               taskVote: vote
           }));
           // Add icons to the respective lists based on the vote
-          if (vote === "yes") {
-            setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
-          } 
+          // if (vote === "yes") {
+          //   setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
+          // } 
     
-          else if (vote === "no") {
-            setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
-          } 
+          // else if (vote === "no") {
+          //   setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
+          // } 
     
-          else if (vote === "skip") {
-            setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
-          }
+          // else if (vote === "skip") {
+          //   setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
+          // }
     
         };
       }
@@ -239,12 +239,17 @@ function GameLobby() {
                     setTaskPoints(data.message['taskPoints']);
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
+                    console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
                     break;
                 
                 case 'task_done':
                     setYesVotes(0)
                     setNoVotes(0)
                     setSkipVotes(0)
+                    setCheckmarksLine1([])
+                    setExesLine2([])
+                    setQuestionLine3([])
+                    setTotalVotes(0)
 
                     setTaskId(data.message['taskId']);
                     setTaskText(data.message['taskText']);
@@ -255,15 +260,74 @@ function GameLobby() {
                     break;
 
                 case 'task_new_vote':
-                    setYesVotes(data.message['yesVotes'])
-                    setNoVotes(data.message['noVotes'])
-                    setSkipVotes(data.message['skipVotes'])
 
-                    setTotalVotes(prevTotalVotes => prevTotalVotes + 1);
+                    console.log("new vote recieved")
+                    // console.log("Yes votes: ", data.message['yesVotes'])
+                    // console.log("no votes: ", data.message['noVotes'])
+                    // console.log("skip votes: ", data.message['skipVotes'])
+                    // setYesVotes(data.message['yesVotes'])
+                    // setNoVotes(data.message['noVotes'])
+                    // setSkipVotes(data.message['skipVotes'])
+
+                    // prevVote only exists if we need to change a vote
+                    const newVote = data.message['prevVote']
+                    var vote = data.message['newVote'];
+
                     
+                    console.log("newVote value, ", newVote);
+                    console.log("prevVote value, ", data.message['prevVote']);
+                    console.log("newVote value, ", data.message['newVote']);
 
-                    
+                    if (newVote != undefined) {
+                      console.log("change vote detected")
+                      const prevVote = data.message['prevVote'];
 
+                      const removeVote = (voteType) => {
+                        switch (voteType) {
+                          case 'yes':
+                            console.log("Removing a yes vote");
+                            setCheckmarksLine1(prevCheckmarks => prevCheckmarks.slice(0, -1));
+                            break;
+                          case 'no':
+                            console.log("Removing a no vote");
+                            setExesLine2(prevExes => prevExes.slice(0, -1));
+                            break;
+                          case 'skip':
+                            console.log("Removing a skip vote");
+                            setQuestionLine3(prevQuestions => prevQuestions.slice(0, -1));
+                            break;
+                          default:
+                            console.error("Unhandled vote type:", voteType);
+                        }
+                      };
+                      console.log("new vote is", vote)
+                      // Call removeVote with previous vote to remove the appropriate item
+                      removeVote(prevVote);
+
+                    }
+                    else {
+                      console.log("new vote detected", vote)
+                      setTotalVotes(prevTotalVotes => prevTotalVotes + 1);
+                    }
+
+                    console.log(vote)
+                    switch (vote) {
+                      case 'yes':
+                        console.log("yes vote registered")
+                        setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
+                        break;
+                      case 'no':
+                        console.log("no vote registered")
+                        setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
+                        break;
+                      default:
+                        console.log("skip vote registered")
+                        setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
+                        break;
+                    }
+
+
+                  
                     break;
             }
         
@@ -283,6 +347,7 @@ function GameLobby() {
 
     return (
         <div className="game-lobby">
+          <div className="Username">Username: {username}</div>
           <div className="GameID">GameID: {gameID}</div>
           {/* Leaderboard */}
 
@@ -307,7 +372,7 @@ function GameLobby() {
             ))}
         </div>
   
-        {/* Display question's for "Question" votes */}
+        {/* Display question's for "Skip" votes */}
           <div>
             {questionLine3.map((question, index) => (
               <span key={index}>{question}</span>

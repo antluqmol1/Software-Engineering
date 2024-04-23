@@ -316,6 +316,21 @@
   /* Add any other styles to make it look stylish */
 }
 
+/* FIX THIS PLEASE! */
+.Username {
+  position: fixed;
+  top: 50px;
+  left: 80%;
+  transform: translateX(-50%);
+  font-size: large;
+  text-align: center;
+  color: #ffffff;
+  /* Change the color to your preference */
+  font-family: Arial, sans-serif;
+  /* Change the font family if needed */
+  /* Add any other styles to make it look stylish */
+}
+
 .group-question .yes-button {
   background-color: green; /* Set the background color to green */
 }
