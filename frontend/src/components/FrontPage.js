@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
 
 const FrontPage = () => {
-  const [userData, setUserData] = useState(null);
+  const [username, setUsername] = useState(null);
   const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
   const [gameCode, setGameCode] = useState("");
   const [invalidGameCode, setInvalidGameCode] = useState("");
@@ -15,24 +15,26 @@ const FrontPage = () => {
   const navigate = useNavigate(); // Initialize useHistory hook
 
   const userIsLoggedIn = useCheckUserLoggedIn();
-
+  console.log("userIsLoggedIn: ", userIsLoggedIn)
   useEffect(() => {
     if (userIsLoggedIn === false) {
       // If not logged in, redirect to the login page
       console.log("Not logged in");
       navigate("/login");
-    } else {
+    } else if (userIsLoggedIn) {
       // If logged in, fetch data or perform any necessary actions
       /* 
       When we can, lets change it from /profile to a /getusername
       */
       console.log("Already logged in");
       axios
-        .get("http://localhost:8000/profile/", {
+        .get("http://localhost:8000/user/get-username/", {
           withCredentials: true,
         })
         .then((response) => {
-          setUserData(response.data.user_data);
+          console.log(response.data)
+          setUsername(response.data.username);
+          console.log("username: ", username)
         })
         .catch((error) => {
           console.error("There was an error!", error);
@@ -103,7 +105,7 @@ const FrontPage = () => {
       })
         .then((response) => {
           console.log(response.data)
-          setUserData(response.data.user_data);
+          setUsername(response.data.user_data);
           navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
         })
         .catch((error) => {
@@ -125,7 +127,7 @@ const FrontPage = () => {
     <div className="home-content">
       <h1 className='font-style-h'>Funchase</h1>
         {userIsLoggedIn ? (
-          <p>Welcome back {userData ? userData.username : "loading..."}</p>
+          <p>Welcome back {username ? username : "loading..."}</p>
         ) : (
           <p>Please login or create an account</p>
         )}
@@ -213,7 +215,7 @@ const FrontPage = () => {
     <div className="home-content">
       <h1 className='font-style-h'>Funchase</h1>
       {userIsLoggedIn ? (
-        <p>Welcome back {userData ? userData.username : "loading..."}</p>
+        <p>Welcome back {username ? username : "loading..."}</p>
       ) : (
         <p>Please login or create an account</p>
       )}

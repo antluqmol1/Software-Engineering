@@ -410,8 +410,17 @@ def user_logout(request):
     print("logging out")
     if request.method == 'POST':
         print("Valid method")
-        logout(request)
-        return JsonResponse({'success': True})
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in, logging out")
+            logout(request)
+            return JsonResponse({'success': True, 'msg': 'logged out'}, status=200)
+        else:
+            return JsonResponse({'success': False, 'msg': 'must be logged in to log out'}, status=204)
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method, must be POST'}, status=405)
+
 
         # if user.is_authenticated:
         #     return JsonResponse({'success': True})
@@ -498,7 +507,7 @@ def user_login(request):
             token = generate_JWT(user)
             print(f'JWT: {token}')
 
-            response = JsonResponse({'status': 'success', 'JWT': token})
+            response = JsonResponse({'status': 'success', 'JWT': token}, status=200)
 
             response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
             # Return a JSON response or redirect as per your application's flow
@@ -508,6 +517,44 @@ def user_login(request):
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
     return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+
+'''
+Gets the username of the client
+'''
+def get_username(request):
+    print("get_username")
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+        if user.is_authenticated:
+            print("user is authenticated")
+            return JsonResponse({'success': True, 'username': user.username}, status=200)
+        else:
+            return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
+    else:
+        print("error, invalid method")
+        return JsonResponse({'success': False, 'msg': 'invalid method'}, status=405)
+
+'''
+Tells the client wether they are logged in or not
+'''
+def get_login_status(request):
+    print("get_login_status")
+    if request.method == 'GET':
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in, returning 200")
+            return JsonResponse({'success': True, 'msg': 'logged in'}, status=200)
+        else:
+            print("not logged in")
+            return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
+        
+    else:
+        print("invalid method")
+        return JsonResponse({'success': False, 'msg': 'invalid method'}, status=405)
 
 
 @csrf_exempt

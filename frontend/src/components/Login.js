@@ -42,11 +42,16 @@ const Login = () => {
         },
         withCredentials: true
       });
-
-      console.log("Login successful", response.data);
-      console.log("JWT: ", response.data['JWT']);
-      navigate('/');
-      // Handle successful login, e.g., redirect to another page
+      
+      if (response.status === 200) {
+        console.log("Login successful", response.data);
+        console.log("JWT: ", response.data['JWT']);
+        navigate('/');
+        // Handle successful login, e.g., redirect to another page
+      } else {
+        // Error
+        console.log("Failed to login")
+      }
     } catch (error) {
       console.error("Login failed", error);
       // Handle login failure, e.g., display error message

@@ -14,13 +14,18 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:8000/logout/", {}, {
+      const response = await axios.post("http://localhost:8000/logout/", {}, {
         headers: {
           'X-CSRFToken': csrfToken,
         }
       });
-      console.log("Logout successful");
-      navigate('/');
+      if (response.status === 200) {
+        console.log("Logout successful");
+        navigate('/login');
+      } else {
+        // Could not logout!
+        console.log("could not logout")
+      }
     } catch (error) {
       console.error("Logout failed", error);
     }
