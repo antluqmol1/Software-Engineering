@@ -1,5 +1,6 @@
 // App.js
 import React, { useEffect } from "react";
+import { AuthProvider } from './AuthContext';
 import {
   BrowserRouter as Router,
   Routes,
@@ -78,19 +79,21 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<FrontPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/create-user" element={<CreateUser />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/logout" element={<Logout />} />
-          <Route path="/create-game" element={<CreateGame />} />
-          <Route path="/game-lobby" element={<GameLobby />} /> {/* Add route for GameLobby */}
-        </Routes>
-      </div>
+      <AuthProvider>
+        <div className="App">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<FrontPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/create-user" element={<CreateUser />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/create-game" element={<CreateGame />} />
+            <Route path="/game-lobby" element={<GameLobby />} /> {/* Add route for GameLobby */}
+          </Routes>
+        </div>
+      </AuthProvider>
     </Router>
   );
 }

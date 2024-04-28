@@ -1,20 +1,22 @@
 // Import the CSS file for styling
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import "../styles/Home.css";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
+import { AuthContext } from '../AuthContext';
 
 const FrontPage = () => {
-  const [username, setUsername] = useState(null);
+  // const [username, setUsername] = useState(null);
   const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
   const [gameCode, setGameCode] = useState("");
   const [invalidGameCode, setInvalidGameCode] = useState("");
-  const [inAGame, setInAGame] = useState(false)
+  // const [inAGame, setInAGame] = useState(false)
   const navigate = useNavigate(); // Initialize useHistory hook
 
-  const userIsLoggedIn = useCheckUserLoggedIn();
+  // const userIsLoggedIn = useCheckUserLoggedIn();
+  const { username, setUsername, userIsLoggedIn, inAGame, setInAGame} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
   console.log("userIsLoggedIn: ", userIsLoggedIn)
   useEffect(() => {
     if (userIsLoggedIn === false) {
@@ -27,19 +29,25 @@ const FrontPage = () => {
       When we can, lets change it from /profile to a /getusername
       */
       console.log("Already logged in");
-      axios
-        .get("http://localhost:8000/user/get-username/", {
-          withCredentials: true,
-        })
-        .then((response) => {
-          console.log(response.data)
-          setUsername(response.data.username);
-          console.log("username: ", username)
-        })
-        .catch((error) => {
-          console.error("There was an error!", error);
-        });
-
+      // if username is not set, for some reason, grab it
+      if (!username) {
+        axios
+          .get("http://localhost:8000/user/get-username/", {
+            withCredentials: true,
+          })
+          .then((response) => {
+            console.log(response.data)
+            setUsername(response.data.username);
+            console.log("username: ", username)
+          })
+          .catch((error) => {
+            console.error("There was an error!", error);
+          });        
+      }
+      
+      // attempt to fetch the game, if not in a game
+      // Should only happen if person that has just 
+      // logged in is already in a game.
       axios
         .get("http://localhost:8000/get-game", {
           withCredentials: true,
@@ -48,12 +56,16 @@ const FrontPage = () => {
           // set some values
           console.log("result from get-game")
           console.log(response.data)
-          if (response.data.success == 'true') {
+          console.log('response.data.success', response.data.success)
+          if (response.data.success === true) {
             setInAGame(true)
+            console.log("setting true")
           }
           else {
             setInAGame(false)
+            console.log("setting false")
           }
+          console.log("inAGame: ", inAGame)
         })
         .catch((error) => {
           console.error("There was an error!", error);
@@ -105,7 +117,6 @@ const FrontPage = () => {
       })
         .then((response) => {
           console.log(response.data)
-          setUsername(response.data.user_data);
           navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
         })
         .catch((error) => {

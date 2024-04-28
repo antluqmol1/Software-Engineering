@@ -1,10 +1,12 @@
 // Navbar.js
-import React from 'react';
+import React, { useContext } from 'react';
 import Cookies from 'universal-cookie'
 import axios from "axios";
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
+import { AuthContext } from '../AuthContext';
 import '../styles/Navbar.css'; // Import the CSS file
+
 
 function Navbar() {
 
@@ -12,7 +14,15 @@ function Navbar() {
   const cookies = new Cookies();
   const csrfToken = cookies.get('csrftoken');
 
+  const { userIsLoggedIn } = useContext(AuthContext)
+
   const handleLogout = async () => {
+
+    if (!userIsLoggedIn) { 
+      //Can't logout if you're not logged in
+      console.log("Can't logout, not logged in")
+    }
+
     try {
       const response = await axios.post("http://localhost:8000/logout/", {}, {
         headers: {
@@ -54,6 +64,7 @@ function Navbar() {
         <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
         <li><Link to="/profile" className="navbar-link">Profile</Link></li>
         <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
+        <li className='right-aligned'><Link to="/profile" className="navbar-link">USERNAME HERE</Link></li>
       </ul>
     </nav>
   );

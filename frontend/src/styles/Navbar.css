@@ -37,4 +37,9 @@
   .navbar-links li a:hover {
     color: #ff0; /* Change text color on hover */
   }
+
+  /* Right aligned class */
+  .right-aligned {
+    margin-left: auto;  /* This pushes elements to the right */
+  }
   

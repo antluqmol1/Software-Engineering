@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
 import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
 import "bootstrap/dist/css/bootstrap.min.css"; 
+import { AuthContext } from '../AuthContext';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
 
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
-    const [username, setUsername] = useState(null);
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
@@ -30,6 +30,8 @@ function GameLobby() {
     const [checkmarksLine1, setCheckmarksLine1] = useState([]);
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
+
+    const { username, inAGame } = useContext(AuthContext);
 
     const handleDelete = () => {  
 
@@ -126,7 +128,7 @@ function GameLobby() {
                 setAdmin(response.data["isAdmin"]);
                 setGameID(response.data["gameId"]);
                 setGameStarted(response.data["gameStarted"]);
-                setUsername(response.data['username']);
+                // setUsername(response.data['username']);
             })
             .catch(error => {
                 console.error("Error fetching game ID:", error);
@@ -194,6 +196,12 @@ function GameLobby() {
 
   //incoming change, this return is incoming change
     useEffect(() => {
+
+        if (!inAGame) {
+          console.log("You're not in a game, returning to home screen");
+          navigate("/");
+        }
+
         // Fetch the player list and game when the component mounts
         fetchPlayerList();
         fetchGame();
