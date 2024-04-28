@@ -183,9 +183,14 @@ def get_game(request):
 
                 return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started})
             else:
-                return JsonResponse({'success': False, 'msg': 'user not authenticated'})
+                # Player is not in a game
+                return JsonResponse({'success': False, 'msg': 'not in a game'})
         else:
-            return JsonResponse({'success': False, 'msg': "invalid method"})
+            # not logged in
+            return JsonResponse({'success': False, 'msg': 'user not authenticated'})
+    else:
+        # invalid method
+        return JsonResponse({'success': False, 'msg': "invalid method"})
 
 def delete_game(request):
     print('delete game')
@@ -211,8 +216,8 @@ def delete_game(request):
                 if user == admin:
                     print("player is an admin, deleting game")
                     game_id = part.game.game_id
-                    clean_up_game(game_id=game_id)
-                    return JsonResponse({'success': True})
+                    success = clean_up_game(game_id=game_id)
+                    return JsonResponse({'success': success})
                 else:
                     return JsonResponse({'success': False, 'msg': 'user is not admin of game'})
             else:
@@ -227,15 +232,20 @@ def clean_up_game(game_id):
     try:
         games_to_delete = Game.objects.filter(game_id=game_id)
         players_to_delete = Participant.objects.filter(game_id=game_id)
+        print("retrieved game and players")
     except:
-        print("failed to retrieve game and players")
-        return JsonResponse({'success': False})
+        print("failed to retrieve game and participant")
+        return False
 
     try:
         games_to_delete.delete()
         players_to_delete.delete()
+        print("deleted game and participants")
+        return True
     except:
         print("failed to delete game and players")
+        return False
+
 
         
 '''

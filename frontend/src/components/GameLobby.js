@@ -31,7 +31,10 @@ function GameLobby() {
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
 
-    const handleDelete = () => {
+    const handleDelete = () => {  
+
+        console.log("Ending/Deleting game...")
+
         axios
         .delete(
             "http://localhost:8000/delete-game/",
@@ -43,6 +46,17 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
+
+              console.log("Game deleted successfully")
+
+                // Send an end game message to the backend.
+                // if (webSocketRef.current) {
+                //   console.log("sending game_end message to WS")
+                //   webSocketRef.current.send(JSON.stringify({
+                //       type: 'game_end',
+                //       user: username
+                //   }));
+                // }
                 navigate("/");
             }
             else {
@@ -211,6 +225,11 @@ function GameLobby() {
                         return prevPlayerList.filter(player => player.username !== data.message);
                     });
 
+                    if (data.admin) {
+                      console.log("Admin has quit, game is deleted")
+                      navigate('/')
+                    }
+
                     break;
                 case 'join':
                     console.log("player joined");
@@ -239,6 +258,7 @@ function GameLobby() {
                     setTaskPoints(data.message['taskPoints']);
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
+                    setPlayerList(data.message['participants']);
                     console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
                     break;
                 
@@ -250,13 +270,14 @@ function GameLobby() {
                     setExesLine2([])
                     setQuestionLine3([])
                     setTotalVotes(0)
-
-                    setTaskId(data.message['taskId']);
-                    setTaskText(data.message['taskText']);
-                    setTaskPoints(data.message['taskPoints']);
-                    setPickedPlayer(data.message['pickedPlayer']);
-                    setGameStarted(data.message['gameStarted']);
-                    setPlayerList(data.message['participants']);
+                      
+                    // Task done should only reset the useStates
+                    // setTaskId(data.message['taskId']);
+                    // setTaskText(data.message['taskText']);
+                    // setTaskPoints(data.message['taskPoints']);
+                    // setPickedPlayer(data.message['pickedPlayer']);
+                    // setGameStarted(data.message['gameStarted']);
+                    // setPlayerList(data.message['participants']);
                     break;
 
                 case 'task_new_vote':
@@ -328,7 +349,16 @@ function GameLobby() {
 
 
                   
-                    break;
+                  break;
+
+                case 'game_end':
+                    console.log("game end message recieved from WS")
+
+                    console.log("GAME HAS ENDED")
+
+                    navigate("/");
+
+                  break;
             }
         
         };

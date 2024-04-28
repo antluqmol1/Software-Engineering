@@ -11,6 +11,7 @@ const FrontPage = () => {
   const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
   const [gameCode, setGameCode] = useState("");
   const [invalidGameCode, setInvalidGameCode] = useState("");
+  const [inAGame, setInAGame] = useState(false)
   const navigate = useNavigate(); // Initialize useHistory hook
 
   const userIsLoggedIn = useCheckUserLoggedIn();
@@ -36,6 +37,25 @@ const FrontPage = () => {
         .catch((error) => {
           console.error("There was an error!", error);
         });
+
+      axios
+        .get("http://localhost:8000/get-game", {
+          withCredentials: true,
+        })
+        .then((response) => {
+          // set some values
+          console.log("result from get-game")
+          console.log(response.data)
+          if (response.data.success == 'true') {
+            setInAGame(true)
+          }
+          else {
+            setInAGame(false)
+          }
+        })
+        .catch((error) => {
+          console.error("There was an error!", error);
+        })
     }
   }, [userIsLoggedIn, navigate]);
 
@@ -56,6 +76,11 @@ const FrontPage = () => {
     setGameCode(e.target.value.toUpperCase()); // Game codes are usually uppercase for readability
     console.log(gameCode)
   };
+
+  const goToGame = (e) => {
+    console.log("Joining game")
+    navigate("/game-lobby")
+  }
 
   // Function to handle login button click
   const handleJoinGameSubmit = () => {
@@ -105,6 +130,15 @@ const FrontPage = () => {
           <p>Please login or create an account</p>
         )}
         {userIsLoggedIn ? (
+          inAGame ? (
+            <div>
+              <p>You are currently in a game, don't leave them hanging!</p>
+              {/* Button to go to the game page */}
+              <button className="button" onClick={goToGame}>
+                Go to Game
+              </button>
+            </div>
+          ) :
           <div className="buttons-container">
             <button
               className={`button ${activeOption === "join" ? "active" : ""}`}

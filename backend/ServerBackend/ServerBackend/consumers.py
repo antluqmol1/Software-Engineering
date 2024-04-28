@@ -10,9 +10,13 @@ from channels.db import database_sync_to_async
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
+
 import jwt
 import json
 
+import logging
+
+logger = logging.getLogger(__name__)
 '''
 We use http cookies that contain JWT, given upon login, to validate connections
 '''
@@ -50,6 +54,8 @@ class GameLobby(AsyncWebsocketConsumer):
             # extracting participant list
             participant_data = await self.get_new_player()
 
+            logger.info(f"WebSocket connected: {self.channel_name}")
+
             print("\nWS: sending message from ws\n")
             await self.channel_layer.group_send(
             self.game_group_name, 
@@ -60,19 +66,33 @@ class GameLobby(AsyncWebsocketConsumer):
             }
             )
         else:
+            logger.info(f'Websocket attempted connection: refused')
             await self.close(reason="Not logged in", code=4001)
 
     async def disconnect(self, close_code):
         print("WS: connection closed: ", close_code)
         print("WS: Sending message to group...")
 
+        logger.info(f"WebSocket disconnected: {self.channel_name} with code {close_code}")
+
         # get the username
         try: 
             username = await self.get_username()
+            # user = await self.get_user()
+            # game = await self.get_participant_game(self.user_id)
+            # if game.admin == user:
+            #     admin = True
+            # else:
+            #     admin = False
         except:
             print("no username, not even connected")
 
         print("\nWS: sending message from ws\n")
+
+        response = {
+            'username': username,
+            'admin': True
+        }
 
         # send disconnect message to the group
         await self.channel_layer.group_send(
@@ -80,6 +100,7 @@ class GameLobby(AsyncWebsocketConsumer):
             {
                 'type': 'Disconnect_Update',
                 'message': username,
+                'admin': True,
                 'msg_type': 'disconnect'
             }
         )
@@ -180,7 +201,9 @@ class GameLobby(AsyncWebsocketConsumer):
                     )
                     return          # Return here if vote continues
                 
-                response = await self.next_task(game)
+                response = {
+                    'task_done': True
+                }
 
                 # Next task will be fetched from the frontend.
                 await self.channel_layer.group_send(
@@ -189,6 +212,18 @@ class GameLobby(AsyncWebsocketConsumer):
                         'type': 'Task',  # This refers to the method name `Task`
                         'message': response,
                         'msg_type': 'task_done'
+                    }
+                    )
+
+                # fetch the next task
+                response = await self.next_task(game)
+
+                await self.channel_layer.group_send(
+                    self.game_group_name, 
+                    {
+                        'type': 'Task',  # This refers to the method name `Task`
+                        'message': response,
+                        'msg_type': 'new_task'
                     }
                     )
 
@@ -205,8 +240,34 @@ class GameLobby(AsyncWebsocketConsumer):
                     'msg_type': 'new_task'
                 }
                 )
-        
 
+            case 'game_end':
+                print("WS: game_end")
+                response = {
+                    'game_end': True
+                }
+
+                print("WS: sending game_end message to other members")
+                await self.channel_layer.group_send(
+                self.game_group_name, 
+                {
+                    'type': 'Game_End',  # This refers to the method name Game_End
+                    'message': response,
+                    'msg_type': 'game_end'
+                }
+                )
+
+    async def Game_End(self, event):
+        message = event['message']
+        msg_type = event.get('mgs_type', 'No msg_type')
+
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'msg_type': msg_type
+        }))
+
+
+    # message function
     async def Task(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
@@ -215,9 +276,6 @@ class GameLobby(AsyncWebsocketConsumer):
             'message': message,
             'msg_type': msg_type
         }))
-
-
-    
 
     # message function
     async def Add_Update_Player(self, event):
@@ -233,9 +291,11 @@ class GameLobby(AsyncWebsocketConsumer):
     async def Disconnect_Update(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
+        admin = event['admin']
         # Send message to WebSocket; this sends the message to each client in the group
         await self.send(text_data=json.dumps({
             'message': message,
+            'admin': admin,
             'msg_type': msg_type
         }))
 
