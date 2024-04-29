@@ -1,6 +1,6 @@
 // Profile.js
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
@@ -10,6 +10,8 @@ import "../styles/App.css";
 import bluemargharita from "../assets/bluemargharita.jpg";
 import familynight from "../assets/familynight.png";
 import woods from "../assets/woods.jpg";
+import { AuthContext } from '../AuthContext';
+
 
 const useCreateGame = ( mode, trigger, setTrigger) => {
   const [players, setPlayers] = useState(null);
@@ -19,7 +21,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
   const [gameId, setGameId] = useState(null);
   const navigate = useNavigate();
   
-
+  const { inAGame, setInAGame} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
 
   console.log("Lobby and Request");
 
@@ -57,6 +59,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
         // Success
         console.log("Game created successfully:", response.data);
         if (response.data['success'] != false) {
+          setInAGame(true)
           navigate("/game-lobby")
         }
         // var player_list = get_players();

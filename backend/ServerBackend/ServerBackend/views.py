@@ -181,11 +181,16 @@ def get_game(request):
                 if user == part.game.admin:
                     is_admin = True
 
-                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'gameStarted': part.game.game_started})
+                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started})
             else:
-                return JsonResponse({'success': False, 'msg': 'user not authenticated'})
+                # Player is not in a game
+                return JsonResponse({'success': False, 'msg': 'not in a game'})
         else:
-            return JsonResponse({'success': False, 'msg': "invalid method"})
+            # not logged in
+            return JsonResponse({'success': False, 'msg': 'user not authenticated'})
+    else:
+        # invalid method
+        return JsonResponse({'success': False, 'msg': "invalid method"})
 
 def delete_game(request):
     print('delete game')
@@ -211,8 +216,8 @@ def delete_game(request):
                 if user == admin:
                     print("player is an admin, deleting game")
                     game_id = part.game.game_id
-                    clean_up_game(game_id=game_id)
-                    return JsonResponse({'success': True})
+                    success = clean_up_game(game_id=game_id)
+                    return JsonResponse({'success': success})
                 else:
                     return JsonResponse({'success': False, 'msg': 'user is not admin of game'})
             else:
@@ -227,15 +232,20 @@ def clean_up_game(game_id):
     try:
         games_to_delete = Game.objects.filter(game_id=game_id)
         players_to_delete = Participant.objects.filter(game_id=game_id)
+        print("retrieved game and players")
     except:
-        print("failed to retrieve game and players")
-        return JsonResponse({'success': False})
+        print("failed to retrieve game and participant")
+        return False
 
     try:
         games_to_delete.delete()
         players_to_delete.delete()
+        print("deleted game and participants")
+        return True
     except:
         print("failed to delete game and players")
+        return False
+
 
         
 '''
@@ -323,7 +333,7 @@ def current_task(request):
             currTask = PickedTasks.objects.filter(game=game, done=False).first()
             
             if currTask:
-                return JsonResponse({'success': True, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
+                return JsonResponse({'success': True, 'taskId': currTask.task.task_id, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
             
             return JsonResponse({'success': False, 'msg': 'no current task'})
         
@@ -400,8 +410,17 @@ def user_logout(request):
     print("logging out")
     if request.method == 'POST':
         print("Valid method")
-        logout(request)
-        return JsonResponse({'success': True})
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in, logging out")
+            logout(request)
+            return JsonResponse({'success': True, 'msg': 'logged out'}, status=200)
+        else:
+            return JsonResponse({'success': False, 'msg': 'must be logged in to log out'}, status=204)
+    else:
+        return JsonResponse({'success': False, 'msg': 'invalid method, must be POST'}, status=405)
+
 
         # if user.is_authenticated:
         #     return JsonResponse({'success': True})
@@ -488,7 +507,7 @@ def user_login(request):
             token = generate_JWT(user)
             print(f'JWT: {token}')
 
-            response = JsonResponse({'status': 'success', 'JWT': token})
+            response = JsonResponse({'status': 'success', 'JWT': token}, status=200)
 
             response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
             # Return a JSON response or redirect as per your application's flow
@@ -498,6 +517,44 @@ def user_login(request):
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
     return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+
+'''
+Gets the username of the client
+'''
+def get_username(request):
+    print("get_username")
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+        if user.is_authenticated:
+            print("user is authenticated")
+            return JsonResponse({'success': True, 'username': user.username}, status=200)
+        else:
+            return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
+    else:
+        print("error, invalid method")
+        return JsonResponse({'success': False, 'msg': 'invalid method'}, status=405)
+
+'''
+Tells the client wether they are logged in or not
+'''
+def get_login_status(request):
+    print("get_login_status")
+    if request.method == 'GET':
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in, returning 200")
+            return JsonResponse({'success': True, 'msg': 'logged in'}, status=200)
+        else:
+            print("not logged in")
+            return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
+        
+    else:
+        print("invalid method")
+        return JsonResponse({'success': False, 'msg': 'invalid method'}, status=405)
 
 
 @csrf_exempt

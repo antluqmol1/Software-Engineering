@@ -51,6 +51,9 @@ const Profile = () => {
         setUserData(response.data.user_data);
       } catch (error) {
         console.error("There was an error!", error);
+
+        // you are not logged in!
+
         setError(error);
       }
     };

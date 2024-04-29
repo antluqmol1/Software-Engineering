@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import "../styles/Login.css"; // Make sure your CSS matches the layout and style in the image
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
+import { AuthContext } from '../AuthContext';
 
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [localUsername, setLocalUsername] = useState("");
   const [password, setPassword] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
   const navigate = useNavigate(); // Initialize useHistory hook
 
+  // gets the userIsLoggedIn context from the context
+  const { setUserIsLoggedIn, setUsername } = useContext(AuthContext);
 
   useEffect(() => {
     // Fetch CSRF token when component mounts
@@ -22,7 +25,7 @@ const Login = () => {
 
 
   const handleUsernameChange = (event) => {
-    setUsername(event.target.value);
+    setLocalUsername(event.target.value);
   };
 
   const handlePasswordChange = (event) => {
@@ -34,19 +37,25 @@ const Login = () => {
     event.preventDefault();
     try {
       const response = await axios.post("http://localhost:8000/login/", {
-        username,
-        password,
+        'username': localUsername,
+        'password': password,
       }, {
         headers: {
           'X-CSRFToken': csrfToken,
         },
         withCredentials: true
       });
-
-      console.log("Login successful", response.data);
-      console.log("JWT: ", response.data['JWT']);
-      navigate('/');
-      // Handle successful login, e.g., redirect to another page
+      
+      if (response.status === 200) {
+        console.log("Login successful", response.data);
+        console.log("JWT: ", response.data['JWT']);
+        setUserIsLoggedIn(true)
+        navigate('/');
+        // Handle successful login, e.g., redirect to another page
+      } else {
+        // Error
+        console.log("Failed to login")
+      }
     } catch (error) {
       console.error("Login failed", error);
       // Handle login failure, e.g., display error message
@@ -63,7 +72,7 @@ const Login = () => {
               type="text"
               id="Username"
               placeholder="EMAIL OR USERNAME"
-              value={username}
+              value={localUsername}
               onChange={handleUsernameChange}
             />
           </div>

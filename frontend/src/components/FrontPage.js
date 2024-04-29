@@ -1,41 +1,75 @@
 // Import the CSS file for styling
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import "../styles/Home.css";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
+import { AuthContext } from '../AuthContext';
 
 const FrontPage = () => {
-  const [userData, setUserData] = useState(null);
+  // const [username, setUsername] = useState(null);
   const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
   const [gameCode, setGameCode] = useState("");
   const [invalidGameCode, setInvalidGameCode] = useState("");
+  // const [inAGame, setInAGame] = useState(false)
   const navigate = useNavigate(); // Initialize useHistory hook
 
-  const userIsLoggedIn = useCheckUserLoggedIn();
-
+  // const userIsLoggedIn = useCheckUserLoggedIn();
+  const { username, setUsername, userIsLoggedIn, inAGame, setInAGame} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
+  console.log("userIsLoggedIn: ", userIsLoggedIn)
   useEffect(() => {
     if (userIsLoggedIn === false) {
       // If not logged in, redirect to the login page
       console.log("Not logged in");
       navigate("/login");
-    } else {
+    } else if (userIsLoggedIn) {
       // If logged in, fetch data or perform any necessary actions
       /* 
       When we can, lets change it from /profile to a /getusername
       */
       console.log("Already logged in");
+      // if username is not set, for some reason, grab it
+      if (!username) {
+        axios
+          .get("http://localhost:8000/user/get-username/", {
+            withCredentials: true,
+          })
+          .then((response) => {
+            console.log(response.data)
+            setUsername(response.data.username);
+            console.log("username: ", username)
+          })
+          .catch((error) => {
+            console.error("There was an error!", error);
+          });        
+      }
+      
+      // attempt to fetch the game, if not in a game
+      // Should only happen if person that has just 
+      // logged in is already in a game.
       axios
-        .get("http://localhost:8000/profile/", {
+        .get("http://localhost:8000/get-game", {
           withCredentials: true,
         })
         .then((response) => {
-          setUserData(response.data.user_data);
+          // set some values
+          console.log("result from get-game")
+          console.log(response.data)
+          console.log('response.data.success', response.data.success)
+          if (response.data.success === true) {
+            setInAGame(true)
+            console.log("setting true")
+          }
+          else {
+            setInAGame(false)
+            console.log("setting false")
+          }
+          console.log("inAGame: ", inAGame)
         })
         .catch((error) => {
           console.error("There was an error!", error);
-        });
+        })
     }
   }, [userIsLoggedIn, navigate]);
 
@@ -56,6 +90,11 @@ const FrontPage = () => {
     setGameCode(e.target.value.toUpperCase()); // Game codes are usually uppercase for readability
     console.log(gameCode)
   };
+
+  const goToGame = (e) => {
+    console.log("Joining game")
+    navigate("/game-lobby")
+  }
 
   // Function to handle login button click
   const handleJoinGameSubmit = () => {
@@ -78,7 +117,6 @@ const FrontPage = () => {
       })
         .then((response) => {
           console.log(response.data)
-          setUserData(response.data.user_data);
           navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
         })
         .catch((error) => {
@@ -100,11 +138,20 @@ const FrontPage = () => {
     <div className="home-content">
       <h1 className='font-style-h'>Funchase</h1>
         {userIsLoggedIn ? (
-          <p>Welcome back {userData ? userData.username : "loading..."}</p>
+          <p>Welcome back {username ? username : "loading..."}</p>
         ) : (
           <p>Please login or create an account</p>
         )}
         {userIsLoggedIn ? (
+          inAGame ? (
+            <div>
+              <p>You are currently in a game, don't leave them hanging!</p>
+              {/* Button to go to the game page */}
+              <button className="button" onClick={goToGame}>
+                Go to Game
+              </button>
+            </div>
+          ) :
           <div className="buttons-container">
             <button
               className={`button ${activeOption === "join" ? "active" : ""}`}
@@ -179,7 +226,7 @@ const FrontPage = () => {
     <div className="home-content">
       <h1 className='font-style-h'>Funchase</h1>
       {userIsLoggedIn ? (
-        <p>Welcome back {userData ? userData.username : "loading..."}</p>
+        <p>Welcome back {username ? username : "loading..."}</p>
       ) : (
         <p>Please login or create an account</p>
       )}

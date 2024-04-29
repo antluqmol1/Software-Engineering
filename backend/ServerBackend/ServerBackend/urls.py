@@ -39,6 +39,8 @@ urlpatterns = [
     path('game/next-task/', views.next_task, name='next-task'),
     path('game/give-points/', views.give_points, name='give-points'),
     path('game/current-task/', views.current_task, name='current-task'),
+    path('user/get-login-status/', views.get_login_status, name='get_login_status'),
+    path('user/get-username/', views.get_username, name='get_user'),
 ]
 
 

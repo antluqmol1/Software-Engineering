@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
 import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
 import "bootstrap/dist/css/bootstrap.min.css"; 
+import { AuthContext } from '../AuthContext';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { Wheel } from 'react-custom-roulette'
 
 
@@ -28,11 +31,17 @@ function GameLobby() {
     const [noVotes, setNoVotes] = useState(0);
     const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
+    const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
     const [nextTask, setNextTask] = useState(false)
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
+    const [checkmarksLine1, setCheckmarksLine1] = useState([]);
+    const [exesLine2, setExesLine2] = useState([]);
+    const [questionLine3, setQuestionLine3] = useState([]);
+
+    const { username, inAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
 
 
@@ -40,7 +49,10 @@ function GameLobby() {
     const [prizeNumber, setPrizeNumber] = useState(0);
 
 
-    const handleDelete = () => {
+    const handleDelete = () => {  
+
+        console.log("Ending/Deleting game...")
+
         axios
         .delete(
             "http://localhost:8000/delete-game/",
@@ -52,6 +64,17 @@ function GameLobby() {
         )
         .then((response) => {
             if (response.data['success'] === true) {
+
+              console.log("Game deleted successfully")
+
+                // Send an end game message to the backend.
+                // if (webSocketRef.current) {
+                //   console.log("sending game_end message to WS")
+                //   webSocketRef.current.send(JSON.stringify({
+                //       type: 'game_end',
+                //       user: username
+                //   }));
+                // }
                 navigate("/");
             }
             else {
@@ -94,30 +117,6 @@ function GameLobby() {
       });
   };
 
-  //   const fetchTask = () => {
-  //       axios.get("http://localhost:8000/game/next-task/",
-  //           {
-  //               headers: {
-  //                   "X-CSRFToken": token, // Include CSRF token in headers
-  //               },
-  //           }
-  //       )
-  //           .then(response => {
-  //               console.log("response: ", response.data.taskId)
-  //               if (webSocketRef.current) {
-  //                   webSocketRef.current.send(JSON.stringify({
-  //                   type: 'new_task',
-  //                   taskId: response.data.taskId,
-  //                   pickedPlayer: response.data.pickedPlayer,
-  //                   gameStarted: true
-  //               }));
-  //             }
-  //               return response.data;
-  //           })
-  //           .catch(error => {
-  //               console.error("Error fetching task:", error);
-  //           });
-  //   };
 
   // Function to fetch the list of participants from the server
   const fetchPlayerList = () => {
@@ -163,12 +162,14 @@ function GameLobby() {
               setAdmin(response.data["isAdmin"]);
               setGameID(response.data["gameId"]);
               setGameStarted(response.data["gameStarted"]);
+                // setUsername(response.data['username']);
           })
           .catch(error => {
               console.error("Error fetching game ID:", error);
           });
 
           // Condition to fetch the current task if the game is started
+            // Im confused, why do we fetch current task if the game is NOT started???
           if (!gameStarted) {
             axios.get("http://localhost:8000/game/current-task/",
             {
@@ -180,6 +181,7 @@ function GameLobby() {
                 setTaskText(response.data.description)
                 setTaskPoints(response.data.points)
                 setPickedPlayer(response.data.pickedPlayer)
+                  setTaskId(response.data.taskId)
                 return response.data;
             })
             .catch(error => {
@@ -189,57 +191,33 @@ function GameLobby() {
 
     };
 
-  //   // Function assigns points to player in database, needs to be called by button on website
-  //   const givePoints = (username, points) => {
-  //       axios
-  //       .put(
-  //           "http://localhost:8000/game/give-points/",
-  //           { 
-  //               username: username, 
-  //               points: points 
-  //           },
-  //           {
-  //               headers: {
-  //                   "X-CSRFToken": token, // Include CSRF token in headers
-  //               },
-  //           }
-  //       )
-  //       .then((response) => {
-  //           if (response.data['success'] === true) {
-  //           }
-  //           else {
-  //               console.log("failed to give points");
-  //           }
 
-  //       return response.data;
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error assigning points:", error);
-  //       return null;
-  //     });
-  // };
+    const voteTask = (vote, taskId) => {
 
-  // const taskDone = () => {
-  //   if (webSocketRef.current) {
-  //       webSocketRef.current.send(JSON.stringify({
-  //           type: 'task_done', 
-  //           // taskText: taskText,
-  //           // taskPoints: taskPoints,
-  //           taskId: taskId
-  //       }));
-  //   }
+      
+      if (webSocketRef.current) {
+          webSocketRef.current.send(JSON.stringify({
+              type: 'task_vote',
+              taskId: taskId,
+              taskVote: vote
+          }));
+          // Add icons to the respective lists based on the vote
+          // if (vote === "yes") {
+          //   setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
+          // } 
+    
+          // else if (vote === "no") {
+          //   setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
+          // } 
+    
+          // else if (vote === "skip") {
+          //   setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
+          // }
+    
+        };
+      }
+  
 
-  // }
-
-  const voteTask = (vote, taskId) => {
-    if (webSocketRef.current) {
-        webSocketRef.current.send(JSON.stringify({
-            type: 'task_vote',
-            taskId: taskId,
-            taskVote: vote
-        }));
-    }
-  }
 
   const fetchTask = () => {
 
@@ -271,6 +249,12 @@ function GameLobby() {
 
   //incoming change, this return is incoming change
     useEffect(() => {
+
+        if (!inAGame) {
+          console.log("You're not in a game, returning to home screen");
+          navigate("/");
+        }
+
         // Fetch the player list and game when the component mounts
         fetchPlayerList();
         fetchGame();
@@ -280,7 +264,6 @@ function GameLobby() {
         console.log("token being sent:", token)
         webSocketRef.current = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
         
-        // WE NEED TO EDIT THE LOGIN VIEW, WE MUST GENERATE A JWT ON THE BACKEND AND SEND IT TO THE BROWSER
         webSocketRef.current.onopen = (event) => {
             console.log('WebSocket Connected');
         };
@@ -302,6 +285,11 @@ function GameLobby() {
                     setPlayerList(prevPlayerList => {
                         return prevPlayerList.filter(player => player.username !== data.message);
                     });
+
+                    if (data.admin) {
+                      console.log("Admin has quit, game is deleted")
+                      navigate('/')
+                    }
 
                     break;
                 case 'join':
@@ -335,12 +323,26 @@ function GameLobby() {
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
+                    setPlayerList(data.message['participants']);
+                    console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
                     break;
                 
                 case 'task_done':
                     setYesVotes(0)
                     setNoVotes(0)
                     setSkipVotes(0)
+                    setCheckmarksLine1([])
+                    setExesLine2([])
+                    setQuestionLine3([])
+                    setTotalVotes(0)
+                      
+                    // Task done should only reset the useStates
+                    // setTaskId(data.message['taskId']);
+                    // setTaskText(data.message['taskText']);
+                    // setTaskPoints(data.message['taskPoints']);
+                    // setPickedPlayer(data.message['pickedPlayer']);
+                    // setGameStarted(data.message['gameStarted']);
+                    // setPlayerList(data.message['participants']);
 
 
                     console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer'])
@@ -358,10 +360,84 @@ function GameLobby() {
                     break;
 
                 case 'task_new_vote':
-                    setYesVotes(data.message['yesVotes'])
-                    setNoVotes(data.message['noVotes'])
-                    setSkipVotes(data.message['skipVotes'])
-                    break;
+
+                    console.log("new vote recieved")
+                    // console.log("Yes votes: ", data.message['yesVotes'])
+                    // console.log("no votes: ", data.message['noVotes'])
+                    // console.log("skip votes: ", data.message['skipVotes'])
+                    // setYesVotes(data.message['yesVotes'])
+                    // setNoVotes(data.message['noVotes'])
+                    // setSkipVotes(data.message['skipVotes'])
+
+                    // prevVote only exists if we need to change a vote
+                    const newVote = data.message['prevVote']
+                    var vote = data.message['newVote'];
+
+                    
+                    console.log("newVote value, ", newVote);
+                    console.log("prevVote value, ", data.message['prevVote']);
+                    console.log("newVote value, ", data.message['newVote']);
+
+                    if (newVote != undefined) {
+                      console.log("change vote detected")
+                      const prevVote = data.message['prevVote'];
+
+                      const removeVote = (voteType) => {
+                        switch (voteType) {
+                          case 'yes':
+                            console.log("Removing a yes vote");
+                            setCheckmarksLine1(prevCheckmarks => prevCheckmarks.slice(0, -1));
+                            break;
+                          case 'no':
+                            console.log("Removing a no vote");
+                            setExesLine2(prevExes => prevExes.slice(0, -1));
+                            break;
+                          case 'skip':
+                            console.log("Removing a skip vote");
+                            setQuestionLine3(prevQuestions => prevQuestions.slice(0, -1));
+                            break;
+                          default:
+                            console.error("Unhandled vote type:", voteType);
+                        }
+                      };
+                      console.log("new vote is", vote)
+                      // Call removeVote with previous vote to remove the appropriate item
+                      removeVote(prevVote);
+
+                    }
+                    else {
+                      console.log("new vote detected", vote)
+                      setTotalVotes(prevTotalVotes => prevTotalVotes + 1);
+                    }
+
+                    console.log(vote)
+                    switch (vote) {
+                      case 'yes':
+                        console.log("yes vote registered")
+                        setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
+                        break;
+                      case 'no':
+                        console.log("no vote registered")
+                        setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
+                        break;
+                      default:
+                        console.log("skip vote registered")
+                        setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
+                        break;
+                    }
+
+
+                  
+                  break;
+
+                case 'game_end':
+                    console.log("game end message recieved from WS")
+
+                    console.log("GAME HAS ENDED")
+
+                    navigate("/");
+
+                  break;
             }
         
         };
@@ -407,8 +483,42 @@ function GameLobby() {
 
     return (
         <div className="game-lobby">
+          <div className="Username">Username: {username}</div>
           <div className="GameID">GameID: {gameID}</div>
           {/* Leaderboard */}
+
+          {/* Display total votes count */}
+          <div className="game-lobby">
+            <div className="vote-count">
+              <h3>Total votes: {totalVotes}</h3>
+              {/* <p>Yes votes: {yesVotes}</p>
+              <p>No votes: {noVotes}</p>
+              <p>Skip votes: {skipVotes}</p> */}
+          {/* Display checkmarks for "Yes" votes */}
+          <div>
+              {checkmarksLine1.map((checkmark, index) => (
+              <span key={index}>{checkmark}</span>
+            ))}
+          </div>
+
+          {/* Display X's for "No" votes */}
+          <div>
+            {exesLine2.map((ex, index) => (
+              <span key={index}>{ex}</span>
+            ))}
+        </div>
+  
+        {/* Display question's for "Skip" votes */}
+          <div>
+            {questionLine3.map((question, index) => (
+              <span key={index}>{question}</span>
+            ))}
+          </div>
+        </div>
+
+
+        </div>
+
           <div className="leaderboard card position-fixed top-10 p-3">
             <h2 className="card-header text-center">Leaderboard</h2>
             <div className="card-body p-0">
@@ -437,21 +547,22 @@ function GameLobby() {
               <p className="font-style">{pickedPlayer}'s task</p>
               <p className="font-style">Points: {taskPoints}</p>
               <p className="font-style">task: {taskText}</p>
-    <p className="font-style" style={{fontSize: 'smaller'}}>Yes: {yesVotes}</p>
-    <p className="font-style" style={{fontSize: 'smaller'}}>No: {noVotes}</p>
-    <p className="font-style" style={{fontSize: 'smaller'}}>skip: {skipVotes}</p>
+
 
         
-    {taskText && 
+    {pickedPlayer != username && taskText && 
     
           <div>
+
             <button
               className="yes-button btn btn-sm btn-primary"
               onClick={() => voteTask( "yes", taskId)}
             >
               Yes
+          
             </button>
             <button
+        
               className="no-button btn btn-sm btn-danger"
               onClick={() => voteTask("no", taskId)}
             >
@@ -463,12 +574,14 @@ function GameLobby() {
             >
               Skip
             </button>
+        
           </div>
     }
         </div>
       </div>
-}
     
+}
+
           <button
             className="endGame-button"
             onClick={admin ? handleDelete : handleLeave}
@@ -495,9 +608,10 @@ function GameLobby() {
               Start Game
             </button>
           )}
-          <div className="wave wave1"></div>
-          <div className="wave wave2"></div>
-          <div className="wave wave3"></div>
+          {/* WE NEED TO FIX THE Z VALUES OF THESE BEFORE WE COMMENT THEM IN AGAIN*/}
+          {/* {<div className="wave wave1"></div>} */}
+          {/* {<div className="wave wave2"></div>} */}
+          {/* {<div className="wave wave3"></div>} */}
         
         { !spunWheel &&
           <div className='roulette-wheel'>
