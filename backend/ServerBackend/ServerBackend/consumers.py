@@ -9,6 +9,8 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
+from django.forms.models import model_to_dict
+
 
 
 import jwt
@@ -71,36 +73,54 @@ class GameLobby(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         print("WS: connection closed: ", close_code)
-        print("WS: Sending message to group...")
-
         logger.info(f"WebSocket disconnected: {self.channel_name} with code {close_code}")
+
+        if close_code == 4001:
+            return
+
+        # default value
+        admin = False
 
         # get the username
         try: 
-            username = await self.get_username()
-            # user = await self.get_user()
-            # game = await self.get_participant_game(self.user_id)
-            # if game.admin == user:
-            #     admin = True
-            # else:
-            #     admin = False
+            print("WS: attempting to fetch user and game")
+            user = await self.get_user()
+            game = await self.get_participant_game(self.user_id)
+            print("WS: can we not print game.admin")
+            print("WS: game.admin ", game.admin)
+            if game.admin == user:
+                print("WS: player is admin!")
+                admin = True
         except:
-            print("no username, not even connected")
+            print("WS: no username/game, not even connected")
+            return
+
+        # If disconnected player is admin, we need to end the game
+        # Potentially check the code, so that in case it was unintentional 
+        # disconnect, we can pass admin to another player
+
+        if admin:
+            print("WS: Adming ending game")
+            game_ended = await self.end_game(game)
+            if game_ended:
+                print("WS: game deleted!")
+            else:
+                print("WS: error deleting game!")
+        else:
+            left_game = await self.leave_game(game) 
+            if left_game:
+                print("WS: left game!")
+            else:
+                print("WS: error leaving game!")
 
         print("\nWS: sending message from ws\n")
-
-        response = {
-            'username': username,
-            'admin': True
-        }
-
         # send disconnect message to the group
         await self.channel_layer.group_send(
             self.game_group_name,
             {
                 'type': 'Disconnect_Update',
-                'message': username,
-                'admin': True,
+                'message': user.username,
+                'admin': admin,
                 'msg_type': 'disconnect'
             }
         )
@@ -110,7 +130,7 @@ class GameLobby(AsyncWebsocketConsumer):
             self.game_group_name,
             self.channel_name
         )
-        print(f"WS: {username} was removed from {self.game_group_name}")
+        print(f"WS: {user.username} was removed from {self.game_group_name}")
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -154,27 +174,18 @@ class GameLobby(AsyncWebsocketConsumer):
                 yesVotes, noVotes, skipVotes = await self.get_game_votes(game)  
 
                 # Check if the overwhelming majority has voted, and end game if one-sided.
-                if (participants/2 - skipVotes) <= yesVotes:                                    # Player wins
+                if (participants/2 - skipVotes) <= yesVotes:                            # Player wins
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
                     # Gives player points
                     await self.give_player_points(game, task)
 
 
-                elif (participants/2 - skipVotes) < noVotes:                                    # Player loses
+                elif (participants/2 - skipVotes) < noVotes:                            # Player loses
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
 
-                else: 
-                                                                                                # Vote continues
-                    # This is jørgens, i suggest we send each new vote to every 
-                    # participant, instead of the entire list all the time                                                                                    
-                    # response = {
-                    #     'yesVotes': yesVotes,
-                    #     'noVotes': noVotes,
-                    #     'skipVotes': skipVotes,
-                    # }
-
+                else:                                                                   # Vote continues
                     response = {
 
                     }
@@ -215,17 +226,18 @@ class GameLobby(AsyncWebsocketConsumer):
                     }
                     )
 
-                # fetch the next task
-                response = await self.next_task(game)
+                # ADMIN DECIDES WHEN NEXT TASK IS FETCHED, WE CAN REMOVE THIS I THINK
+                # # fetch the next task
+                # response = await self.next_task(game)
 
-                await self.channel_layer.group_send(
-                    self.game_group_name, 
-                    {
-                        'type': 'Task',  # This refers to the method name `Task`
-                        'message': response,
-                        'msg_type': 'new_task'
-                    }
-                    )
+                # await self.channel_layer.group_send(
+                #     self.game_group_name, 
+                #     {
+                #         'type': 'Task',  # This refers to the method name `Task`
+                #         'message': response,
+                #         'msg_type': 'new_task'
+                #     }
+                #     )
 
             case 'new_task':
 
@@ -257,6 +269,12 @@ class GameLobby(AsyncWebsocketConsumer):
                 }
                 )
 
+#|======================================================================|
+#|                       MESSAGE                                        |
+#|                       FUNCTIONS                                      |
+#|======================================================================|
+
+    # Message methods
     async def Game_End(self, event):
         message = event['message']
         msg_type = event.get('mgs_type', 'No msg_type')
@@ -267,7 +285,7 @@ class GameLobby(AsyncWebsocketConsumer):
         }))
 
 
-    # message function
+    # Message methods
     async def Task(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
@@ -277,7 +295,7 @@ class GameLobby(AsyncWebsocketConsumer):
             'msg_type': msg_type
         }))
 
-    # message function
+    # Message methods
     async def Add_Update_Player(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
@@ -287,7 +305,7 @@ class GameLobby(AsyncWebsocketConsumer):
             'msg_type': msg_type
         }))
     
-    # message function
+    # Message methods
     async def Disconnect_Update(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
@@ -299,15 +317,61 @@ class GameLobby(AsyncWebsocketConsumer):
             'msg_type': msg_type
         }))
 
+#|======================================================================|
+#|                   DATABASE                                           |
+#|                   FUNCTIONS                                          |
+#|======================================================================|
     # Database function
     @database_sync_to_async
     def get_participant_game(self, user_id):
+        print("\tWS: get_participant_game")
         try: 
             part = Participant.objects.get(user_id=user_id)
             game = part.game
+            game_dict = model_to_dict(game)
+            print("\tWS: admin: ", game.admin)
+            print("\tWS: returning game: ", game_dict)
             return game
         except Participant.DoesNotExist:
+            print("\tWS: Participant does not exist")
             return None
+        
+    # Database function
+    @database_sync_to_async
+    def leave_game(self, game):
+        print("\tWS: leave_game")
+        try:
+            player = Participant.objects.get(user=self.user_id)
+            player.delete()
+            game.num_players -= 1
+            game.save()
+            print("\tWS: successfully left the game")
+            return True
+        except:
+            print("\tWS: failed to leave the game")
+            return False
+    
+    # Database function
+    @database_sync_to_async
+    def end_game(self, game):
+        print("\tWS: end_game")
+        try:
+            game_to_delete = Game.objects.filter(game_id=game.game_id)
+            # players_to_delete = Participant.objects.filter(game=game.game)    # something wrong
+                                                                                # with this call
+            print("\tWS: successfully fetched game and players")
+        except:
+            print("\tWS: failed to fetch game and/or players")
+            return False
+
+        try:
+            game_to_delete.delete()
+            # players_to_delete.delete()
+            print("\tWS: successfully deleted game and players")
+            return True
+        except:
+            print("\tWS: failed to delete game and/or players")
+            return False
         
     # Database function
     # gets the amount of players in the game
@@ -389,7 +453,6 @@ class GameLobby(AsyncWebsocketConsumer):
 
                 return response
 
-
     
     '''
     DATABASE FUNCTION
@@ -413,7 +476,25 @@ class GameLobby(AsyncWebsocketConsumer):
             return participant_data
         except Participant.DoesNotExist:
             return None
-    
+        
+        
+    '''
+    DATABASE FUNCTION
+    DESC: fets the user profile of the player making the connection
+    Returns: User model object
+    '''
+    @database_sync_to_async
+    def get_user(self):
+        print("\tWS: get_user")
+        try:
+            player = User.objects.get(id=self.user_id)
+            print("\tWS: Returning player: ", player.username)
+            return player
+        except User.DoesNotExist:
+            print("\tWS: User does not exist")
+            return None
+        
+
     '''
     DATABASE FUNCTION 
     DESC: gets the current connecting clients username
@@ -428,19 +509,14 @@ class GameLobby(AsyncWebsocketConsumer):
         except User.DoesNotExist:
             return None
         
-    '''
-    DATABASE FUNCTION
-    DESC: fets the user profile of the player making the connection
-    Returns: User model object
-    '''
-    @database_sync_to_async
-    def get_user(self):
-        try:
-            player = User.objects.get(id=self.user_id)
+    def get_participant(self):
 
-            return player
-        except User.DoesNotExist:
-            return None
+        try:
+            return True
+        except: 
+            return False
+        pass
+        
         
     '''
     DATABASE FUNCTION

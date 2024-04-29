@@ -177,11 +177,13 @@ def get_game(request):
                 # Query the participant record for the player
                 part = Participant.objects.get(user=user)
 
+                active_task = PickedTasks.objects.filter(game=part.game, done=False).exists()
+
                 # checks if player is admin
                 if user == part.game.admin:
                     is_admin = True
 
-                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started})
+                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started, 'activeTask': active_task})
             else:
                 # Player is not in a game
                 return JsonResponse({'success': False, 'msg': 'not in a game'})

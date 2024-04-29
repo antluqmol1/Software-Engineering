@@ -117,6 +117,7 @@ const FrontPage = () => {
       })
         .then((response) => {
           console.log(response.data)
+          setInAGame(true)
           navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
         })
         .catch((error) => {

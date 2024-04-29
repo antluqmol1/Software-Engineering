@@ -41,7 +41,7 @@ function GameLobby() {
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
 
-    const { username, inAGame } = useContext(AuthContext);
+    const { username, inAGame, setInAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
 
 
@@ -53,68 +53,75 @@ function GameLobby() {
 
         console.log("Ending/Deleting game...")
 
-        axios
-        .delete(
-            "http://localhost:8000/delete-game/",
-            {
-            headers: {
-                "X-CSRFToken": token, // Include CSRF token in headers
-            },
-            }
-        )
-        .then((response) => {
-            if (response.data['success'] === true) {
+          webSocketRef.current.close(1000, 'Admin ended game');
 
-              console.log("Game deleted successfully")
+      //   axios
+      //   .delete(
+      //       "http://localhost:8000/delete-game/",
+      //       {
+      //       headers: {
+      //           "X-CSRFToken": token, // Include CSRF token in headers
+      //       },
+      //       }
+      //   )
+      //   .then((response) => {
+      //       if (response.data['success'] === true) {
 
-                // Send an end game message to the backend.
-                // if (webSocketRef.current) {
-                //   console.log("sending game_end message to WS")
-                //   webSocketRef.current.send(JSON.stringify({
-                //       type: 'game_end',
-                //       user: username
-                //   }));
-                // }
-                navigate("/");
-            }
-            else {
-                console.log("failed to delete game");
-            }
+      //         console.log("Game deleted successfully")
 
-        return response.data;
-      })
-      .catch((error) => {
-        console.error("Error getting players:", error);
-        return null;
-      });
+      //           // Send an end game message to the backend.
+      //           // if (webSocketRef.current) {
+      //           //   console.log("sending game_end message to WS")
+      //           //   webSocketRef.current.send(JSON.stringify({
+      //           //       type: 'game_end',
+      //           //       user: username
+      //           //   }));
+      //           // }
+      //           navigate("/");
+      //       }
+      //       else {
+      //           console.log("failed to delete game");
+      //       }
+
+      //   return response.data;
+      // })
+      // .catch((error) => {
+      //   console.error("Error getting players:", error);
+      //   return null;
+      // });
+      setInAGame(false)
+      navigate("/")
   };
 
     // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
-        axios
-        .put(
-            "http://localhost:8000/leave-game/",
-            null,
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            }
-        )
-        .then((response) => {
-            if (response.data['success'] === true) {
-                navigate("/");
-            }
-            else {
-                console.log("failed to leave game");
-            }
+      webSocketRef.current.close(1000, 'Player left the game');
+      //   axios
+      //   .put(
+      //       "http://localhost:8000/leave-game/",
+      //       null,
+      //       {
+      //           headers: {
+      //               "X-CSRFToken": token, // Include CSRF token in headers
+      //           },
+      //       }
+      //   )
+      //   .then((response) => {
+      //       if (response.data['success'] === true) {
+      //           navigate("/");
+      //       }
+      //       else {
+      //           console.log("failed to leave game");
+      //       }
 
-        return response.data;
-      })
-      .catch((error) => {
-        console.error("Error getting players:", error);
-        return null;
-      });
+      //   return response.data;
+      // })
+      // .catch((error) => {
+      //   console.error("Error getting players:", error);
+      //   return null;
+      // });
+      setInAGame(false)
+      navigate("/")
   };
 
 
@@ -162,6 +169,13 @@ function GameLobby() {
               setAdmin(response.data["isAdmin"]);
               setGameID(response.data["gameId"]);
               setGameStarted(response.data["gameStarted"]);
+              
+              if (!response.data["activeTask"])
+              setNextTask(true)
+            console.log("fetch game response: ", response.data)
+
+            console.log("isAdmin: ", response.data["isAdmin"])
+            console.log("activeTask: ", response.data["activeTask"])
                 // setUsername(response.data['username']);
           })
           .catch(error => {
@@ -170,7 +184,7 @@ function GameLobby() {
 
           // Condition to fetch the current task if the game is started
             // Im confused, why do we fetch current task if the game is NOT started???
-          if (!gameStarted) {
+          if (gameStarted) {
             axios.get("http://localhost:8000/game/current-task/",
             {
                 headers: {
@@ -181,7 +195,7 @@ function GameLobby() {
                 setTaskText(response.data.description)
                 setTaskPoints(response.data.points)
                 setPickedPlayer(response.data.pickedPlayer)
-                  setTaskId(response.data.taskId)
+                setTaskId(response.data.taskId)
                 return response.data;
             })
             .catch(error => {
@@ -219,7 +233,7 @@ function GameLobby() {
   
 
 
-  const fetchTask = () => {
+  const startGame = () => {
 
     if (webSocketRef.current) {
       webSocketRef.current.send(JSON.stringify({
@@ -228,6 +242,8 @@ function GameLobby() {
   }
   }
   const getNextTask = () => {
+
+    setNextTask(true)
 
     if (webSocketRef.current) {
       webSocketRef.current.send(JSON.stringify({
@@ -335,14 +351,6 @@ function GameLobby() {
                     setExesLine2([])
                     setQuestionLine3([])
                     setTotalVotes(0)
-                      
-                    // Task done should only reset the useStates
-                    // setTaskId(data.message['taskId']);
-                    // setTaskText(data.message['taskText']);
-                    // setTaskPoints(data.message['taskPoints']);
-                    // setPickedPlayer(data.message['pickedPlayer']);
-                    // setGameStarted(data.message['gameStarted']);
-                    // setPlayerList(data.message['participants']);
                     
                     console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer'])
 
@@ -419,7 +427,8 @@ function GameLobby() {
                     }
 
 
-                  
+                              // Websocket response handler
+
                   break;
 
                 case 'game_end':
@@ -440,7 +449,9 @@ function GameLobby() {
 
         // Clean up on unmount
         return () => {
-            webSocketRef.current.close();
+            // commented out as of now, because we are sending close message when ending or leaving
+            // Otherwise we are not to leave the game
+            webSocketRef.current.close(4001, "navigated away");
         };
 
     }, []);
@@ -576,7 +587,7 @@ function GameLobby() {
             {admin ? "End game" : "Leave game"}
           </button>
           
-          {admin && nextTask && (
+          {admin && gameStarted && nextTask && (
             <button 
             className="fetchTask-button" 
             onClick={getNextTask}
@@ -590,7 +601,7 @@ function GameLobby() {
           {admin && !gameStarted && ( // Only render the button if the user is an admin
             <button 
               className="fetchTask-button" 
-              onClick={fetchTask}
+              onClick={startGame}
             >
               Start Game
             </button>
