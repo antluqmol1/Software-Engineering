@@ -262,7 +262,6 @@ function GameLobby() {
   useEffect(() => {
     console.log('Updating userNameArray', playerList.size)
     if (playerList.length > 0) {
-      console.log('LISSSSSSSTTTTfakookaokgoTT: ', playerList);
       const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
       setUsernameArray(usernames);
     }
@@ -328,7 +327,8 @@ function GameLobby() {
                     break;
                     
                 case 'new_task':
-                    console.log('player list from socket rqu8rqeouqo: ', data.message['participants'])
+                    console.log("IRJIGJRIJGRIJI Picked from Newtask: ", data.message['pickedPlayer'])
+
                     setTaskId(data.message['taskId']);
                     setTaskText(data.message['taskText']);
                     setTaskPoints(data.message['taskPoints']);
@@ -342,7 +342,9 @@ function GameLobby() {
                     setNoVotes(0)
                     setSkipVotes(0)
 
-                    // setNextTask(true);
+
+                    console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer'])
+
                     setSpunWheel(false);
                     setNextTask(true);
 
