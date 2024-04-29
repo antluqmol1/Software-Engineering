@@ -343,19 +343,11 @@ function GameLobby() {
                     // setPickedPlayer(data.message['pickedPlayer']);
                     // setGameStarted(data.message['gameStarted']);
                     // setPlayerList(data.message['participants']);
-
-
+                    
                     console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer'])
 
                     setSpunWheel(false);
                     setNextTask(true);
-
-                    setTaskId(data.message['taskId']);
-                    setTaskText(data.message['taskText']);
-                    setTaskPoints(data.message['taskPoints']);
-                    setPickedPlayer(data.message['pickedPlayer']);
-                    setGameStarted(data.message['gameStarted']);
-                    setPlayerList(data.message['participants']);
 
                     break;
 
@@ -458,14 +450,9 @@ function GameLobby() {
       if (!mustSpin) {
 
         const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
-        
-        console.log('USEEEEERNAMEEEMEME', username)
-        console.log('plaaaaaayyyeerList: ', usernameArray)
-        console.log('plaaaaaayyyeerList425364534334: ', usernames)
-
         const index = usernames.findIndex(player => player.username === username);
         
-        console.log('Prizeee number: ', index)
+        console.log('Handle spin click')
 
         setPrizeNumber(index);
         setMustSpin(true);
