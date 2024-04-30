@@ -420,7 +420,7 @@ class GameLobby(AsyncWebsocketConsumer):
             player = Participant.objects.get(user=current_task.user)
             player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
             player.save()
-
+            
         except:
             return None
 
