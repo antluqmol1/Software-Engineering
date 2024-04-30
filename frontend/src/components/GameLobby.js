@@ -372,15 +372,20 @@ function GameLobby() {
                     setTaskPoints(data.message['taskPoints']);
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
+                    console.log(data.message['pickedPlayer'])
+                    console.log(data.message['participants'])
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
                     setPlayerList(data.message['participants']);
                     console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
+                    const sortedPlayerList = data.message.participants.sort((a, b) => b.score - a.score);
+                    setPlayerList(sortedPlayerList);
                     break;
                 
                 case 'task_done':
-                    setYesVotes(0)
-                    setNoVotes(0)
-                    setSkipVotes(0)
+                    // setYesVotes(0)
+                    // setNoVotes(0)
+                    // setSkipVotes(0)
+                    console.log(data.message)
                     setCheckmarksLine1([])
                     setExesLine2([])
                     setQuestionLine3([])
