@@ -415,14 +415,16 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def give_player_points(self, game, task):
-        try: 
-            current_task = PickedTasks.objects.get(game=game, task=task)
-            player = Participant.objects.get(user=current_task.user)
-            player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
-            player.save()
-            
-        except:
-            return None
+        current_task = PickedTasks.objects.get(game=game, task=task)
+        player = Participant.objects.get(user=current_task.user)
+        player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
+        player.save()
+
+        response = {
+            'winner': True,
+            'player&score': json.dumps({'username': player.user.username, 'score': player.score})
+        }
+        return response
 
     # Database function
     @database_sync_to_async
