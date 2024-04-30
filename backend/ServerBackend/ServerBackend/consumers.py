@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 We use http cookies that contain JWT, given upon login, to validate connections
 '''
 class GameLobby(AsyncWebsocketConsumer):
+
     async def connect(self):
         print("WS: gamelobby, connecting...")
         # add to a group? or is the group the participant/game
@@ -179,11 +180,13 @@ class GameLobby(AsyncWebsocketConsumer):
                     await self.next_task_preperation(game, task)
                     # Gives player points
                     await self.give_player_points(game, task)
+                    win = True
 
 
                 elif (participants/2 - skipVotes) < noVotes:                            # Player loses
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
+                    win = False
 
                 else:                                                                   # Vote continues
                     response = {
@@ -212,8 +215,18 @@ class GameLobby(AsyncWebsocketConsumer):
                     )
                     return          # Return here if vote continues
                 
+
+                # WE NEED SOMETHING LIKE THIS SO THAT WE SEND A PARTICIPANT_DATA TO UPDATE THE PLAYER
+                # LIST IN THE FRONTEND, OR WE SEND THE PLAYER WHO WON/GOT POINTS, AND WE CAN **ADD**
+                # TO THE PLAYER LIST, LESS HASSLE FOR THE WEBSOCKET, MIGHT NOT EVEN HAVE TO DO A 
+                # DATABASE QUERY
+                # participants_in_same_game = Participant.objects.filter(game=game)
+                # participant_data = [{'username': p.user.username, 'score': p.score} 
+                #                     for p in participants_in_same_game]
+
                 response = {
-                    'task_done': True
+                    'task_done': True,
+                    'win': win
                 }
 
                 # Next task will be fetched from the frontend.
@@ -387,22 +400,29 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def next_task_preperation(self, game, task):
-        # Clears responses for specific task/game in Response.
-        respones = Response.objects.filter(game=game, task=task)
-        respones.delete()
-        # Sets task as done in PickedTasks.
-        current_task = PickedTasks.objects.get(game=game, task=task)
-        current_task.done = True
-        current_task.save()
+        try:
+            # Clears responses for specific task/game in Response.
+            respones = Response.objects.filter(game=game, task=task)
+            respones.delete()
+            # Sets task as done in PickedTasks.
+            current_task = PickedTasks.objects.get(game=game, task=task)
+            current_task.done = True
+            current_task.save()
+        except:
+            return None
 
 
     # Database function
     @database_sync_to_async
     def give_player_points(self, game, task):
-        current_task = PickedTasks.objects.get(game=game, task=task)
-        player = Participant.objects.get(user=current_task.user)
-        player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
-        player.save()
+        try: 
+            current_task = PickedTasks.objects.get(game=game, task=task)
+            player = Participant.objects.get(user=current_task.user)
+            player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
+            player.save()
+
+        except:
+            return None
 
     # Database function
     @database_sync_to_async

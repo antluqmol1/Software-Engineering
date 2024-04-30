@@ -15,7 +15,6 @@ const wheel_data = [
   // { option: 'bob'},
   // { option: 'alice'},
   // { option: 'frank'},
-
 ]
 
 function GameLobby() {
@@ -47,6 +46,24 @@ function GameLobby() {
 
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
+
+
+    /*
+
+    BUGS!:
+
+    When a player joins when challenge is active, they don't get the voting
+    screen. If a player leaves mid vote, you could end up softlocked, because 
+    he is counted as a particiant as of the last vote, but can't vote when leaving.
+    Points are not updated until next task is fetched, I have added a comment in task_done 
+    send message in consumers.py that explains what we need to do accordint to current implementation
+
+    1. We need to fix some useState checks to ensure the player gets the right information.
+      Perhaps in connect, we can check for game is started, or query PickedTask for done = false
+    2. We need to make it so that player disconnect triggers a reevaluation of the votes
+    3. Return a participants list, or simply a player participant + updated score when a vote is complete
+
+    */
 
 
     const handleDelete = () => {  
@@ -252,6 +269,23 @@ function GameLobby() {
   }
   }
 
+  // Update player list function
+  const updatePlayerList = (playerData) => {
+    setPlayerList(prevPlayerList => {
+      const existingPlayerIndex = prevPlayerList.findIndex(p => p.username === playerData.username);
+      if (existingPlayerIndex !== -1) {
+        // Player exists, update their data
+        return prevPlayerList.map((player, index) => 
+          index === existingPlayerIndex ? { ...player, ...playerData } : player
+        );
+      } else {
+        // New player, add to the list
+        return [...prevPlayerList, playerData];
+      }
+    });
+  };
+  
+
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
     console.log('Updating userNameArray', playerList.size)
@@ -352,7 +386,13 @@ function GameLobby() {
                     setQuestionLine3([])
                     setTotalVotes(0)
                     
-                    console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer'])
+                    console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer']);
+                    console.log("prev task user: ", data.message['username'], " new score ", data.message['score']);
+                    
+                    if (data.message['winner'] == true) {
+                      console.log("player has won, playerlist with new score")
+                      updatePlayerList(data.message['player&score'])
+                    }
 
                     setSpunWheel(false);
                     setNextTask(true);
