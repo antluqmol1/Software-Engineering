@@ -173,23 +173,22 @@ class GameLobby(AsyncWebsocketConsumer):
                 # Obtain the different types of votes from DB.
                 yesVotes, noVotes, skipVotes = await self.get_game_votes(game)  
 
+                response = {}
+
                 # Check if the overwhelming majority has voted, and end game if one-sided.
-                if (participants/2 - skipVotes) <= yesVotes:                            # Player wins
+                if ((participants - 1)/2 - skipVotes) <= yesVotes:                            # Player wins
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
                     # Gives player points
-                    await self.give_player_points(game, task)
+                    response = await self.give_player_points(game, task)
 
 
-                elif (participants/2 - skipVotes) < noVotes:                            # Player loses
+                elif ((participants - 1)/2 - skipVotes) < noVotes:                            # Player loses
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
+                    response = {'winner': False}
 
                 else:                                                                   # Vote continues
-                    response = {
-
-                    }
-
                     if previous_vote == None:
                         response = {
                             'newVote': 'yes' if newVote.vote is True else 'no' if newVote.vote is False else 'skip'
@@ -212,9 +211,6 @@ class GameLobby(AsyncWebsocketConsumer):
                     )
                     return          # Return here if vote continues
                 
-                response = {
-                    'task_done': True
-                }
 
                 # Next task will be fetched from the frontend.
                 await self.channel_layer.group_send(
@@ -404,6 +400,13 @@ class GameLobby(AsyncWebsocketConsumer):
         player.score += Tasks.objects.get(task_id=current_task.task.task_id).points
         player.save()
 
+        response = {
+            'winner': True,
+            'username': player.user.username,
+            'score': player.score
+        }
+        return response
+
     # Database function
     @database_sync_to_async
     def next_task(self, game):
@@ -448,7 +451,7 @@ class GameLobby(AsyncWebsocketConsumer):
                     'taskPoints': random_task.points,
                     'pickedPlayer': random_player.user.username,
                     'gameStarted': game.game_started,
-                    'participants': participant_data,
+                    'participants': participant_data
                 }
 
                 return response
