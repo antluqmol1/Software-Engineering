@@ -341,6 +341,8 @@ function GameLobby() {
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
                     setPlayerList(data.message['participants']);
                     console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
+                    const sortedPlayerList = data.message.participants.sort((a, b) => b.score - a.score);
+                    setPlayerList(sortedPlayerList);
                     break;
                 
                 case 'task_done':
