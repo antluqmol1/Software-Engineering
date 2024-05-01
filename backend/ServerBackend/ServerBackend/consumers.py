@@ -19,6 +19,11 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+no_end_game_codes = [
+    4001,
+    1001,
+    1006,
+]
 '''
 We use http cookies that contain JWT, given upon login, to validate connections
 '''
@@ -76,7 +81,7 @@ class GameLobby(AsyncWebsocketConsumer):
         print("WS: connection closed: ", close_code)
         logger.info(f"WebSocket disconnected: {self.channel_name} with code {close_code}")
 
-        if close_code == 4001:
+        if close_code in no_end_game_codes:
             return
 
         # default value

@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
     const [username, setUsername] = useState(null);
     const [userIsLoggedIn, setUserIsLoggedIn] = useState(null);
     const [inAGame, setInAGame] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // make several calls to the backend, to see if player is in a game
     // WE SHOULD COMBINE THIS INTO ONE SINGLE CALL TO THE BACKEND, WILL 
@@ -25,7 +26,8 @@ export const AuthProvider = ({ children }) => {
               setUsername(usernameResponse.data.username);
               const gameResponse = await axios.get('http://localhost:8000/get-game/', { withCredentials: true });
               // sets true if in a game
-              setInAGame(gameResponse.data.success);
+              setInAGame(gameResponse.data['success']);
+              setLoading(false)
               console.log("auth: userIsloggedIn: ", userIsLoggedIn, " data: ", response.data)
               console.log("auth: username: ", username, " data: ", usernameResponse.data)
               console.log("auth: inAGame: ", inAGame, " data: ", gameResponse.data)
@@ -36,6 +38,7 @@ export const AuthProvider = ({ children }) => {
           } catch (error) {
             console.error("auth: login status check failed:", error);
             setUserIsLoggedIn(false);
+            setLoading(false)
           }
         };
     
@@ -43,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       }, []);
     
       return (
-        <AuthContext.Provider value={{ username, userIsLoggedIn, inAGame, setUserIsLoggedIn, setUsername, setInAGame }}>
+        <AuthContext.Provider value={{ loading, username, userIsLoggedIn, inAGame, setLoading, setUserIsLoggedIn, setUsername, setInAGame }}>
           {children}
         </AuthContext.Provider>
       );

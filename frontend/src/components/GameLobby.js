@@ -40,7 +40,7 @@ function GameLobby() {
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
 
-    const { username, inAGame, setInAGame } = useContext(AuthContext);
+    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
 
 
@@ -289,6 +289,7 @@ function GameLobby() {
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
     console.log('Updating userNameArray', playerList.size)
+    console.log("logged in? ", inAGame)
     if (playerList.length > 0) {
       const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
       setUsernameArray(usernames);
@@ -300,7 +301,10 @@ function GameLobby() {
   //incoming change, this return is incoming change
     useEffect(() => {
 
-        if (!inAGame) {
+
+
+        // new loaing state makes sure we don't perform actions before the right values are set
+        if (!loading && !inAGame) {
           console.log("You're not in a game, returning to home screen");
           navigate("/");
         }
