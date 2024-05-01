@@ -185,7 +185,7 @@ class Response(models.Model):
     # can be extracted from Participant via User, but the game will be deleted when over
     # We need to think about what happens when we move a game from Game to a future 
     # ArchivedGame perhaps
-    game = models.ForeignKey(Game, on_delete=models.DO_NOTHING)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     
     # Textual content of the user's response
     # vote = models.TextField()
@@ -196,6 +196,16 @@ class Response(models.Model):
     # this ensures that the combination of task and game must be unique
     class meta:
         unique_together = ('user', 'task')
+
+
+# class GameHistory(models.Model):
+
+#     pass
+
+
+# class PickedTasksHistory(models.Model):
+
+#     pass
 
 
 

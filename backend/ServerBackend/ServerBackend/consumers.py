@@ -107,6 +107,7 @@ class GameLobby(AsyncWebsocketConsumer):
                 print("WS: game deleted!")
             else:
                 print("WS: error deleting game!")
+                return
         else:
             left_game = await self.leave_game(game) 
             if left_game:
@@ -174,24 +175,21 @@ class GameLobby(AsyncWebsocketConsumer):
                 # Obtain the different types of votes from DB.
                 yesVotes, noVotes, skipVotes = await self.get_game_votes(game)  
 
+                response = {}
+
                 # Check if the overwhelming majority has voted, and end game if one-sided.
                 if (participants/2 - skipVotes) <= yesVotes:                            # Player wins
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
                     # Gives player points
-                    await self.give_player_points(game, task)
-                    win = True
-
+                    response = await self.give_player_points(game, task)
 
                 elif (participants/2 - skipVotes) < noVotes:                            # Player loses
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
-                    win = False
+                    response = {'winner': False}
 
                 else:                                                                   # Vote continues
-                    response = {
-
-                    }
 
                     if previous_vote == None:
                         response = {
@@ -224,10 +222,6 @@ class GameLobby(AsyncWebsocketConsumer):
                 # participant_data = [{'username': p.user.username, 'score': p.score} 
                 #                     for p in participants_in_same_game]
 
-                response = {
-                    'task_done': True,
-                    'win': win
-                }
 
                 # Next task will be fetched from the frontend.
                 await self.channel_layer.group_send(
@@ -369,21 +363,18 @@ class GameLobby(AsyncWebsocketConsumer):
     def end_game(self, game):
         print("\tWS: end_game")
         try:
-            game_to_delete = Game.objects.filter(game_id=game.game_id)
-            # players_to_delete = Participant.objects.filter(game=game.game)    # something wrong
-                                                                                # with this call
-            print("\tWS: successfully fetched game and players")
-        except:
-            print("\tWS: failed to fetch game and/or players")
+            game_to_delete = Game.objects.get(game_id=game.game_id)
+            print("\tWS: Fetch successfull, ", game_to_delete.game_id)
+        except Exception as e:
+            print("\tWS: Fetch failed error: ", str(e))
             return False
 
         try:
             game_to_delete.delete()
-            # players_to_delete.delete()
-            print("\tWS: successfully deleted game and players")
+            print("\tWS: Delete successfull")
             return True
-        except:
-            print("\tWS: failed to delete game and/or players")
+        except Exception as e:
+            print("\tWS: Delete failed error: ", str(e))
             return False
         
     # Database function
@@ -646,13 +637,13 @@ def validate_jwt(token):
         # Decode the token
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         # Optionally, you could return the payload if needed
-        print(f' payload')
+        print(f'WS: payload')
         return payload
     except ExpiredSignatureError:
         # Handle expired token, e.g., return False or raise an error
-        print("expired token")
+        print("WS: expired token")
         return False
     except InvalidTokenError:
         # Handle invalid token, e.g., return False or raise an error
-        print("invalid token")
+        print("WS: invalid token")
         return False
