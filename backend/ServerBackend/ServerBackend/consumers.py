@@ -418,7 +418,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
         response = {
             'winner': True,
-            'player&score': json.dumps({'username': player.user.username, 'score': player.score})
+            'player&score': {'username': player.user.username, 'score': player.score}
         }
         return response
 

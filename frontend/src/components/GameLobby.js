@@ -26,9 +26,9 @@ function GameLobby() {
     const [spunWheel, setSpunWheel] = useState(false);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
-    const [yesVotes, setYesVotes] = useState(0);
-    const [noVotes, setNoVotes] = useState(0);
-    const [skipVotes, setSkipVotes] = useState(0);
+    // const [yesVotes, setYesVotes] = useState(0);
+    // const [noVotes, setNoVotes] = useState(0);
+    // const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
     const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
     const [nextTask, setNextTask] = useState(false)
@@ -133,9 +133,13 @@ function GameLobby() {
               
               const taskData = response.data["activeTask"]
               if (!response.data["activeTask"]) {
+                console.log("no active task")
+                setSpunWheel(false)
                 setNextTask(false)
                 console.log(response.data["activeTask"])
               } else {
+                console.log("no active task")
+                setSpunWheel(true)
                 setTaskText(taskData.description)
                 setTaskPoints(taskData.points)
                 setPickedPlayer(taskData.pickedPlayer)
@@ -222,15 +226,18 @@ function GameLobby() {
 
   // Update player list function
   const updatePlayerList = (playerData) => {
+    console.log("updating player list...")
     setPlayerList(prevPlayerList => {
       const existingPlayerIndex = prevPlayerList.findIndex(p => p.username === playerData.username);
       if (existingPlayerIndex !== -1) {
         // Player exists, update their data
+        console.log("player exists, update their data")
         return prevPlayerList.map((player, index) => 
           index === existingPlayerIndex ? { ...player, ...playerData } : player
         );
       } else {
         // New player, add to the list
+        console.log("player doesnt exists, add them")
         return [...prevPlayerList, playerData];
       }
     });
@@ -352,6 +359,8 @@ function GameLobby() {
                     if (data.message['winner'] == true) {
                       console.log("player has won, playerlist with new score")
                       updatePlayerList(data.message['player&score'])
+                    } else {
+                      console.log("player has not won, not updating playerlist")
                     }
 
                     setSpunWheel(false);
@@ -476,7 +485,6 @@ function GameLobby() {
           }, 12000);
       }
     }
-
 
 
     return (
