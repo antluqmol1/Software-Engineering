@@ -167,8 +167,6 @@ def get_game(request):
         user = request.user
 
         if user.is_authenticated:
-            # Defaults to false
-            is_admin = False
 
             # Checks if player is currently in a game
             potential_participant = Participant.objects.filter(user=user).exists()
@@ -177,13 +175,28 @@ def get_game(request):
                 # Query the participant record for the player
                 part = Participant.objects.get(user=user)
 
-                active_task = PickedTasks.objects.filter(game=part.game, done=False).exists()
+                # Check if there is an active task
+                active_task = PickedTasks.objects.filter(game=part.game, done=False).first()
+                print(f'value of active_task: {active_task}')
 
+                if active_task:
+                    task_data = {
+                        'description': active_task.task.description,
+                        'points': active_task.task.points,
+                        'pickedPlayer': active_task.user.username,
+                        'taskId': active_task.task.task_id
+                    }
+                else:
+                    task_data = None
+                
                 # checks if player is admin
                 if user == part.game.admin:
                     is_admin = True
+                else:
+                    is_admin = False
+                # return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id})
 
-                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started, 'activeTask': active_task})
+                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started, 'activeTask': task_data})
             else:
                 # Player is not in a game
                 return JsonResponse({'success': False, 'msg': 'not in a game'})

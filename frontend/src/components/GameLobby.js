@@ -26,9 +26,9 @@ function GameLobby() {
     const [spunWheel, setSpunWheel] = useState(false);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
-    const [yesVotes, setYesVotes] = useState(0);
-    const [noVotes, setNoVotes] = useState(0);
-    const [skipVotes, setSkipVotes] = useState(0);
+    // const [yesVotes, setYesVotes] = useState(0);
+    // const [noVotes, setNoVotes] = useState(0);
+    // const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
     const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
     const [nextTask, setNextTask] = useState(false)
@@ -68,77 +68,21 @@ function GameLobby() {
 
     const handleDelete = () => {  
 
-        console.log("Ending/Deleting game...")
-
-          webSocketRef.current.close(1000, 'Admin ended game');
-
-      //   axios
-      //   .delete(
-      //       "http://localhost:8000/delete-game/",
-      //       {
-      //       headers: {
-      //           "X-CSRFToken": token, // Include CSRF token in headers
-      //       },
-      //       }
-      //   )
-      //   .then((response) => {
-      //       if (response.data['success'] === true) {
-
-      //         console.log("Game deleted successfully")
-
-      //           // Send an end game message to the backend.
-      //           // if (webSocketRef.current) {
-      //           //   console.log("sending game_end message to WS")
-      //           //   webSocketRef.current.send(JSON.stringify({
-      //           //       type: 'game_end',
-      //           //       user: username
-      //           //   }));
-      //           // }
-      //           navigate("/");
-      //       }
-      //       else {
-      //           console.log("failed to delete game");
-      //       }
-
-      //   return response.data;
-      // })
-      // .catch((error) => {
-      //   console.error("Error getting players:", error);
-      //   return null;
-      // });
+      console.log("Ending/Deleting game...")
+      webSocketRef.current.close(1000, 'Admin ended game');
       setInAGame(false)
       navigate("/")
+
   };
 
     // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
-      webSocketRef.current.close(1000, 'Player left the game');
-      //   axios
-      //   .put(
-      //       "http://localhost:8000/leave-game/",
-      //       null,
-      //       {
-      //           headers: {
-      //               "X-CSRFToken": token, // Include CSRF token in headers
-      //           },
-      //       }
-      //   )
-      //   .then((response) => {
-      //       if (response.data['success'] === true) {
-      //           navigate("/");
-      //       }
-      //       else {
-      //           console.log("failed to leave game");
-      //       }
 
-      //   return response.data;
-      // })
-      // .catch((error) => {
-      //   console.error("Error getting players:", error);
-      //   return null;
-      // });
+      console.log("Leaving game...")
+      webSocketRef.current.close(1000, 'Player left the game');
       setInAGame(false)
       navigate("/")
+      
   };
 
 
@@ -187,13 +131,24 @@ function GameLobby() {
               setGameID(response.data["gameId"]);
               setGameStarted(response.data["gameStarted"]);
               
-              if (!response.data["activeTask"])
-              setNextTask(true)
-            console.log("fetch game response: ", response.data)
-
-            console.log("isAdmin: ", response.data["isAdmin"])
-            console.log("activeTask: ", response.data["activeTask"])
-                // setUsername(response.data['username']);
+              const taskData = response.data["activeTask"]
+              if (!response.data["activeTask"]) {
+                console.log("no active task")
+                setSpunWheel(false)
+                setNextTask(false)
+                console.log(response.data["activeTask"])
+              } else {
+                console.log("no active task")
+                setSpunWheel(true)
+                setTaskText(taskData.description)
+                setTaskPoints(taskData.points)
+                setPickedPlayer(taskData.pickedPlayer)
+                setTaskId(taskData.taskId)
+              }
+              console.log("fetch game response: ", response.data)
+              console.log("isAdmin: ", response.data["isAdmin"])
+              console.log("activeTask: ", response.data["activeTask"])
+              // setUsername(response.data['username']);
           })
           .catch(error => {
               console.error("Error fetching game ID:", error);
@@ -269,15 +224,18 @@ function GameLobby() {
 
   // Update player list function
   const updatePlayerList = (playerData) => {
+    console.log("updating player list...")
     setPlayerList(prevPlayerList => {
       const existingPlayerIndex = prevPlayerList.findIndex(p => p.username === playerData.username);
       if (existingPlayerIndex !== -1) {
         // Player exists, update their data
+        console.log("player exists, update their data")
         return prevPlayerList.map((player, index) => 
           index === existingPlayerIndex ? { ...player, ...playerData } : player
         );
       } else {
         // New player, add to the list
+        console.log("player doesnt exists, add them")
         return [...prevPlayerList, playerData];
       }
     });
@@ -399,10 +357,12 @@ function GameLobby() {
                     if (data.message['winner'] == true) {
                       console.log("player has won, playerlist with new score")
                       updatePlayerList(data.message['player&score'])
+                    } else {
+                      console.log("player has not won, not updating playerlist")
                     }
 
                     setSpunWheel(false);
-                    setNextTask(true);
+                    setNextTask(true); // true? should we not set it to false
 
                     break;
 
@@ -523,7 +483,6 @@ function GameLobby() {
           }, 12000);
       }
     }
-
 
 
     return (
