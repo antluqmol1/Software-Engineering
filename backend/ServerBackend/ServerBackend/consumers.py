@@ -183,16 +183,22 @@ class GameLobby(AsyncWebsocketConsumer):
                 response = {}
 
                 # Check if the overwhelming majority has voted, and end game if one-sided.
-                if (participants/2 - skipVotes) <= yesVotes:                            # Player wins
+                if ((participants - 1)/2 - skipVotes) < yesVotes:                            # Player wins
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
                     # Gives player points
                     response = await self.give_player_points(game, task)
 
-                elif (participants/2 - skipVotes) < noVotes:                            # Player loses
+                elif ((participants - 1)/2 - skipVotes) < noVotes:                            # Player loses
                     # Removes responses for specific task, in specific game.
                     await self.next_task_preperation(game, task)
                     response = {'winner': False}
+
+                elif (yesVotes == noVotes) & yesVotes != 0:                                    # Draw, but player wins the task.
+                    # Removes responses for specific task, in specific game.
+                    await self.next_task_preperation(game, task)
+                    # Gives player points
+                    response = await self.give_player_points(game, task)
 
                 else:                                                                   # Vote continues
 
@@ -418,7 +424,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
         response = {
             'winner': True,
-            'player&score': json.dumps({'username': player.user.username, 'score': player.score})
+            'player&score': {'username': player.user.username, 'score': player.score}
         }
         return response
 
