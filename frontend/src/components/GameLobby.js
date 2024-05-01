@@ -68,77 +68,21 @@ function GameLobby() {
 
     const handleDelete = () => {  
 
-        console.log("Ending/Deleting game...")
-
-          webSocketRef.current.close(1000, 'Admin ended game');
-
-      //   axios
-      //   .delete(
-      //       "http://localhost:8000/delete-game/",
-      //       {
-      //       headers: {
-      //           "X-CSRFToken": token, // Include CSRF token in headers
-      //       },
-      //       }
-      //   )
-      //   .then((response) => {
-      //       if (response.data['success'] === true) {
-
-      //         console.log("Game deleted successfully")
-
-      //           // Send an end game message to the backend.
-      //           // if (webSocketRef.current) {
-      //           //   console.log("sending game_end message to WS")
-      //           //   webSocketRef.current.send(JSON.stringify({
-      //           //       type: 'game_end',
-      //           //       user: username
-      //           //   }));
-      //           // }
-      //           navigate("/");
-      //       }
-      //       else {
-      //           console.log("failed to delete game");
-      //       }
-
-      //   return response.data;
-      // })
-      // .catch((error) => {
-      //   console.error("Error getting players:", error);
-      //   return null;
-      // });
+      console.log("Ending/Deleting game...")
+      webSocketRef.current.close(1000, 'Admin ended game');
       setInAGame(false)
       navigate("/")
+
   };
 
     // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
-      webSocketRef.current.close(1000, 'Player left the game');
-      //   axios
-      //   .put(
-      //       "http://localhost:8000/leave-game/",
-      //       null,
-      //       {
-      //           headers: {
-      //               "X-CSRFToken": token, // Include CSRF token in headers
-      //           },
-      //       }
-      //   )
-      //   .then((response) => {
-      //       if (response.data['success'] === true) {
-      //           navigate("/");
-      //       }
-      //       else {
-      //           console.log("failed to leave game");
-      //       }
 
-      //   return response.data;
-      // })
-      // .catch((error) => {
-      //   console.error("Error getting players:", error);
-      //   return null;
-      // });
+      console.log("Leaving game...")
+      webSocketRef.current.close(1000, 'Player left the game');
       setInAGame(false)
       navigate("/")
+      
   };
 
 
@@ -187,13 +131,20 @@ function GameLobby() {
               setGameID(response.data["gameId"]);
               setGameStarted(response.data["gameStarted"]);
               
-              if (!response.data["activeTask"])
-              setNextTask(true)
-            console.log("fetch game response: ", response.data)
-
-            console.log("isAdmin: ", response.data["isAdmin"])
-            console.log("activeTask: ", response.data["activeTask"])
-                // setUsername(response.data['username']);
+              const taskData = response.data["activeTask"]
+              if (!response.data["activeTask"]) {
+                setNextTask(false)
+                console.log(response.data["activeTask"])
+              } else {
+                setTaskText(taskData.description)
+                setTaskPoints(taskData.points)
+                setPickedPlayer(taskData.pickedPlayer)
+                setTaskId(taskData.taskId)
+              }
+              console.log("fetch game response: ", response.data)
+              console.log("isAdmin: ", response.data["isAdmin"])
+              console.log("activeTask: ", response.data["activeTask"])
+              // setUsername(response.data['username']);
           })
           .catch(error => {
               console.error("Error fetching game ID:", error);
@@ -404,7 +355,7 @@ function GameLobby() {
                     }
 
                     setSpunWheel(false);
-                    setNextTask(true);
+                    setNextTask(true); // true? should we not set it to false
 
                     break;
 
