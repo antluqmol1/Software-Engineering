@@ -213,7 +213,7 @@ function GameLobby() {
   }
   const getNextTask = () => {
 
-    setNextTask(true)
+    setNextTask(false)
 
     if (webSocketRef.current) {
       webSocketRef.current.send(JSON.stringify({
