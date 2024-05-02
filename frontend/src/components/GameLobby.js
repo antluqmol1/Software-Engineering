@@ -135,7 +135,7 @@ function GameLobby() {
               if (!response.data["activeTask"]) {
                 console.log("no active task")
                 setSpunWheel(false)
-                setNextTask(false)
+                setNextTask(true)
                 console.log(response.data["activeTask"])
               } else {
                 console.log("no active task")
@@ -309,13 +309,19 @@ function GameLobby() {
                     console.log("Updating list: ", playerList);
                     setPlayerList(prevPlayerList => {
                         console.log("previous player list: ", prevPlayerList);
-                        const existingPlayer = prevPlayerList.find(p => p.username === data.message.username);
-                        if (existingPlayer) {
-                            console.log("update player");
+                        const existingPlayerIndex = prevPlayerList.findIndex(p => p.username === data.message.username);
+                        if (existingPlayerIndex !== -1) {
+                            const existingPlayer = prevPlayerList[existingPlayerIndex];
+                            if (existingPlayer.score !== data.message.score) {
+                              console.log("update player");
+                              return prevPlayerList.map(p => 
+                                  p.username === data.message.username ? { ...p, score: data.message.score } : p
+                              );
+                            } else {
+                              console.log("not updating player");
+                              return prevPlayerList;
+                            }
                             // Player exists, update their score
-                            return prevPlayerList.map(p => 
-                                p.username === data.message.username ? { ...p, score: data.message.score } : p
-                            );
                         } else {
                             console.log("adding player: ", data.message);
                             // New player, add to the list
@@ -334,6 +340,7 @@ function GameLobby() {
                     setTaskPoints(data.message['taskPoints']);
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
+                    setNextTask(false)
                     console.log(data.message['pickedPlayer'])
                     console.log(data.message['participants'])
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
@@ -468,17 +475,18 @@ function GameLobby() {
 
     const handleSpinClick = (username, usernames) => {
       if (!mustSpin) {
+        console.log('Handle spin click')
 
         const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
         const index = usernames.findIndex(player => player.username === username);
         
-        console.log('Handle spin click')
-
         setPrizeNumber(index);
         setMustSpin(true);
         console.log(spunWheel)
         console.log('plaaaayerLLIIIIISSSTTTT',playerList)
             // Set up a setTimeout to change the state back to false after 7 seconds
+          const endTime = Date.now() + 12000;
+          localStorage.setItem('wheelEndTime', endTime);
           setTimeout(() => {
             console.log(spunWheel)
             setSpunWheel(true);

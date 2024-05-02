@@ -10,6 +10,9 @@ If you encounter any **errors** running the sever, check with **chat-gpt** what 
 4. cd from `backend` into 'ServerBackend' using the command `cd ServerBackend`
 5. here you should run `python3 manage.py runserver`, or `python manage.py runserver` based on your current version of python
 6. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
+7. you need to install some things:
+  `sudo apt-get install` redis-server, aswell as `pip install celery redis`
+
 
 ## frontend
 **if you have started the backend. you must open a new terminal. Navigate to the root directory**
