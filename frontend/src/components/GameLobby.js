@@ -39,6 +39,7 @@ function GameLobby() {
     const [checkmarksLine1, setCheckmarksLine1] = useState([]);
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
+    const [showLeaderBoard, setShowLeaderBoard] = useState(true);
 
     const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
@@ -83,6 +84,18 @@ function GameLobby() {
       setInAGame(false)
       navigate("/")
       
+  };
+    const handleLeaderBoardShow = () => {
+      if (showLeaderBoard){
+      console.log('yo');
+      setShowLeaderBoard(false);
+    }
+    else {
+      console.log('yo2');
+      setShowLeaderBoard(true);
+    }
+    console.log(showLeaderBoard)
+    
   };
 
 
@@ -510,20 +523,26 @@ function GameLobby() {
             {exesLine2.map((ex, index) => (
               <span key={index}>{ex}</span>
             ))}
-        </div>
-  
-        {/* Display question's for "Skip" votes */}
-          <div>
-            {questionLine3.map((question, index) => (
-              <span key={index}>{question}</span>
-            ))}
           </div>
+  
+            {/* Display question's for "Skip" votes */}
+            <div>
+              {questionLine3.map((question, index) => (
+                <span key={index}>{question}</span>
+              ))}
+            </div>
         </div>
+      </div>
 
 
-        </div>
+      <div className="leaderboard">
 
-          <div className="leaderboard card position-fixed top-10 p-3">
+        <button onClick={handleLeaderBoardShow}> 
+          { showLeaderBoard ? 'HIDE' : 'SHOW'}
+        </button>
+
+        { showLeaderBoard &&
+          <div >
             <h2 className="card-header text-center">Leaderboard</h2>
             <div className="card-body p-0">
               <div className="list-group list-group-flush">
@@ -531,17 +550,18 @@ function GameLobby() {
                 {/* Map through players array to display each player and their score */}
                 {playerList.map((player, index) => (
                   <div
-                    className="list-group-item d-flex align-items-center justify-content-start"
-                    key={index}>
+                  className="list-group-item d-flex align-items-center justify-content-start"
+                  key={index}>
                     <span className="me-2">{player.username}</span>
                     <span className="badge bg-secondary ms-auto me-3">
                       {player.score}
                     </span>
-                    
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+          }
           </div>
 
 {spunWheel &&

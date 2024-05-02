@@ -1,5 +1,7 @@
 /* GameLobby.css */
 
+
+
 .lobby-container {
   display: flex;
   flex-direction: column;
@@ -167,12 +169,11 @@
   /* Bootstrap style border-radius */
   box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.15);
   /* Bootstrap style shadow */
-  width: 250px;
-  position: fixed;
-  /* Position the leaderboard */
-  left: 25px;
+  width: 30vw;
+  position: relative;
   /* Adjust the left position */
   top: 10%;
+  right: 35%;
   /* Align it vertically in the middle */
   z-index: 10;
   /* Ensure it's above other elements */
@@ -180,6 +181,7 @@
   /* Bootstrap style border */
   font-size: 1.1rem;
   /* Slightly larger font size for all text inside the leaderboard */
+
 }
 
 /* Assuming you're using a h2 tag for the leaderboard title */
