@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from datetime import datetime as dt, timedelta, timezone
 
 
 # Custom manager for the User model
@@ -150,6 +151,8 @@ class PickedTasks(models.Model):
 
     done = models.BooleanField(default=False)
 
+    time = models.DateTimeField(default=dt.now())
+
     # this ensures that the combination of task and game must be unique
     class meta:
         unique_together = ('task', 'game', 'user')
@@ -201,14 +204,32 @@ class Response(models.Model):
         unique_together = ('user', 'task')
 
 
-# class GameHistory(models.Model):
+class GameHistory(models.Model):
 
-#     pass
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+    start_time = models.DateTimeField()
+  
+    end_time = models.DateTimeField()
 
 
-# class PickedTasksHistory(models.Model):
+class PickedTasksHistory(models.Model):
 
-#     pass
+    task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
+
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+
+    time = models.DateTimeField()
+
+    win = models.BooleanField(default=False)
+
+    # this ensures that the combination of task and game must be unique
+    class meta:
+        unique_together = ('task', 'game', 'user')
 
 
 

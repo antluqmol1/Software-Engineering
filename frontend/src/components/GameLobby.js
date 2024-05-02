@@ -179,8 +179,6 @@ function GameLobby() {
 
 
     const voteTask = (vote, taskId) => {
-
-      
       if (webSocketRef.current) {
           webSocketRef.current.send(JSON.stringify({
               type: 'task_vote',
@@ -215,7 +213,7 @@ function GameLobby() {
   }
   const getNextTask = () => {
 
-    setNextTask(true)
+    setNextTask(false)
 
     if (webSocketRef.current) {
       webSocketRef.current.send(JSON.stringify({
@@ -246,7 +244,7 @@ function GameLobby() {
 
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
-    console.log('Updating userNameArray', playerList.size)
+    console.log('Updating userNameArray', playerList)
     console.log("logged in? ", inAGame)
     if (playerList.length > 0) {
       const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
