@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from datetime import datetime as dt, timedelta, timezone
 
 
 # Custom manager for the User model
@@ -147,7 +148,7 @@ class PickedTasks(models.Model):
 
     done = models.BooleanField(default=False)
 
-    time = models.DateTimeField()
+    time = models.DateTimeField(default=dt.now())
 
     # this ensures that the combination of task and game must be unique
     class meta:

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User # not sure if we need this one
 from django.contrib.auth import authenticate
 from django.conf import settings
 from channels.layers import get_channel_layer
+from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, PickedTasks, Tasks, Response
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
@@ -456,7 +457,7 @@ class GameLobby(AsyncWebsocketConsumer):
                 random_player.isPicked = True
                 random_player.save()
 
-                picked_task = PickedTasks(task=random_task, game=game, user=random_player.user)
+                picked_task = PickedTasks(task=random_task, game=game, user=random_player.user, time=dt.now())
                 picked_task.save()
 
                 game.game_started = True
