@@ -14,6 +14,25 @@
     font-family: 'Patrick';
     src: url('./../assets/Fonts/PatrickHand.ttf') format('truetype');
 }
+
+@font-face {
+    font-family: 'Tonight';
+    src: url('./../assets/Fonts/Tonight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Tonight';
+    src: url('./../assets/Fonts/Tonight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Hansen';
+    src: url('./../assets/Fonts/Hansen\ Shadow.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Bracelet';
+    src: url('./../assets/Fonts/FriendshipBracelets-Regular.ttf') format('truetype');
+}
 /* Add additional src declarations for other font formats if necessary */
 
 
@@ -21,8 +40,8 @@
     color: black;
     text-align: center;
     font-family: "Patrick";
-    letter-spacing: 0.6px;
-    font-size: calc(2vw + 2vh); /* Adjust the formula as needed */}
+    letter-spacing: -0.5px;
+    font-size: calc(1.7vw + 1.7vh); /* Adjust the formula as needed */}
 
 .font-style-h {
     text-align: center;
@@ -117,6 +136,6 @@
 
 .roulette-wheel {
     position: absolute;
-    top: 40%;
+    top: 35%;
     height: 60%;
 }

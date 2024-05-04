@@ -122,7 +122,7 @@
   gap: 20px;
   position: absolute;
   /* Adjust the gap between questions */
-  top: 30%;
+  top: 25%;
   margin-top: 0%;
   /* Add margin to move the containers down */
 }
@@ -164,12 +164,22 @@
   justify-content: space-around;
 }
 
+
 .leaderboard-container{
-  position: relative;
-  right: 35%;
+  position: absolute;
+  top: 15%;
+  left: 2%;
+  /* right: 35%; */
   
-  width: 30vw;
+  width: 20vw;
 }
+
+@media (max-width: 1000px) {
+  .leaderboard-container {
+    width: 20vw;
+  }
+}
+
 
 .leaderboard {
   display: flex;
@@ -190,29 +200,46 @@
   /* Bootstrap style border */
   font-size: 2.5vw;
   /* Slightly larger font size for all text inside the leaderboard */
-  
+}
+/* Media query for screens less than 1000px */
+@media (max-width: 1000px) {
+  .leaderboard {
+    /* Your styles for screens less than 1000px here */
+    font-size: 2.8vw;
+  }
 }
 .showhide-button{
-  /* position: absolute; */
+  position: relative;
+  left: 8vw;
   z-index: 9999;
-  top: 5%;
-  left: 0.1%;
-  /* right: 45%; */
-  border-radius: .25rem;
+  width: 5vw;
+  height: 40px;
+  border-radius: 1.25rem;
+  color: #ffffff;
+  background: linear-gradient(rgba(240, 240, 240, 0), rgba(255, 255, 255, 0)) ;
+  border: none;
+  font-size: 8vw;
+  font-family: 'Bracelet';
+  cursor: pointer;
 }
 
 .leaderboard-item {
-  font-weight: bold;
+  font-size: medium;  
 }
-
+@media (max-width: 1000px) {
+  .leaderboard-item {
+    /* Your styles for screens less than 1000px here */
+    font-size: smaller;
+  }
+}
 
 
 
 /* Assuming you're using a h2 tag for the leaderboard title */
 .leaderboard h2 {
-  color: #6c757d;
+  color: #3c123b;
   /* Bootstrap's secondary text color for a professional look */
-  font-size: 3.5vw;
+  font-size: 2.6vw;
   font-weight: 500;
   /* Bootstrap heading font-weight */
   margin-bottom: .75rem;
@@ -222,6 +249,9 @@
   padding-bottom: .5rem;
   /* Space above the line */
   text-align: center;
+  font-family: 'Hansen';
+  text-shadow: 0px 5px 4px rgba(30, 4, 30, 0.365); /* Horizontal offset, Vertical offset, Blur radius, Color */
+
   /* Center the title text */
 }
 
@@ -268,25 +298,31 @@
 
 .fetchTask-button {
   position: absolute;
-  top: 40px;
-  right: 4px;
-  background-color: #2073b2;
+  top: 25%;
+  background: linear-gradient(rgba(246, 178, 255, 0.764), rgb(76, 29, 76));
   /* Light Sea Green for a refreshing look */
-  color: #FFF;
+  color: #1e071e;
   /* White text for contrast */
   border: none;
   /* No border for a clean button */
   border-radius: 8px;
   /* Slightly rounded edges on buttons */
-  padding: 0.8em 1.6em;
+  padding: 0.2em .6em;
   /* Generous padding for a tactile feel */
   cursor: pointer;
   /* Cursor pointer to indicate button */
-  font-size: 1rem;
+  font-size: clamp(2.5vw, 3.5vh, 4vw);
+  
   /* Standard readable size */
-  font-weight: 600;
+  text-shadow: 
+  10px -10px 0 #f7e1ff36,  
+   -10px 10px 0 #ffffff2a,
+   -1px 0px 0 #ffffff;
+
   /* Semi-bold weight for emphasis */
   text-transform: uppercase;
+
+  font-family: 'Boogalo';
   /* Uppercase for a consistent and clean look */
   letter-spacing: 0.05em;
   /* Spacing out letters for better legibility */
@@ -329,15 +365,13 @@
 
 
 .GameID {
-  position: fixed;
-  top: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: large;
+  position: relative;
+bottom: 5%;  /* transform: translateX(-50%); */
+  font-size: 40px;
   text-align: center;
   color: #ffffff;
   /* Change the color to your preference */
-  font-family: Arial, sans-serif;
+  font-family: 'Boogalo';
   /* Change the font family if needed */
   /* Add any other styles to make it look stylish */
 }
@@ -373,6 +407,7 @@
 } */
 
 .group-question {
+  position: relative;
   width: 50vw; /* Adjust the width of each question container */
   height: 60%;
   padding: 20px;
@@ -419,10 +454,26 @@
 
 /* Style for the vote count */
 .vote-count {
-  position: fixed;
-  top: 20%; /* Adjust the top position to move it down */
+  position: relative;
+  top: 20px;
+
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  margin-left: 5px; /* Adjust margin as needed */
+  color: #f0f0f0;
+
+  
+  margin-left: 0px; /* Adjust margin as needed */
+}
+
+.tVotes{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 40vw;
+  font-family: 'Patrick';
+}
+
+.single-vote{
+  position: relative;
+  top: 20px;
 }

@@ -518,28 +518,28 @@ function GameLobby() {
           {/* Display total votes count */}
           <div className="game-lobby">
             <div className="vote-count">
-              <h3>Total votes: {totalVotes}</h3>
+              <h3 className="tVotes">Total votes: {totalVotes}</h3>
               {/* <p>Yes votes: {yesVotes}</p>
               <p>No votes: {noVotes}</p>
               <p>Skip votes: {skipVotes}</p> */}
           {/* Display checkmarks for "Yes" votes */}
           <div>
               {checkmarksLine1.map((checkmark, index) => (
-              <span key={index}>{checkmark}</span>
+              <span className="single-vote" key={index}>{checkmark}</span>
             ))}
           </div>
 
           {/* Display X's for "No" votes */}
           <div>
             {exesLine2.map((ex, index) => (
-              <span key={index}>{ex}</span>
+              <span className="single-vote" key={index}>{ex}</span>
             ))}
           </div>
   
             {/* Display question's for "Skip" votes */}
             <div>
               {questionLine3.map((question, index) => (
-                <span key={index}>{question}</span>
+                <span className="single-vote" key={index}>{question}</span>
               ))}
             </div>
         </div>
@@ -548,13 +548,13 @@ function GameLobby() {
 
       <div className="leaderboard-container">
         <button className='showhide-button' onClick={handleLeaderBoardShow}> 
-          { showLeaderBoard ? 'HIDE' : 'SHOW LEADERBOARD'}
+          { showLeaderBoard ? 'b' : 'z'}
         </button>
 
         { showLeaderBoard &&
         <div className="leaderboard">
           <div >
-            <h2 className="card-header text-center">Leaderboard</h2>
+            <h2 className="leaderboard-h">Leaderboard</h2>
             <div className="card-body p-0">
               <div className="list-group list-group-flush">
                 {/* Display leaderboard content here */}

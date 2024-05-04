@@ -77,12 +77,8 @@ function Navbar() {
         { !userIsLoggedIn &&
           <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
         }
-        {
-          userIsLoggedIn &&
-          <li><Link to="/profile" className="navbar-link">Profile</Link></li>
-        }
         { userIsLoggedIn &&
-          <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
+          <li><Link to="/" onClick={handleLogout} className="navbar-link">Logout</Link></li>
         }
         {
           userIsLoggedIn &&
