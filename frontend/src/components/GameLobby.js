@@ -9,6 +9,8 @@ import { AuthContext } from '../AuthContext';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { Wheel } from 'react-custom-roulette'
+import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
+
 
 
 const wheel_data = [
@@ -40,6 +42,7 @@ function GameLobby() {
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
     const [showLeaderBoard, setShowLeaderBoard] = useState(true);
+    const [wheelAudio, setWheelAudio] = useState(new Audio(SpinSound));
 
     const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
@@ -86,16 +89,16 @@ function GameLobby() {
       
   };
     const handleLeaderBoardShow = () => {
-      if (showLeaderBoard){
-      console.log('yo');
+
+    if (showLeaderBoard)
+    {
       setShowLeaderBoard(false);
     }
-    else {
-      console.log('yo2');
+    else
+    {
       setShowLeaderBoard(true);
     }
     console.log(showLeaderBoard)
-    
   };
 
 
@@ -133,6 +136,9 @@ function GameLobby() {
   // }, [playerList]);
 
   const fetchGame = () => {
+
+    
+
       axios.get("http://localhost:8000/get-game/",
           {
               headers: {
@@ -269,7 +275,11 @@ function GameLobby() {
 
   //incoming change, this return is incoming change
     useEffect(() => {
-
+        
+      console.log('HAHHAHAHHAALALLALALA SOUND LOAD')
+      const audio = new Audio(SpinSound)
+      console.log(audio)
+        setWheelAudio(audio)
 
 
         // new loaing state makes sure we don't perform actions before the right values are set
@@ -352,6 +362,8 @@ function GameLobby() {
                     console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
                     const sortedPlayerList = data.message.participants.sort((a, b) => b.score - a.score);
                     setPlayerList(sortedPlayerList);
+                    console.log("Wheeel audio", wheelAudio)
+                    wheelAudio.play()
                     break;
                 
                 case 'task_done':
@@ -500,7 +512,6 @@ function GameLobby() {
 
     return (
         <div className="game-lobby">
-          <div className="Username">Username: {username}</div>
           <div className="GameID">GameID: {gameID}</div>
           {/* Leaderboard */}
 
@@ -535,13 +546,13 @@ function GameLobby() {
       </div>
 
 
-      <div className="leaderboard">
-
-        <button onClick={handleLeaderBoardShow}> 
-          { showLeaderBoard ? 'HIDE' : 'SHOW'}
+      <div className="leaderboard-container">
+        <button className='showhide-button' onClick={handleLeaderBoardShow}> 
+          { showLeaderBoard ? 'HIDE' : 'SHOW LEADERBOARD'}
         </button>
 
         { showLeaderBoard &&
+        <div className="leaderboard">
           <div >
             <h2 className="card-header text-center">Leaderboard</h2>
             <div className="card-body p-0">
@@ -550,10 +561,10 @@ function GameLobby() {
                 {/* Map through players array to display each player and their score */}
                 {playerList.map((player, index) => (
                   <div
-                  className="list-group-item d-flex align-items-center justify-content-start"
+                  className="leaderboard-item"
                   key={index}>
                     <span className="me-2">{player.username}</span>
-                    <span className="badge bg-secondary ms-auto me-3">
+                    <span className="badge bg-secondary ms-auto me-3" style={{ position: 'absolute', right: '0%'}}>
                       {player.score}
                     </span>
                   </div>
@@ -561,8 +572,9 @@ function GameLobby() {
               </div>
             </div>
           </div>
-          }
           </div>
+          }
+      </div>
 
 {spunWheel &&
       <div className="questions-container">
@@ -644,6 +656,7 @@ function GameLobby() {
             mustStartSpinning={mustSpin}
             prizeNumber={prizeNumber}
             data={usernameArray}
+            // spinDuration={1.2}
             backgroundColors={['#a35cb5', '#c971d9', '#c251d6']}
             textColors={['white']}
             onStopSpinning={() => {

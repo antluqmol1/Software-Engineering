@@ -25,9 +25,10 @@ const Logout = () => {
                 }
 			}
 		);
-	
-		  console.log("Logout successful", response.data);
-		  navigate('/');
+		
+		console.log("Logout successful", response.data);
+		navigate('/');
+		window.location.reload();
 		  // Handle successful login, e.g., redirect to another page
 		} catch (error) {
 		  console.error("Logout failed", error);

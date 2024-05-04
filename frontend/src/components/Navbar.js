@@ -1,5 +1,5 @@
 // Navbar.js
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import Cookies from 'universal-cookie'
 import axios from "axios";
 import { Link } from 'react-router-dom';
@@ -8,13 +8,14 @@ import { AuthContext } from '../AuthContext';
 import '../styles/Navbar.css'; // Import the CSS file
 
 
+
 function Navbar() {
 
   const navigate = useNavigate();
   const cookies = new Cookies();
   const csrfToken = cookies.get('csrftoken');
 
-  const { userIsLoggedIn } = useContext(AuthContext)
+  const { userIsLoggedIn, username } = useContext(AuthContext)
 
   const handleLogout = async () => {
 
@@ -41,6 +42,7 @@ function Navbar() {
     }
   };
 
+
   const handleDeleteGame = async () => {
     try {
       await axios.delete("http://localhost:8000/delete-game/", {}, {
@@ -55,16 +57,37 @@ function Navbar() {
     }
   };
 
+  useEffect(() => {
+    // This code runs only on component mount
+    console.log(userIsLoggedIn)
+    // Empty useEffect
+  }, []);
+
 
   return (
     <nav className="navbar">
       <ul className="navbar-links">
+        {/* not the most beutiful way of doing it I guess */}
+        { userIsLoggedIn &&
         <li><Link to="/" className="navbar-link">Home</Link></li>
-        <li><Link to="/login" className="navbar-link">Login</Link></li>
-        <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
-        <li><Link to="/profile" className="navbar-link">Profile</Link></li>
-        <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
-        <li className='right-aligned'><Link to="/profile" className="navbar-link">USERNAME HERE</Link></li>
+        }
+        { !userIsLoggedIn &&
+          <li><Link to="/login" className="navbar-link">Login</Link></li>
+        }
+        { !userIsLoggedIn &&
+          <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
+        }
+        {
+          userIsLoggedIn &&
+          <li><Link to="/profile" className="navbar-link">Profile</Link></li>
+        }
+        { userIsLoggedIn &&
+          <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
+        }
+        {
+          userIsLoggedIn &&
+          <li className='right-aligned'><Link to="/profile"  className="navbar-link">{username}</Link></li>
+        }
       </ul>
     </nav>
   );

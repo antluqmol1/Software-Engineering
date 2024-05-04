@@ -72,8 +72,8 @@
 /* Update your GameLobby.css file */
 
 .question-container {
-  position: fixed;
-  top: 50%;
+  position: relative;
+  top: 20%;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #fff;
@@ -120,8 +120,10 @@
   display: flex;
   justify-content: center;
   gap: 20px;
+  position: absolute;
   /* Adjust the gap between questions */
-  margin-top: 30vh;
+  top: 30%;
+  margin-top: 0%;
   /* Add margin to move the containers down */
 }
 
@@ -155,40 +157,62 @@
   margin-top: 0;
 }
 
+
 .game-lobby {
   display: flex;
   align-items: center;
   justify-content: space-around;
 }
 
+.leaderboard-container{
+  position: relative;
+  right: 35%;
+  
+  width: 30vw;
+}
+
 .leaderboard {
+  display: flex;
+  align-items:flex-start;
   background-color: #ffffff;
   /* A cleaner background color */
-  padding: 30px;
+  padding: 10px;
   border-radius: .25rem;
   /* Bootstrap style border-radius */
   box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.15);
   /* Bootstrap style shadow */
-  width: 30vw;
-  position: relative;
   /* Adjust the left position */
   top: 10%;
-  right: 35%;
   /* Align it vertically in the middle */
   z-index: 10;
   /* Ensure it's above other elements */
   border: 1px solid #dee2e6;
   /* Bootstrap style border */
-  font-size: 1.1rem;
+  font-size: 2.5vw;
   /* Slightly larger font size for all text inside the leaderboard */
-
+  
 }
+.showhide-button{
+  /* position: absolute; */
+  z-index: 9999;
+  top: 5%;
+  left: 0.1%;
+  /* right: 45%; */
+  border-radius: .25rem;
+}
+
+.leaderboard-item {
+  font-weight: bold;
+}
+
+
+
 
 /* Assuming you're using a h2 tag for the leaderboard title */
 .leaderboard h2 {
   color: #6c757d;
   /* Bootstrap's secondary text color for a professional look */
-  font-size: 1.5rem;
+  font-size: 3.5vw;
   font-weight: 500;
   /* Bootstrap heading font-weight */
   margin-bottom: .75rem;
@@ -341,17 +365,19 @@
   background-color: red; /* Set the background color to red */
 }
 
-.questions-container {
+/* .questions-container {
   display: flex;
   justify-content: center;
-  gap: 20px; /* Adjust the gap between questions */
-  margin-top: 30vh; /* Add margin to move the containers down */
-}
+  gap: 20px; 
+  margin-top: 30vh; 
+} */
 
 .group-question {
   width: 50vw; /* Adjust the width of each question container */
+  height: 60%;
   padding: 20px;
   border: 1px solid #000000;
+  top: 110%;
   border-radius: 5px;
   background-color: rgba(255, 255, 255, 0.866);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.704);
