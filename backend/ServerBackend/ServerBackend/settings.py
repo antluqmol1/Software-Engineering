@@ -32,8 +32,6 @@ DEBUG = True
 # Or you can specify the allowed origins
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # The origin of your React app
 ]
@@ -47,6 +45,10 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
 ]
+
+# celery redis addresses
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
 
 USE_TZ = True
 TIME_ZONE = 'Europe/Oslo'
@@ -126,9 +128,18 @@ DATABASES = {
 
 
 # Tells the channels package which backend to use (?)
+# the on below is used for testing, and does not work with celery
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     },
+# }
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'config': {
+            'hosts': [('127.0.0.1', 6379)]
+        }
     },
 }
 

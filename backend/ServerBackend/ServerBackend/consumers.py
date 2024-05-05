@@ -6,6 +6,7 @@ from django.conf import settings
 from channels.layers import get_channel_layer
 from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, PickedTasks, Tasks, Response
+from .tasks import end_wheel_spin
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
 from django.db import IntegrityError
@@ -44,7 +45,6 @@ class GameLobby(AsyncWebsocketConsumer):
             self.user_id = payload.get('user_id')
             print(f'WS: user connecting is {self.user_id}')
 
-
             # query the database for the game via participant
             game = await self.get_participant_game(user_id=self.user_id)
             print(f'WS: Game_id: {game.game_id}')
@@ -52,6 +52,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
             # set the name of the group, all people in same group has the same name
             self.game_group_name = f'game_{game.game_id}'
+            print(f'WS: joined channel group {self.game_group_name}')
 
             # Add this channel to a group based on game_id
             print(f'WS: Joining group')
@@ -262,6 +263,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
                 game = await self.get_participant_game(self.user_id)
                 response = await self.next_task(game)
+                update_spin = await self.start_wheel_spin(game.game_id)
 
                 await self.channel_layer.group_send(
                 self.game_group_name, 
@@ -335,6 +337,18 @@ class GameLobby(AsyncWebsocketConsumer):
             'admin': admin,
             'msg_type': msg_type
         }))
+
+    # Message method
+    async def wheel_stop_message(self, event):
+        message = event['message']
+        msg_type = event.get('msg_type', 'No msg_type')
+        print("\nWS: CEL IS SENDING MESSAGE!\n")
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'msg_type': msg_type
+        }))
+
 
 #|======================================================================|
 #|                   DATABASE                                           |
@@ -428,6 +442,30 @@ class GameLobby(AsyncWebsocketConsumer):
             'player&score': {'username': player.user.username, 'score': player.score}
         }
         return response
+    
+    # Database function
+    @database_sync_to_async
+    def start_wheel_spin(self, game_id):
+        print("WS: start_wheel_spin")
+        try:
+            # Logic to start the wheel spinning
+            game = Game.objects.get(game_id=game_id)
+            game.wheel_spinning = True
+            game.save()
+
+            # Schedule the Celery task to change wheel_spinning value after 12 seconds
+            try:
+                end_wheel_spin.apply_async((game_id,), countdown=12)
+            except Exception as e:
+                print(str(e))
+            print("WS: successfully called celery")
+
+            # return {'success': True, 'message': 'Wheel is spinning!'}
+            return True
+        except Exception as e:
+            print("WS: start_wheel_spin failed!, ", str(e))
+            return False
+
 
     # Database function
     @database_sync_to_async

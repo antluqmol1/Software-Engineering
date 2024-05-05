@@ -138,6 +138,9 @@ class Game(models.Model):
     # boolen to check if game is started.
     game_started = models.BooleanField(default=False)
 
+    # tells us wether the weel is spinning
+    wheel_spinning = models.BooleanField(default=False)
+
 class PickedTasks(models.Model):
     
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)

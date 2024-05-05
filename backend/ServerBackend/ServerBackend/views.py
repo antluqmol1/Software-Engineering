@@ -2,6 +2,7 @@ import json
 import jwt
 from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, Tasks, PickedTasks
+from .tasks import end_wheel_spin
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -196,7 +197,17 @@ def get_game(request):
                     is_admin = False
                 # return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id})
 
-                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started, 'activeTask': task_data})
+                response = {
+                    'success': True, 
+                    'gameId': part.game.game_id, 
+                    'isAdmin': is_admin, 
+                    'username': user.username, 
+                    'gameStarted': part.game.game_started, 
+                    'isSpinning': part.game.wheel_spinning,
+                    'activeTask': task_data
+                }
+
+                return JsonResponse(response)
             else:
                 # Player is not in a game
                 return JsonResponse({'success': False, 'msg': 'not in a game'})

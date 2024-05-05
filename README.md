@@ -16,7 +16,8 @@
 7. After We have to effectively migrate it running the command: `python3 manage.py migrate`, or `python manage.py migrate` based on our current version of python
 8. Once we get that done We ill be able to run the server running: `python3 manage.py runserver`, or `python manage.py runserver` based on our current version of python
 9. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
-
+10. you need to install some things:
+  `sudo apt-get install` redis-server, aswell as `pip install celery redis`
 ## frontend
 
 **if We have started the backend. We must open a new terminal. Navigate to the root directory**
