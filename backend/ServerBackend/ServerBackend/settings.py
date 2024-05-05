@@ -128,9 +128,18 @@ DATABASES = {
 
 
 # Tells the channels package which backend to use (?)
+# the on below is used for testing, and does not work with celery
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     },
+# }
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'config': {
+            'hosts': [('127.0.0.1', 6379)]
+        }
     },
 }
 

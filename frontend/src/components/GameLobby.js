@@ -19,30 +19,30 @@ const wheel_data = [
 
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
+    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
+    const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
+
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
     const [taskText, setTaskText] = useState(null);
-    const [spunWheel, setSpunWheel] = useState(false);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
-    // const [yesVotes, setYesVotes] = useState(0);
-    // const [noVotes, setNoVotes] = useState(0);
-    // const [skipVotes, setSkipVotes] = useState(0);
     const [pickedPlayer, setPickedPlayer] = useState(null);
     const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
+
+    const [spunWheel, setSpunWheel] = useState(false);
+    const [waitingForSpin, setWaitingForSpin] = useState(false);
     const [nextTask, setNextTask] = useState(false)
-    const navigate = useNavigate();
-    const cookies = new Cookies();
-    const token = cookies.get("csrftoken");
-    const webSocketRef = useRef(null);
+    
     const [checkmarksLine1, setCheckmarksLine1] = useState([]);
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
 
-    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
-    const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
-
+    const navigate = useNavigate();
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
+    const webSocketRef = useRef(null);
 
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
@@ -108,7 +108,7 @@ function GameLobby() {
   };
 
   useEffect(() => {
-    console.log('uuuuuuuusseeeerrr22222222222: ', usernameArray);
+    // console.log('uuuuuuuusseeeerrr22222222222: ', usernameArray);
   }, [usernameArray]);
 
   // useEffect(() => {
@@ -127,6 +127,15 @@ function GameLobby() {
               },
           })
           .then(response => {
+
+              console.log("is spinning = ", response.data["isSpinning"])
+              if (response.data["isSpinning"]) {
+                console.log("waitingForSpin now set true")
+                setWaitingForSpin(true);
+              } else {
+                console.log("waitingForSpin NOT SET!")
+              }
+
               setAdmin(response.data["isAdmin"]);
               setGameID(response.data["gameId"]);
               setGameStarted(response.data["gameStarted"]);
@@ -188,11 +197,11 @@ function GameLobby() {
           // Add icons to the respective lists based on the vote
           // if (vote === "yes") {
           //   setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
-          // } 
+          // }
     
           // else if (vote === "no") {
           //   setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
-          // } 
+          // }
     
           // else if (vote === "skip") {
           //   setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
@@ -214,7 +223,7 @@ function GameLobby() {
   const getNextTask = () => {
 
     setNextTask(false)
-
+    console.log("playerList can not be updated")
     if (webSocketRef.current) {
       webSocketRef.current.send(JSON.stringify({
           type: 'new_task'
@@ -240,10 +249,27 @@ function GameLobby() {
       }
     });
   };
+
+
+  //
+  // DEBUG!
+  //
+  // useEffect(() => {
+  //   console.log("useEffect debug: playerListUpdateReady changed:", playerListUpdateReady);
+
+  //   // Perform any action when waitingForSpin changes
+  //   console.log("useEffect debug: can we update? ", playerListUpdateReady ? "yes" : "no");
+  // }, [playerListUpdateReady]); // Dependency array, useEffect will run when waitingForSpin changes
   
 
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
+
+    // Don't update the username Array when wheel is spinning
+    if (mustSpin === true) {
+      return;
+    }
+
     console.log('Updating userNameArray', playerList)
     console.log("logged in? ", inAGame)
     if (playerList.length > 0) {
@@ -282,8 +308,8 @@ function GameLobby() {
             // Handle incoming messages
             const data = JSON.parse(event.data);
             console.log('Message from ws ', data.message);
-            console.log('Raw data ', data);
-            console.log('Raw event ', event);
+            // console.log('Raw data ', data);
+            // console.log('Raw event ', event);
             console.log('msg_type ', data.msg_type)
             
 
@@ -304,6 +330,7 @@ function GameLobby() {
                     break;
                 case 'join':
                     console.log("player joined");
+                    console.log("Can we update player list? ", mustSpin ? "yes" : "no");
                     console.log("Updating list: ", playerList);
                     setPlayerList(prevPlayerList => {
                         console.log("previous player list: ", prevPlayerList);
@@ -453,6 +480,16 @@ function GameLobby() {
                     navigate("/");
 
                   break;
+                case 'wheel_stopped':
+                  console.log("wheel_stopped message")
+                  console.log("current waitingForSpin, ", waitingForSpin)
+                  if (!waitingForSpin) {
+                    console.log("setting to false")
+                    setWaitingForSpin(false);
+                  } else {
+                    console.log("waitingForSpin did not change state...")
+                  }
+                break;
             }
         
         };
@@ -554,11 +591,17 @@ function GameLobby() {
 
 {spunWheel &&
       <div className="questions-container">
-        <div className="group-question">
-              <h2 className="font-style-prompt">Challenge</h2>
-              <p className="font-style">{pickedPlayer}'s task</p>
-              <p className="font-style">Points: {taskPoints}</p>
-              <p className="font-style">task: {taskText}</p>
+
+        {waitingForSpin ?
+          <div className="group-question">
+            <p className="font-style">Wheel is selecting a player...</p>
+          </div>
+          :
+          <div className="group-question">
+            <h2 className="font-style-prompt">Challenge</h2>
+            <p className="font-style">{pickedPlayer}'s task</p>
+            <p className="font-style">Points: {taskPoints}</p>
+            <p className="font-style">task: {taskText}</p>
 
 
         
@@ -590,6 +633,7 @@ function GameLobby() {
           </div>
     }
         </div>
+  }
       </div>
     
 }

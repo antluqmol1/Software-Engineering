@@ -14,7 +14,7 @@ function Navbar() {
   const cookies = new Cookies();
   const csrfToken = cookies.get('csrftoken');
 
-  const { userIsLoggedIn } = useContext(AuthContext)
+  const { username, userIsLoggedIn } = useContext(AuthContext)
 
   const handleLogout = async () => {
 
@@ -64,7 +64,7 @@ function Navbar() {
         <li><Link to="/create-user" className="navbar-link">Create User</Link></li>
         <li><Link to="/profile" className="navbar-link">Profile</Link></li>
         <li><Link to="/login" onClick={handleLogout} className="navbar-link">Logout</Link></li>
-        <li className='right-aligned'><Link to="/profile" className="navbar-link">USERNAME HERE</Link></li>
+        <li className='right-aligned'><Link to="/profile" className="navbar-link">{username}</Link></li>
       </ul>
     </nav>
   );

@@ -207,7 +207,7 @@ def get_game(request):
                     'activeTask': task_data
                 }
 
-                return JsonResponse({'success': True, 'gameId': part.game.game_id, 'isAdmin': is_admin, 'username': user.username, 'gameStarted': part.game.game_started, 'activeTask': task_data})
+                return JsonResponse(response)
             else:
                 # Player is not in a game
                 return JsonResponse({'success': False, 'msg': 'not in a game'})
