@@ -337,6 +337,7 @@
   bottom: 10px;
   right: 4px;
   background-color: #b22020;
+  background: radial-gradient(rgb(187, 41, 15), rgba(145, 80, 145, 0.523));
   /* Light Sea Green for a refreshing look */
   color: #FFF;
   /* White text for contrast */
