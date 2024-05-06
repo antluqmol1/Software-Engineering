@@ -25,18 +25,19 @@ const Profile = () => {
   });
 
   // State for storing the selected profile image file or the default image
-  const [profilePic, setProfilePic] = useState(defaultProfilePic);
+  const [profilePic, setProfilePic] = useState(null);
+  // state for storing the selected file for upload
+  const [profilePicFile, setProfilePicFile] = useState(null);
+
+  const [gallery, setGallery] = useState(null)
+
   // State for storing any potential errors
   const [error, setError] = useState(null);
 
-  // useEffect(() => {
-  //     // Fetch CSRF token when component mounts
-  //     axios.get("http://localhost:8000/grabtoken/", { withCredentials: true })
-  //       .then(response => {
-  //         setCsrfToken(response.data.csrfToken);
-  //       })
-  //       .catch(error => console.error('Error fetching CSRF token', error));
-  //   }, []);
+  // get the csrf token from the cookies
+  const cookies = new Cookies();
+  const token = cookies.get("csrftoken");
+
 
   console.log("getting profile");
 
@@ -53,12 +54,28 @@ const Profile = () => {
         console.error("There was an error!", error);
 
         // you are not logged in!
-
         setError(error);
       }
     };
+
+    const fetchProfilePicture = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/profile/get-profile-picture/", {
+          withCredentials: true,
+        });
+        const base64Image = response.data.image;
+        console.log("Received image data:", base64Image);
+        setProfilePic(`data:image/png;base64,${base64Image}`);
+      } catch (error) {
+        console.error("There was an error!", error);
+      }
+    };
+
     fetchUserData();
+    fetchProfilePicture();
   }, []);
+
+
 
   const handleEdit = (field) => {
     setEditing({ ...editing, [field]: true });
@@ -121,25 +138,74 @@ const Profile = () => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       setProfilePic(URL.createObjectURL(file)); // Update the image preview
+      setProfilePicFile(file)
     }
+  };
+
+  const handleSelectProfilePic = async (imagePath) => {
+    console.log("Selected image to set as profile:", imagePath);
+    try {
+        const response = await axios.post(
+            "http://localhost:8000/profile/update-profile-picture/",
+            { newProfilePicUrl: imagePath },
+            {
+                withCredentials: true,
+                headers: { "Content-Type": "application/json", "X-CSRFToken": token },
+            }
+        );
+        if (response.data.success) {
+            console.log("Profile picture updated successfully!");
+            // Optionally, refresh the displayed profile picture in the UI
+            setProfilePic(imagePath);
+        } else {
+            console.error("Failed to update profile picture:", response.data.error);
+        }
+    } catch (error) {
+        console.error("Error updating profile picture:", error);
+    }
+};
+
+  const handleShowGallery = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/profile/get-all-profile-pictures/", {
+          withCredentials: true,
+          headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": token,
+          },
+      });
+      if (response.data.success) {
+          console.log("fetch gallery OK");
+          console.log(response.data.files);
+          setGallery(response.data.files);
+      } else {
+          console.error('Failed to fetch images', response.data.error);
+      }
+  } catch (error) {
+      console.error('Error fetching images', error);
+  }
+
   };
 
   // Handles the file upload action
   const handleUpload = async () => {
     if (setProfilePic) {
+      console.log("Uploading picture!")
       const formData = new FormData();
+      console.log("filedata to upload: ", profilePicFile)
       // Append selected file to form data
-      formData.append("profileImage", setProfilePic); // 'profileImage' is the key expected by the backend
+      formData.append("profileImage", profilePicFile); // 'profileImage' is the key expected by the backend
 
       try {
         // Send POST request to the server to upload the profile image
         const response = await axios.post(
-          "http://localhost:8000/upload-profile-photo/",
+          "http://localhost:8000/profile/upload-profile-picture/",
           formData,
           {
             withCredentials: true,
             headers: {
               "Content-Type": "multipart/form-data",
+              "X-CSRFToken": token,
             },
           }
         );
@@ -189,6 +255,28 @@ const Profile = () => {
             Save
           </button>
           <div>We recommend JPG or PNG</div>
+
+          <button onClick={handleShowGallery}>
+            show all profile pictures
+          </button>
+          <div className="gallery-container">
+            {gallery && gallery.length > 0 && (
+              <>
+              <h3>Your Gallery</h3>
+              <div className="gallery">
+                {gallery.map((image, index) => (
+                    <img 
+                      key={index} 
+                      src={image} 
+                      alt={`Uploaded ${index}`} 
+                      style={{ width: '100px', height: '100px', margin: '10px' }} 
+                      onClick={() => handleSelectProfilePic(image)}
+                      />
+                ))}
+              </div>
+              </>
+            )}
+          </div>
         </div>
 
         {userData && (

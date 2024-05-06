@@ -392,6 +392,22 @@ html {
     box-shadow: 0 0 0 2px rgba(94, 42, 132, 0.5);
 }
 
+.gallery-container {
+    margin-top: 20px;
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.gallery img {
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+
 /* Responsive adjustments */
 /* @media (max-width: 768px) {
     .profile-container {
@@ -402,4 +418,4 @@ html {
     .profile-photo-upload-section {
         width: 0;
     }
-} */
+}

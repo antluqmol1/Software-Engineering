@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
 from django.urls import path
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -41,6 +43,10 @@ urlpatterns = [
     path('game/current-task/', views.current_task, name='current-task'),
     path('user/get-login-status/', views.get_login_status, name='get_login_status'),
     path('user/get-username/', views.get_username, name='get_user'),
-]
+    path('profile/get-profile-picture/', views.get_image_base64, name='get_profile_picture'),
+    path('profile/upload-profile-picture/', views.upload_image_base64, name='get_profile_picture'),
+    path('profile/get-all-profile-pictures/', views.get_all_images_base64, name='get_all_profile_pictures'),
+    path('profile/update-profile-picture/', views.select_image, name='update_profile_picture'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

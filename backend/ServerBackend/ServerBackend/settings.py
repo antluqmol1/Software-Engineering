@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 # from ServerBackend.management.commands import populate_tasks
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+print(f'\n\nBASE_DIR{BASE_DIR}\n\n\n')
 
 
 # Quick-start development settings - unsuitable for production
@@ -111,6 +113,9 @@ TEMPLATES = [
         },
     },
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'ServerBackend', 'media')
 
 WSGI_APPLICATION = 'ServerBackend.wsgi.application'
 ASGI_APPLICATION = 'ServerBackend.asgi.application'
