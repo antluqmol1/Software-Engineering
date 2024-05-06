@@ -573,7 +573,7 @@ def get_image_base64(request):
     if request.method == 'GET':
         print("valid method")
         user = request.user
-        
+
         if user.is_authenticated:
             print("user is authenticated")
             try:

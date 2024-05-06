@@ -12,5 +12,4 @@ backend/ServerBackend/ServerBackend/migrations
 backend/ServerBackend/ServerBackend/migrations/*
 backend/ServerBackend/ServerBackend/migrations/__pycache__
 backend/ServerBackend/ServerBackend/management/__pycache__
-backend/ServerBackend/ServerBackend/media/custom/*
 .DS_Store
