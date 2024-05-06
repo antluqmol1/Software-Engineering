@@ -664,6 +664,48 @@ def select_image(request):
     else:
         print("invalid method")
         return JsonResponse({'error': 'Invalid method'}, status=405)
+    
+    
+def delete_image(request):
+    print("select image")
+    if request.method == 'DELETE':
+        print("valid method")
+        
+        user = request.user
+        data = json.loads(request.body)
+        new_profile_pic_url = data.get('imagePath')
+        
+        if user.is_authenticated:
+            print("is authenticated")
+            relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+            print(f'new profile pic url {relative_path}')
+
+            if not new_profile_pic_url:
+                return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
+            
+            if delete_media_file(relative_path):
+                return JsonResponse({'success': True}, status=200)
+            else:
+                return JsonResponse({'error': 'Could not delete profile picture'}, status=500)
+
+            
+
+        else:
+            print("user is not authenticated")
+            return JsonResponse({'error': 'User not logged in'}, status=401)
+    else:
+        print("invalid method")
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+def delete_media_file(file_path):
+    """Deletes a file from the media storage."""
+    if default_storage.exists(file_path):
+        default_storage.delete(file_path)
+        return True
+    else:
+        return False
+
 
 
 def user_login(request):

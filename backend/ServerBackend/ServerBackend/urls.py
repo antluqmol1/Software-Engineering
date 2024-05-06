@@ -47,6 +47,7 @@ urlpatterns = [
     path('profile/upload-profile-picture/', views.upload_image_base64, name='get_profile_picture'),
     path('profile/get-all-profile-pictures/', views.get_all_images_base64, name='get_all_profile_pictures'),
     path('profile/update-profile-picture/', views.select_image, name='update_profile_picture'),
+    path('profile/delete-profile-picture/', views.delete_image, name='delete_profile_picture'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

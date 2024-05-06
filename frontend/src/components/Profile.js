@@ -29,7 +29,8 @@ const Profile = () => {
   // state for storing the selected file for upload
   const [profilePicFile, setProfilePicFile] = useState(null);
 
-  const [gallery, setGallery] = useState(null)
+  const [gallery, setGallery] = useState(null);
+  const [showGallery, setShowGallery] = useState(false);
 
   // State for storing any potential errors
   const [error, setError] = useState(null);
@@ -163,9 +164,44 @@ const Profile = () => {
     } catch (error) {
         console.error("Error updating profile picture:", error);
     }
-};
+  };
 
+  // Deletes profile pictures from the backend
+  const handleDeleteImage = async (imagePath) => {
+    console.log("Deleting image:", imagePath);
+    try {
+        // Assume imagePath contains the necessary identifier for deletion
+        const response = await axios.delete(`http://localhost:8000/profile/delete-profile-picture/`, {
+            data: { imagePath },
+            headers: { 
+              "Content-Type": 
+              "application/json", 
+              "X-CSRFToken": token },
+            withCredentials: true
+        });
+
+        if (response.data.success) {
+            console.log("Image deleted successfully");
+            // Remove the image from the gallery state
+            setGallery(prev => prev.filter(img => img !== imagePath));
+        } else {
+            console.error("Failed to delete the image:", response.data.error);
+        }
+    } catch (error) {
+        console.error("Error deleting the image:", error);
+    }
+  };
+
+  // toggles the gallery dropdown and makes a request to the backend for image urls in clients profiles
   const handleShowGallery = async () => {
+
+    if (showGallery) {
+      setShowGallery(false);
+      return;
+    } else {
+      setShowGallery(true);
+    }
+
     try {
       const response = await axios.get("http://localhost:8000/profile/get-all-profile-pictures/", {
           withCredentials: true,
@@ -178,6 +214,7 @@ const Profile = () => {
           console.log("fetch gallery OK");
           console.log(response.data.files);
           setGallery(response.data.files);
+          setShowGallery(true);
       } else {
           console.error('Failed to fetch images', response.data.error);
       }
@@ -257,21 +294,26 @@ const Profile = () => {
           <div>We recommend JPG or PNG</div>
 
           <button onClick={handleShowGallery}>
-            show all profile pictures
+            {showGallery ? "hide profile pictures" : "show profile pictures"}
           </button>
           <div className="gallery-container">
-            {gallery && gallery.length > 0 && (
+            {gallery && showGallery && gallery.length > 0 && (
               <>
               <h3>Your Gallery</h3>
               <div className="gallery">
                 {gallery.map((image, index) => (
+                  <div key={index} className="image-container">
                     <img 
-                      key={index} 
                       src={image} 
-                      alt={`Uploaded ${index}`} 
-                      style={{ width: '100px', height: '100px', margin: '10px', cursor: 'pointer' }} 
+                      alt={`Uploaded ${index}`}
+                      className="gallery-img"
                       onClick={() => handleSelectProfilePic(image)}
-                      />
+                    />
+                    <button className="delete-button" onClick={() => handleDeleteImage(image)}>
+                      X
+                    </button>
+
+                  </div>
                 ))}
               </div>
               </>
