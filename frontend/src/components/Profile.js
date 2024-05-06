@@ -269,7 +269,7 @@ const Profile = () => {
                       key={index} 
                       src={image} 
                       alt={`Uploaded ${index}`} 
-                      style={{ width: '100px', height: '100px', margin: '10px' }} 
+                      style={{ width: '100px', height: '100px', margin: '10px', cursor: 'pointer' }} 
                       onClick={() => handleSelectProfilePic(image)}
                       />
                 ))}

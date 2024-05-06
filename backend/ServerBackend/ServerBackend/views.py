@@ -582,7 +582,6 @@ def get_image_base64(request):
                 print(f'path to profile_pic: {path}')
                 with open(path, "rb") as image_file:
                     encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-                    print("encoded string:")
                     print(encoded_string)
                 return JsonResponse({'image': encoded_string}, status=200)
             except IOError:
