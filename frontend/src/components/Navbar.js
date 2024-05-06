@@ -15,11 +15,7 @@ function Navbar() {
   const cookies = new Cookies();
   const csrfToken = cookies.get('csrftoken');
 
-<<<<<<< HEAD
-  const { userIsLoggedIn, username } = useContext(AuthContext)
-=======
   const { username, userIsLoggedIn } = useContext(AuthContext)
->>>>>>> Adrian-FixGameStateRefresh
 
   const handleLogout = async () => {
 

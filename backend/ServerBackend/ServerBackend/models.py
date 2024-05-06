@@ -45,6 +45,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30)
     username = models.CharField(max_length=40, unique=True)
     email = models.EmailField(max_length=320, unique=True)
+    profile_pic = models.ImageField(
+        upload_to='custom/',  # uploads are saved at /media/custom/
+        default='presets/preset_1.png'  # Default image
+    )
+
+    # debug
+    # profile_pic = models.CharField(max_length=320, default="test")
     
     # Additional fields for user roles and permissions
     is_superuser = models.BooleanField(default=False)

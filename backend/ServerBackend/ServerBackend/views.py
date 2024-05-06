@@ -1,5 +1,10 @@
 import json
 import jwt
+import base64
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.contrib.sites.shortcuts import get_current_site
 from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, Tasks, PickedTasks
 from .tasks import end_wheel_spin
@@ -504,6 +509,162 @@ def update_profile(request):
             return JsonResponse({'error': 'user not logged in'})
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+'''
+Updates the users profile picture
+Recieves a DataForm form
+'''
+def upload_image_base64(request):
+    print("upload_image_base64")
+    if request.method == 'POST':
+        print("valid method")
+
+        user = request.user
+
+        if user.is_authenticated:
+            print("user is logged in")
+
+            profile_picture = request.FILES.get('profileImage')
+
+            if profile_picture:
+                print("picture is valid")
+
+                extension = profile_picture.name.split('.')[-1].lower()
+                if extension not in ['png', 'jpg', 'jpeg']:
+                    return JsonResponse({'success': False, 'error': 'Unsupported file format, must be png, jpg, or jpeg'}, status=400)
+                
+                file_path = f'ServerBackend/media/custom/{user.id}.{extension}'
+
+                # delete old profile pic
+                if "preset" not in user.profile_pic.path:
+                    print("user is using custom, delete old profile pic")
+                    try:
+                        # fix this
+                        # old_file_path = user.profile_pic.path
+                        # if default_storage.exists(old_file_path):
+                        #     default_storage.delete(old_file_path)
+                        print("old profile pic deleted")    
+                    except Exception as e:
+                        print(f"Error deleting old image: {str(e)}")
+                
+                
+                # Save new image
+                try:
+                    user.profile_pic.save(f"{user.id}.{extension}", profile_picture)
+                    user.save()
+                    print("New profile picture stored")
+                    return JsonResponse({'success': True}, status=201)
+                except Exception as e:
+                    # Handle exceptions
+                    print("could not save picture. error: ", e)
+                    return JsonResponse({'success': False}, status=500)
+            else:
+                print("no image provided")
+                return JsonResponse({'error': 'No image file provided'}, status=400)
+        else:
+            print("user is not logged in")
+            return JsonResponse({'error': 'User not logged in'}, status=401)
+    else:
+        print("invalid method!")
+        return JsonResponse({'error': 'Only GET method allowed'}, status=405)
+    
+def get_image_base64(request):
+    print("get_image_base64")
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+        
+        if user.is_authenticated:
+            print("user is authenticated")
+            try:
+                print("getting profile picture")
+                path = user.profile_pic.path
+                print(f'path to profile_pic: {path}')
+                with open(path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    print("encoded string:")
+                    print(encoded_string)
+                return JsonResponse({'image': encoded_string}, status=200)
+            except IOError:
+                print("Could not locate file")
+                return JsonResponse({'error': 'Image not found'}, status=404)
+        else:
+            print("user is not logged in")
+            return JsonResponse({'error': 'User not logged in'}, status=401)
+    else:
+        print("invalid method!")
+        return JsonResponse({'error': 'Only GET method allowed'}, status=405)
+    
+def get_all_images_base64(request):
+    print("get_all_images_base64")
+    if request.method == 'GET':
+        print("valid method")
+        user = request.user
+        if user.is_authenticated:
+            print("user is authenticated")
+            # Construct the path where user's images are stored
+            user_images_path_1 = f'{user.id}_'
+            user_images_path_2 = f'{user.id}.'
+            all_files = default_storage.listdir('custom/')[1]  # Second element contains file names
+            
+            # Filter files that start with the user ID followed by an underscore or dot
+            edge_case_pic = [file for file in all_files if file.startswith(user_images_path_2)]
+            additional_pics = [file for file in all_files if file.startswith(user_images_path_1)]
+
+            # join the lists
+            user_pics = edge_case_pic + additional_pics
+
+            # current site and protocol
+            current_site = get_current_site(request)
+            protocol = 'https' if request.is_secure() else 'http'
+            
+            # Create full URLs for each file, so that they are reachable from the frontend
+            user_files_urls = [
+                f"{protocol}://{current_site.domain}{default_storage.url(os.path.join('custom/', file))}"
+                for file in user_pics
+            ]
+
+            print(f'sending files: {user_files_urls}')
+            return JsonResponse({'success': True, 'files': user_files_urls}, status=200)
+        else:
+            print("user is not authenticated")
+            return JsonResponse({'error': 'User not logged in'}, status=401)
+    else:
+        print("invalid method")
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+    
+
+def select_image(request):
+    print("select image")
+    if request.method == 'POST':
+        print("valid method")
+        
+        user = request.user
+        data = json.loads(request.body)
+        new_profile_pic_url = data.get('newProfilePicUrl')
+
+        if user.is_authenticated:
+            print("is authenticated")
+            relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+            print(f'new profile pic url {relative_path}')
+
+            if not new_profile_pic_url:
+                return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
+            
+            try: 
+                user.profile_pic = relative_path
+                user.save()
+            except Exception as e:
+                print("error updating profile picture")
+                return JsonResponse({'error': 'Could not change profile picture'}, status=500)
+
+            return JsonResponse({'success': True}, status=200)
+        else:
+            print("user is not authenticated")
+            return JsonResponse({'error': 'User not logged in'}, status=401)
+    else:
+        print("invalid method")
+        return JsonResponse({'error': 'Invalid method'}, status=405)
 
 
 def user_login(request):

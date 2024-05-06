@@ -2,27 +2,55 @@
 
 1. Do git clone of this repository in some directory of our local host
 2. Do cd to the directory Team4, here We will see the necessary files for running the app
+3. This was developed on linux (ubuntu 22.04), and will work using this guide. 
 
-# How to run backend and frontend
+# Installs 
+1. Make sure you have python installed, preferably python 3.10.12 or above, might work with other versions
+2. `sudo apt install python3-venv`
+3. `sudo apt install python3-dev`
+4. `sudo apt install redis-server`
+5. `sudo apt install celery`
+6. `sudo apt install npm`
+
+## For mac
+redis-server must be installed via homebrew
+
+## For windows
+in Windows we can install npm from via this link `https://nodejs.org/en`, if apt install does not work
+
+# Setup
+## backend
+1. Do cd into the **backend** folder, here we are going to setup a python virtual environment, **venv** where we are going to keep the necessary dependencies. In **backend** run: `python3 -m venv [your venv name]` or ``python -m venv [your venv name]`, You can place it where you'd like, but we recommend placing it in the **backend/** or **backend/ServerBackend/** folder.
+2. Activate the venv using `source [your venv name]/bin/acivate`
+3. you should see `(venv)` or the name of your venv on the left side of the console in most cases
+4. From within the venv and the **backend** folder, install the requirements using pip install -r requirements.txt. If you're using python 3.10.12 all pip installs should be successful
+5. all backend dependencies should now be installed in your venv folder.
+## frontend
+1. Navigate to the **frontend/src/** folder. run `npm install` 
+
+# Running backend and frontend
 
 ## backend
 
-1. Do cd into the **_backend_** folder, here We are going to install the python environment **venv** where We are going to keep the necessary dependencies, for that run: `python3 -m venv venv` or ``python -m venv venv`, for that We have to ensure that python or python3 and pip are installed. Now We should see the folder **_venv_**
-2. After that, We will activate the virtual enironment running the command: `source venv/bin/activate` if We are using Linux or `source venv/Scripts/activate` if We are using Windows.
-3. We should now see `(venv)` to the upper left in our terminal
-4. Now is time to install the requirementes, We will see the file requirements.txt inside the folder backend, run the command: `pip install -r requirements.txt`
-5. cd from 'backend' into `ServerBackend` using the command `cd ServerBackend`
-6. Now We have to make the migrations running the command: `python3 manage.py makemigrations`, or `python manage.py makemigrations` based on our current version of python
-7. After We have to effectively migrate it running the command: `python3 manage.py migrate`, or `python manage.py migrate` based on our current version of python
-8. Once we get that done We ill be able to run the server running: `python3 manage.py runserver`, or `python manage.py runserver` based on our current version of python
-9. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
-10. you need to install some things:
-  `sudo apt-get install` redis-server, aswell as `pip install celery redis`
+### Django
+1. Make sure you're are using virtual enironment, if not run the command from the previous steps.
+2. cd into into `backend/ServerBackend/` folder, where we will find manage.py.
+3. Setup database migrations by running the command: `python3 manage.py makemigrations`, or `python manage.py makemigrations` based on our current version of python
+4. Make the database migrations by running the command: `python3 manage.py migrate`, or `python manage.py migrate` based on our current version of python
+5. Run the backend server using the command: `python3 manage.py runserver`, or `python manage.py runserver` based on our current version of python
+6. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
+7. To use the server, the terminal and proccess must remain open
+
+### Celery and redis
+1. Open up a new terminal
+2. cd into the same directory where we find manage.py, `backend/ServerBackend`
+    1. **For macOS**: Start the redis server using `brew services start redis` before following the next step
+3. Run `python3 -m celery -A ServerBackend worker -l info` to start the celery app
+
+
 ## frontend
 
-**if We have started the backend. We must open a new terminal. Navigate to the root directory**
-
-We are using react so We have to have first of all npm installed, in Windows We only have to go to `[Node.js](https://nodejs.org/en)` and download and install it and for Linux it can be checked out on `https://linuxconfig.org/install-npm-on-linux`
+**if We have started the backend. We must open a new terminal**
 
 After that We wil do:
 
