@@ -67,6 +67,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <ul className="navbar-links">
+      <li><Link to="/about" className="navbar-link">About Us</Link></li>
         {/* not the most beutiful way of doing it I guess */}
         { userIsLoggedIn &&
         <li><Link to="/" className="navbar-link">Home</Link></li>
@@ -84,6 +85,7 @@ function Navbar() {
           userIsLoggedIn &&
           <li className='right-aligned'><Link to="/profile"  className="navbar-link">{username}</Link></li>
         }
+        <li><Link to="/about" className="navbar-link">About Us</Link></li>
       </ul>
     </nav>
   );

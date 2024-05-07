@@ -1,0 +1,36 @@
+/* styles.css */
+
+.about-container {
+    max-width: 800px;
+    margin: 80px auto 0; 
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center; 
+  }
+  
+  .about-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .game-info, .how-to-play {
+    margin-bottom: 20px;
+  }
+  
+  .how-to-play ol {
+    text-align: left; /* Align the list items to the left */
+  }
+  
+  .contact-info {
+    margin-top: 20px;
+    font-style: italic;
+  }
+  
+  .contact-info a {
+    color: blue;
+    text-decoration: underline;
+  }
+  

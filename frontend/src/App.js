@@ -17,6 +17,7 @@ import CreateGame from "./components/CreateGame";
 import Profile from "./components/Profile";
 import HomePage from "./components/HomePage";
 import GameLobby from "./components/GameLobby"; // Import the GameLobby component
+import AboutUs from "./components/About"; 
 import "./styles/Home.css";
 import "./styles/App.css";
 
@@ -31,34 +32,6 @@ var fonts = {
   'Font3': 'path/to/font3.woff2'
 };
 
-// Function to load fonts dynamically
-// function loadFonts() {
-//   for (var fontName in fonts) {
-//       if (fonts.hasOwnProperty(fontName)) {
-//           loadFont(fontName, fonts[fontName]);
-//       }
-//   }
-// }
-
-// // Function to load a single font dynamically
-// function loadFont(fontName, fontURL) {
-//   var fontFace = new FontFace(fontName, `url(${fontURL})`);
-
-//   fontFace.load().then(function(loadedFont) {
-//       document.fonts.add(loadedFont);
-//       applyFontToElements(fontName);
-//   }).catch(function(error) {
-//       console.error(`Font '${fontName}' loading failed:`, error);
-//   });
-// }
-
-// // Function to apply font to elements
-// function applyFontToElements(fontName) {
-//   var elements = document.querySelectorAll('.your-class-name');
-//   elements.forEach(function(element) {
-//       element.style.fontFamily = fontName;
-//   });
-// }
 
 function App() {
   useEffect(() => {
@@ -90,7 +63,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/create-game" element={<CreateGame />} />
-            <Route path="/game-lobby" element={<GameLobby />} /> {/* Add route for GameLobby */}
+            <Route path="/game-lobby" element={<GameLobby />} /> 
+            <Route path="/about" element={<AboutUs/>} /> 
           </Routes>
         </div>
       </AuthProvider>
