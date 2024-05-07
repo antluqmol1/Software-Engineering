@@ -3,25 +3,26 @@ import axios from "axios";
 import "../styles/Login.css"; // Make sure your CSS matches the layout and style in the image
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
 import { AuthContext } from '../AuthContext';
+import authServices from "../services/authServices";
 
 
 const Login = () => {
   const [localUsername, setLocalUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [csrfToken, setCsrfToken] = useState("");
+  // const [csrfToken, setCsrfToken] = useState("");
   const navigate = useNavigate(); // Initialize useHistory hook
 
   // gets the userIsLoggedIn context from the context
-  const { setUserIsLoggedIn, setUsername } = useContext(AuthContext);
+  const { csrfToken, setUserIsLoggedIn, setUsername } = useContext(AuthContext);
 
-  useEffect(() => {
-    // Fetch CSRF token when component mounts
-    axios.get("http://localhost:8000/grabtoken/", { withCredentials: true })
-      .then(response => {
-        setCsrfToken(response.data.csrfToken);
-      })
-      .catch(error => console.error('Error fetching CSRF token', error));
-  }, []);
+  // useEffect(() => {
+  //   // Fetch CSRF token when component mounts
+  //   axios.get("http://localhost:8000/grabtoken/", { withCredentials: true })
+  //     .then(response => {
+  //       setCsrfToken(response.data.csrfToken);
+  //     })
+  //     .catch(error => console.error('Error fetching CSRF token', error));
+  // }, []);
 
 
   const handleUsernameChange = (event) => {
@@ -36,15 +37,7 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8000/login/", {
-        'username': localUsername,
-        'password': password,
-      }, {
-        headers: {
-          'X-CSRFToken': csrfToken,
-        },
-        withCredentials: true
-      });
+      const response = await authServices.login(localUsername, password, csrfToken)
       
       if (response.status === 200) {
         console.log("Login successful", response.data);

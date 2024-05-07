@@ -291,7 +291,7 @@ const Profile = () => {
           <button onClick={handleUpload} className="upload-button">
             Save
           </button>
-          <div>We recommend JPG or PNG</div>
+          <div>Use PNG or JPG/JPEG</div>
 
           <button onClick={handleShowGallery}>
             {showGallery ? "hide profile pictures" : "show profile pictures"}

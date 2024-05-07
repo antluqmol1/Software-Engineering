@@ -470,8 +470,14 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def next_task(self, game):
-        
-        task_count = Tasks.objects.filter(type=game.type).count()
+        try: 
+            task_count = Tasks.objects.filter(type=game.type).count()
+            if task_count == 0:
+                logger.warning("WS: no task found for this game type")
+                return 0
+        except Exception as e:
+            logger.error(f'Error when querying tasks: {e}')
+            return None
 
         # Check if task is available
         for _ in range(task_count):
