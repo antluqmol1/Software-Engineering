@@ -228,6 +228,42 @@ const Profile = () => {
           }
         );
 
+        try {
+          const response = await axios.get(
+            "http://localhost:8000/profile/get-all-profile-pictures/",
+            {
+              withCredentials: true,
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": token,
+              },
+            }
+          );
+          if (response.data.success) {
+            console.log("fetch gallery OK");
+            console.log(response.data.files);
+            setGallery(response.data.files);
+            setShowGallery(true);
+          } else {
+            console.error("Failed to fetch images", response.data.error);
+          }
+        } catch (error) {
+          console.error("Error fetching images", error);
+        }
+
+        if (response.data.success && response.data.image_url) {
+          const uploadedImageUrl = response.data.image_url;
+          console.log("Uploaded image URL:", uploadedImageUrl);
+  
+          // Update the gallery state to include the newly uploaded image
+          setGallery((prevGallery) => [...prevGallery, uploadedImageUrl]);
+  
+          // Optionally, update the profile picture preview as well
+          setProfilePic(uploadedImageUrl);
+        } else {
+          console.error("Failed to upload the image:", response.data.error);
+        }
+
         // Log the server response after successful upload
         console.log(response.data);
 
@@ -320,7 +356,7 @@ const Profile = () => {
         <div className="gallery-container">
           {gallery && showGallery && gallery.length > 0 && (
             <>
-              <h3>Your Gallery</h3>
+              <h3>Your Gallery:</h3>
               <div className="gallery">
                 {gallery.map((image, index) => (
                   <div key={index} className="image-container">
@@ -341,12 +377,24 @@ const Profile = () => {
               </div>
             </>
           )}
+          <div className="button-and-text-container">
+            {/* Groupped-Buttons */}
+            <div className="button-group">
+              <label htmlFor="profile-image-upload" className="custom-file-upload">
+                Upload Image
+              </label>
+              <button onClick={handleUpload} className="upload-button">
+                Save
+              </button>
+            </div>
+            {/* Recommendation Text */}
+            <span className="recommendation-text">We recommend JPG or PNG</span>
+          </div>
         </div>
       );
     } else if (showChangePassword) {
       return (
         <div className="change-password-form">
-          <h3>Change Password</h3>
           <form>
             <div>
               <label>Current Password:</label>
@@ -465,6 +513,7 @@ const Profile = () => {
       <div className="profile-wrapper">
         {/* Left-side navigation */}
         <div className="profile-photo-upload-section">
+          {/* Hidden file input for image upload */}
           <input
             id="profile-image-upload"
             type="file"
@@ -472,6 +521,7 @@ const Profile = () => {
             accept=".jpg, .jpeg, .png"
             hidden
           />
+          {/* Profile Picture Preview */}
           {setProfilePic && (
             <div>
               <img
@@ -481,26 +531,22 @@ const Profile = () => {
               />
             </div>
           )}
-          <label htmlFor="profile-image-upload" className="custom-file-upload">
-            Upload Image
-          </label>
-          <button onClick={handleUpload} className="upload-button">
-            Save
-          </button>
-          <div>We recommend JPG or PNG</div>
-
-          <button onClick={handleShowGallery}>
-            {showGallery ? "hide profile pictures" : "show profile pictures"}
-          </button>
-
-          <button onClick={handleToggleChangePassword}>
-            {showChangePassword ? "hide Change Password Section" : "Change password"}
-          </button>
+          {/* Show/Hide Gallery Button */}
+          <div>
+            <button onClick={handleShowGallery}>
+              {showGallery ? "hide profile pictures" : "show profile pictures"}
+            </button>
+          </div>
+          {/* Change Password Button */}
+          <div>
+            <button onClick={handleToggleChangePassword}>
+              {showChangePassword ? "hide Change Password Section" : "Change password"}
+            </button>
+          </div>
         </div>
+        {/* Right-side container */}
+        {renderRightContainer()}
       </div>
-      {/* Right-side container */}
-
-      {renderRightContainer()}
 
       <div className="wave wave1"></div>
       <div className="wave wave2"></div>
