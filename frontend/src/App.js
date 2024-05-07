@@ -17,7 +17,7 @@ import CreateGame from "./components/CreateGame";
 import Profile from "./components/Profile";
 import HomePage from "./components/HomePage";
 import GameLobby from "./components/GameLobby"; // Import the GameLobby component
-import AboutUs from "./components/About"; // Import AboutUs component
+import AboutUs from "./components/About"; 
 import "./styles/Home.css";
 import "./styles/App.css";
 
@@ -63,8 +63,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/create-game" element={<CreateGame />} />
-            <Route path="/game-lobby" element={<GameLobby />} /> {/* Add route for GameLobby */}
-            <Route path="/about" element={<AboutUs />} /> {/* Add route for AboutUs */}
+            <Route path="/game-lobby" element={<GameLobby />} /> 
+            <Route path="/about" element={<AboutUs/>} /> 
           </Routes>
         </div>
       </AuthProvider>

@@ -85,6 +85,7 @@ function Navbar() {
           userIsLoggedIn &&
           <li className='right-aligned'><Link to="/profile"  className="navbar-link">{username}</Link></li>
         }
+        <li><Link to="/about" className="navbar-link">About Us</Link></li>
       </ul>
     </nav>
   );
