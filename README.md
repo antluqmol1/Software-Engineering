@@ -20,13 +20,13 @@ in Windows we can install npm from via this link `https://nodejs.org/en`, if apt
 
 # Setup
 ## backend
-1. Do cd into the **backend** folder, here we are going to setup a python virtual environment, **venv** where we are going to keep the necessary dependencies. In **backend** run: `python3 -m venv [your venv name]` or ``python -m venv [your venv name]`, You can place it where you'd like, but we recommend placing it in the **backend/** or **backend/ServerBackend/** folder.
-2. Activate the venv using `source [your venv name]/bin/acivate`
+1. Do cd into the **backend** folder, here we are going to setup a python virtual environment, **venv** where we are going to keep the necessary dependencies. In **backend** run: `python3 -m venv [your venv name]` or `python -m venv [your venv name]`, You can place it where you'd like, but we recommend placing it in the **backend/** or **backend/ServerBackend/** folder.
+2. Activate the venv using `source [your venv name]/bin/acivate` (Linux) or `source [your venv name]/Scripts/acivate` (Windows)
 3. you should see `(venv)` or the name of your venv on the left side of the console in most cases
 4. From within the venv and the **backend** folder, install the requirements using pip install -r requirements.txt. If you're using python 3.10.12 all pip installs should be successful
 5. all backend dependencies should now be installed in your venv folder.
 ## frontend
-1. Navigate to the **frontend/src/** folder. run `npm install` 
+1. Navigate to the **frontend/src/** folder. Run `npm install` 
 
 # Running backend and frontend
 
@@ -37,15 +37,16 @@ in Windows we can install npm from via this link `https://nodejs.org/en`, if apt
 2. cd into into `backend/ServerBackend/` folder, where we will find manage.py.
 3. Setup database migrations by running the command: `python3 manage.py makemigrations`, or `python manage.py makemigrations` based on our current version of python
 4. Make the database migrations by running the command: `python3 manage.py migrate`, or `python manage.py migrate` based on our current version of python
-5. Run the backend server using the command: `python3 manage.py runserver`, or `python manage.py runserver` based on our current version of python
-6. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
-7. To use the server, the terminal and proccess must remain open
+5. Populate the tasks (games challenges): `python3 manage.py populate_tasks`, or `python manage.py populate_tasks` based on our current version of python
+6. Run the backend server using the command: `python3 manage.py runserver`, or `python manage.py runserver` based on our current version of python
+7. The server is now running if it says **`Quit the server with CONTROL-C`** at the last line
+8. To use the server, the terminal and proccess must remain open
 
 ### Celery and redis
 1. Open up a new terminal
 2. cd into the same directory where we find manage.py, `backend/ServerBackend`
-    1. **For macOS**: Start the redis server using `brew services start redis` before following the next step
-3. Run `python3 -m celery -A ServerBackend worker -l info` to start the celery app
+    1. **Only For macOS**: Start the redis server using `brew services start redis` before following the next step
+4. Run `python3 -m celery -A ServerBackend worker -l info` to start the celery app
 
 
 ## frontend
