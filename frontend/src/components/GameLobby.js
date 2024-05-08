@@ -7,7 +7,7 @@ import "../styles/App.css";
 import "bootstrap/dist/css/bootstrap.min.css"; 
 import { AuthContext } from '../AuthContext';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faTimes, faQuestion, } from "@fortawesome/free-solid-svg-icons";
 import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 

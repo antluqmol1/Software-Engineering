@@ -510,6 +510,8 @@ def update_profile(request):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+
+
 '''
 Updates the users profile picture
 Recieves a DataForm form
@@ -840,6 +842,17 @@ def put_user(request):
         # Validate the information
         if not (first_name and last_name and username and email and password):
             return JsonResponse({'error': 'Missing fields'}, status=400)
+
+        # Check if the username or email is already in use
+        existing_user = User.objects.filter(username=username).first()
+        existing_email = User.objects.filter(email=email).first()
+        
+        if existing_user and existing_email:
+            return JsonResponse({'error': 'Both username and email are already in use'}, status=409)
+        elif existing_user:
+            return JsonResponse({'error': f'Username "{existing_user.username}" is already in use'}, status=409)
+        elif existing_email:
+            return JsonResponse({'error': f'Email "{existing_email.email}" is already in use'}, status=409)
 
         new_user = User(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
 

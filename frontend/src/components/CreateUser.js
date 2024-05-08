@@ -19,7 +19,30 @@ function getCookie(name) {
   return cookieValue;
 }
 
+// Custom hook for handling form submission errors
+const useFormErrorHandling = () => {
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleFormError = (error) => {
+    if (error.response) {
+    if (error.response.status === 409) {
+      setErrorMessage(error.response.data.error);
+    } else {
+      setErrorMessage('An error occurred. Please try again later.');
+    }
+  } else if (error.request) {
+    setErrorMessage('Network error. Please check your connection and try again.');
+  } else {
+    setErrorMessage('An unexpected error occurred. Please try again later.');
+  }
+  };
+
+  return { errorMessage, handleFormError };
+};
+
+
 const CreateUser = () => {
+  const {errorMessage, handleFormError } = useFormErrorHandling();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [first_name, setFirstname] = useState('');
@@ -70,7 +93,8 @@ const CreateUser = () => {
       // Handle successful user creation, e.g., redirect to login page
     } catch (error) {
       console.error('User creation failed', error);
-      // Handle user creation failure, e.g., display error message
+      handleFormError(error);
+    
     }
   };
 
@@ -78,6 +102,7 @@ const CreateUser = () => {
     <div className="signup-container">
       <form className="signup-form-container" onSubmit={handleSubmit}>
         <h2>Create User</h2>
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
         <div>
           <label htmlFor="firstname">First Name:</label>
           <input

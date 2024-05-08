@@ -447,3 +447,36 @@ html {
         width: 0;
     }
 }*/
+
+
+  
+  .error-message {
+    text-align: center;
+    font-size: 30px; /* Adjust size as needed */
+    font-weight: bold;
+    color:  rgb(255, 0, 0);
+    margin-bottom: 20px;   
+    font-variant: large-caps;
+    margin-top:30px;
+  }
+  
+  .back-to-login {
+    text-align: center;
+    color: rgb(250, 249, 251);
+    margin-left: 10px;
+    margin-bottom: 20px;   
+    margin-top:10px;
+
+  }
+
+  .arrow-container {
+    margin-top: 10px; /* Adjust as needed */
+  }
+  
+  .arrow-icon {
+    font-size: 30px; /* Adjust size as needed */
+    font-weight: bold;    
+    color: rgb(251, 251, 251);
+
+  }
+  

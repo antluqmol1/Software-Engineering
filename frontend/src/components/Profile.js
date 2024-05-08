@@ -7,8 +7,14 @@ import { Card } from "react-bootstrap";
 import "../styles/Profile.css";
 import defaultProfilePic from "../assets/woods.jpg";
 import { Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBackspace } from "@fortawesome/free-solid-svg-icons";
 
 const Profile = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
+
+
   // State for storing user data
   const [userData, setUserData] = useState({
     first_name: "",
@@ -54,16 +60,23 @@ const Profile = () => {
       } catch (error) {
         console.error("There was an error!", error);
 
-        // you are not logged in!
-        setError(error);
+        // Check if the error is due to unauthorized access
+        if (error.response.status === 401) {
+          setError("Please log in to view your profile.");
+        } else {
+          setError("An unexpected error occurred. Please try again later.");
+        }
       }
     };
 
     const fetchProfilePicture = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/profile/get-profile-picture/", {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          "http://localhost:8000/profile/get-profile-picture/",
+          {
+            withCredentials: true,
+          }
+        );
         const base64Image = response.data.image;
         console.log("Received image data:", base64Image);
         setProfilePic(`data:image/png;base64,${base64Image}`);
@@ -75,6 +88,7 @@ const Profile = () => {
     fetchUserData();
     fetchProfilePicture();
   }, []);
+
 
 
 
@@ -258,10 +272,32 @@ const Profile = () => {
     }
   };
 
+  const goToLogin = () => {
+    navigate("/login"); // Navigate to the login page
+  };
+
+
   // Render error message if an error occurred
   if (error) {
-    return <div>An error occurred: {error.message}</div>;
-  }
+    return (
+      <div className="error-container">
+        {error && (
+          <div className="error-message">
+            {error}
+            
+            <div className="arrow-container">
+              {error.includes("log in") && (
+                <div>
+                  Click here:{" "}
+                  <span onClick={goToLogin}><FontAwesomeIcon icon={faBackspace} className="arrow-icon" /></span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Main render return for the component
   return (
@@ -272,7 +308,7 @@ const Profile = () => {
           <input
             id="profile-image-upload"
             type="file"
-            onChange={handleImageChange}
+            onChange={handleImageChange}ƒerr
             accept=".jpg, .jpeg, .png"
             hidden
           />

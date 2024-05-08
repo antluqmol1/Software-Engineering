@@ -67,7 +67,6 @@ function Navbar() {
   return (
     <nav className="navbar">
       <ul className="navbar-links">
-      <li><Link to="/about" className="navbar-link">About Us</Link></li>
         {/* not the most beutiful way of doing it I guess */}
         { userIsLoggedIn &&
         <li><Link to="/" className="navbar-link">Home</Link></li>
