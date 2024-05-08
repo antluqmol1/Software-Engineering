@@ -49,7 +49,7 @@ const FrontPage = () => {
       // Should only happen if person that has just 
       // logged in is already in a game.
       axios
-        .get("http://localhost:8000/get-game", {
+        .get("http://localhost:8000/game/get/", {
           withCredentials: true,
         })
         .then((response) => {
@@ -108,7 +108,7 @@ const FrontPage = () => {
     // }
 
     axios
-        .post("http://localhost:8000/join-game/", 
+        .post("http://localhost:8000/game/join/", 
         {  gameid: gameCode }, 
       {
         headers: {

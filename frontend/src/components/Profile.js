@@ -7,6 +7,8 @@ import { Card } from "react-bootstrap";
 import "../styles/Profile.css";
 import defaultProfilePic from "../assets/woods.jpg";
 import { Button } from "react-bootstrap";
+import userServices from "../services/userServices";
+
 
 const Profile = () => {
   // State for storing user data
@@ -47,10 +49,17 @@ const Profile = () => {
     // Fetch user data when the component mounts
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/profile/", {
-          withCredentials: true,
-        });
-        setUserData(response.data.user_data);
+
+        // Fetch profile data
+        const response = await userServices.getProfile();
+
+        // handle response
+        if (response.status == 200) {
+          setUserData(response.data.user_data);
+        } else {
+          console.error("failed to fetch user data, response: ", response)
+        }
+
       } catch (error) {
         console.error("There was an error!", error);
 
@@ -61,12 +70,19 @@ const Profile = () => {
 
     const fetchProfilePicture = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/profile/get-profile-picture/", {
-          withCredentials: true,
-        });
-        const base64Image = response.data.image;
-        console.log("Received image data:", base64Image);
-        setProfilePic(`data:image/png;base64,${base64Image}`);
+
+        // Fetch pictures
+        const response = await userServices.getPictureBase64();
+
+        // handle response
+        if (response.status == 200) {
+          const base64Image = response.data.image;
+          console.log("Received image data:", base64Image);
+          setProfilePic(`data:image/png;base64,${base64Image}`);
+        } else {
+          console.error("failed to fetch pictures, response: ", response)
+        }
+
       } catch (error) {
         console.error("There was an error!", error);
       }

@@ -1,23 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState , useContext} from 'react';
 import axios from 'axios';
 import "../styles/CreateUser.css"; // Make sure your CSS matches the layout and style in the image
+import { useNavigate } from "react-router-dom"; // Import useHistory hook
+import { AuthContext } from '../AuthContext';
+import authServices from "../services/authServices";
+import userServices from "../services/userServices";
 
-
-// Get the the cookie information
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
 
 const CreateUser = () => {
   const [username, setUsername] = useState('');
@@ -25,6 +13,10 @@ const CreateUser = () => {
   const [first_name, setFirstname] = useState('');
   const [last_name, setLastname] = useState('');
   const [email, setEmail] = useState('');
+  const navigate = useNavigate();
+
+  // USERNAME WILL NOT BE SET IN THIS FILE AT THIS TIME, WE NEED TO CHANGE THE ABOVE useState USERNAME SHIT
+  const { csrfToken, setUserIsLoggedIn, } = useContext(AuthContext);
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
@@ -49,24 +41,24 @@ const CreateUser = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const csrftoken = getCookie('csrftoken');
-
-    console.log("Token: ",csrftoken)
-
     try {
-      const response = await axios.put('http://localhost:8000/putuser/', {
-        first_name,
-        last_name,
-        username,
-        email,
-        password,
-      }, {
-        headers: {
-          'X-CSRFToken': csrftoken,  // Include CSRF token in the headers
-        }
-      });
+      const response = await userServices.createUser(first_name, last_name, username, email, password, csrfToken);
 
       console.log('User created successfully', response.data);
+
+      if (response.data.success == true) {
+
+        try{
+          response = authServices.login(username, password, csrfToken);
+          if (response.data.status == 200) {
+            navigate("/profile")
+          }
+        }
+        catch (error){
+          console.error("login failed", error)
+        }
+      }
+
       // Handle successful user creation, e.g., redirect to login page
     } catch (error) {
       console.error('User creation failed', error);

@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
         // MAKE THIS A SINGLE BACKEND API CALL PLEASE!
         try {
           console.log("auth: checking if logged in")
-          const response = await axios.get('http://localhost:8000/user/get-login-status/', { withCredentials: true });
+          const response = await axios.get('http://localhost:8000/auth/get-status/', { withCredentials: true });
           if (response.status === 200) {
             // if client is logged in
             // sets the isLoggedIn
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
             const usernameResponse = await axios.get('http://localhost:8000/user/get-username/', { withCredentials: true });
             // sets the username
             setUsername(usernameResponse.data.username);
-            const gameResponse = await axios.get('http://localhost:8000/get-game/', { withCredentials: true });
+            const gameResponse = await axios.get('http://localhost:8000/game/get/', { withCredentials: true });
             // sets true if in a game
             setInAGame(gameResponse.data['success']);
             setLoading(false)

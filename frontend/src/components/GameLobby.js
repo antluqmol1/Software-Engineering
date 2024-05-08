@@ -104,7 +104,7 @@ function GameLobby() {
 
   // Function to fetch the list of participants from the server
   const fetchPlayerList = () => {
-    axios.get("http://localhost:8000/get-game-participants/", {
+    axios.get("http://localhost:8000/game/get-game-participants/", {
         headers: {
           "X-CSRFToken": token, // Include CSRF token in headers
         },
@@ -139,7 +139,7 @@ function GameLobby() {
 
     
 
-      axios.get("http://localhost:8000/get-game/",
+      axios.get("http://localhost:8000/game/get-game/",
           {
               headers: {
                   "X-CSRFToken": token, // Include CSRF token in headers
