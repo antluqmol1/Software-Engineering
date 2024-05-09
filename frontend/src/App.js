@@ -1,6 +1,7 @@
 // App.js
 import React, { useEffect } from "react";
 import { AuthProvider } from './AuthContext';
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,6 +19,7 @@ import Profile from "./components/Profile";
 import HomePage from "./components/HomePage";
 import GameLobby from "./components/GameLobby"; // Import the GameLobby component
 import AboutUs from "./components/About"; 
+import EndGameScreen from "./components/EndGameScreen"; // Import the EndGameScreen component
 import "./styles/Home.css";
 import "./styles/App.css";
 
@@ -65,6 +67,7 @@ function App() {
             <Route path="/create-game" element={<CreateGame />} />
             <Route path="/game-lobby" element={<GameLobby />} /> 
             <Route path="/about" element={<AboutUs/>} /> 
+            <Route path="/end-game" element={<EndGameScreen />} /> {/* Add this route */}
           </Routes>
         </div>
       </AuthProvider>
