@@ -5,8 +5,8 @@
   justify-content: center;
   align-items: center;
   padding: 50px;
-  height: 100vh;
-  background: linear-gradient(to right, #800080, #4B0082);
+  /* height: 100vh;
+  background: linear-gradient(to right, #800080, #4B0082); */
   color: #ffffff;
 }
 

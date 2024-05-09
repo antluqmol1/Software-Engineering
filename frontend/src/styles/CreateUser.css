@@ -19,7 +19,7 @@ html {
     align-items: flex-start;
     /* Align to top */
     /* min-height: 100vh; */
-    padding: 60px 0;
+    padding-top: 40px;
 }
 
 /* Left side - form container */
@@ -92,6 +92,7 @@ label {
 
 /* Button styling */
 button.signup-button {
+    position: relative;
     width: 100%;
     height: 5vh;
     padding: 1px;
@@ -105,6 +106,7 @@ button.signup-button {
     cursor: pointer;
     margin-top: 0.5rem;
     transition: background-color 0.2s ease-in-out;
+    z-index: 9999;
 }
 
 button.signup-button:hover {
@@ -161,7 +163,7 @@ button.signup-button:hover {
 /* Responsive adjustments for smaller mobile devices */
 @media (max-width: 768px) {
     .signup-container {
-        padding: 30px;
+        padding-top: 30px;
     }
 
     .signup-form-container,
