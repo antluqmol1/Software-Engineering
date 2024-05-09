@@ -10,6 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faTimes, faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
+import gameServices from "../services/gameServices";
+
 
 
 
@@ -104,7 +106,7 @@ function GameLobby() {
 
   // Function to fetch the list of participants from the server
   const fetchPlayerList = () => {
-    axios.get("http://localhost:8000/game/get-game-participants/", {
+    axios.get("http://localhost:8000/game/get-participants/", {
         headers: {
           "X-CSRFToken": token, // Include CSRF token in headers
         },
@@ -135,11 +137,21 @@ function GameLobby() {
 
   // }, [playerList]);
 
+  const fetchPlayerImages = () => {
+
+    console.log("attempting to fetch profile picture urls");
+
+    const response = gameServices.getProfilePictures();
+
+    console.log("fetch profile pictures: ", response);
+
+  }
+
   const fetchGame = () => {
 
     
 
-      axios.get("http://localhost:8000/game/get-game/",
+      axios.get("http://localhost:8000/game/get/",
           {
               headers: {
                   "X-CSRFToken": token, // Include CSRF token in headers
@@ -317,6 +329,9 @@ function GameLobby() {
         // Fetch the player list and game when the component mounts
         fetchPlayerList();
         fetchGame();
+
+        // test, can be removed
+        fetchPlayerImages(token);
         
         // Setup WebSocket connection
         const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:";

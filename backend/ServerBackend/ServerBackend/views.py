@@ -1,6 +1,7 @@
 import json
 import jwt
 import base64
+import logging
 import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -18,6 +19,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count
 from django.conf import settings
 from functools import wraps
+
+
+# Logger
+logger = logging.getLogger(__name__)
 
 
 # wrapper for required method, or methods should we allow more
@@ -60,6 +65,7 @@ def home_page(request):
 
 
 def generate_JWT(user):
+    logger.error("this is a test error")
     payload = {
         'user_id': user.id,
         'exp': dt.now(timezone.utc) + timedelta(hours=12),
@@ -472,7 +478,6 @@ def upload_image_base64(request):
 
     user = request.user
 
-
     profile_picture = request.FILES.get('profileImage')
 
     if profile_picture:
@@ -513,6 +518,39 @@ def upload_image_base64(request):
 
 @require_http_method(['GET'])
 @require_authentication
+def get_image_urls(request):
+    print("get_all_images_base64")
+    user = request.user
+
+    user_id_list = get_user_ids_from_usernames(user)
+
+
+    url_list = get_profile_picture_on_users(user_id_list)
+
+    uri_list = []
+    for file_path in url_list:
+        # Find the index of 'custom' or 'preset' and slice the path from that point
+        if 'custom' in file_path:
+            index = file_path.find('custom')
+            uri_list.append(file_path[index:])
+        elif 'preset' in file_path:
+            index = file_path.find('preset')
+            uri_list.append(file_path[index:])
+
+    # current site and protocol
+    current_site = get_current_site(request)
+    protocol = 'https' if request.is_secure() else 'http'
+
+    user_files_urls = [
+        f"{protocol}://{current_site.domain}{default_storage.url(file)}"
+        for file in uri_list
+    ]
+
+    return JsonResponse({"success": True, 'uris': user_files_urls}, status=200)
+
+
+@require_http_method(['GET'])
+@require_authentication
 def get_image_base64(request):
     print("get_image_base64")
 
@@ -523,7 +561,6 @@ def get_image_base64(request):
         print(f'path to profile_pic: {path}')
         with open(path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-            print(encoded_string)
         return JsonResponse({'image': encoded_string}, status=200)
     except IOError:
         print("Could not locate file")
@@ -532,7 +569,7 @@ def get_image_base64(request):
 
 @require_http_method(['GET'])
 @require_authentication
-def get_all_images_base64(request):
+def get_all_images_base64(request): #RENAME! NOT USING BASE64
     print("get_all_images_base64")
     user = request.user
     print("user is authenticated")
@@ -552,6 +589,7 @@ def get_all_images_base64(request):
     current_site = get_current_site(request)
     protocol = 'https' if request.is_secure() else 'http'
     
+
     # Create full URLs for each file, so that they are reachable from the frontend
     user_files_urls = [
         f"{protocol}://{current_site.domain}{default_storage.url(os.path.join('custom/', file))}"
@@ -615,9 +653,45 @@ def delete_media_file(file_path):
     else:
         return False
 
+def get_user_ids_from_usernames(user):
 
+    try:
+        print("getting user record in participant table")
+        current_user_participant = Participant.objects.get(user=user)
+        print("getting game in users participant table")
+        current_game = current_user_participant.game
+
+        print("getting array of players in same game")
+        participants_in_same_game = Participant.objects.filter(game=current_game)
+
+        user_ids = []
+        for part in participants_in_same_game:
+            user_ids.append(part.user.id)
+
+        # Extract relevant data to send back (e.g., usernames, scores)
+        print("sending back data")
+        return user_ids
+    except:
+        logger.error("error getting user ids from game")
+
+
+def get_profile_picture_on_users(user_id_list):
+
+    url_list = []
+    for id in user_id_list:
+
+        # retrieve user record
+        user = User.objects.get(id=id)
+        
+        # append profile pic to the list
+        url_list.append(user.profile_pic.path)
+
+    return url_list
+
+
+
+# @require_authentication
 @require_http_method(['POST'])
-@require_authentication
 def user_login(request):
     print("inside user_login")
 
@@ -630,16 +704,16 @@ def user_login(request):
     print(username)
     print(password)
 
-    print("attempting to authenticate...")
+    logger.info("attempting to authenticate...")
     # Use Django's authenticate function to verify credentials
     user = authenticate(username=username, password=password)
-    print("authentication complete!")
+    logger.info("authentication complete!")
 
     if user is not None:
-        print("attempting to login")
+        logger.info("attempting to login")
         login(request, user)
-        print("Login complete!")
-        print("generating JWT")
+        logger.info("Login complete!")
+        logger.info("generating JWT")
         token = generate_JWT(user)
         print(f'JWT: {token}')
 
@@ -721,7 +795,7 @@ def put_admin(request):
 
 @require_http_method(['POST'])
 @require_authentication
-def put_user(request):
+def create_user(request):
     # Creates a new user
     print("put_user")
     try:

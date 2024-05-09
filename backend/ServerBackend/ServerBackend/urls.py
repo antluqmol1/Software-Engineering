@@ -32,7 +32,7 @@ urlpatterns = [
     ], 'auth'))),
 
     path('user/', include(([
-        path('put/', views.put_user, name='put_user'),
+        path('put/', views.create_user, name='put_user'),
         path('put-admin/', views.put_admin, name='put_admin'),
         path('get-username/', views.get_username, name='get_user'),
         path('profile/', include(([
@@ -46,19 +46,18 @@ urlpatterns = [
         ], 'profile'))),
     ], 'user'))),
     
-    # Remove maybe?
-
-    path('game/', include([
+    path('game/', include(([
         path('create/', views.create_game, name='create_game'),
         path('delete/', views.delete_game, name='delete-game'),
         path('join/', views.join_game, name='join-game'),
         path('leave/', views.leave_game, name='leave-game'), # websocket handles leaving, redundant
         path('get/', views.get_game, name='get_game'),
         path('get-participants/', views.get_game_participants, name='get_game_participants'),
+        path('get-participants-images/', views.get_image_urls, name='get_participants_urls'),
         path('current-task/', views.current_task, name='current-task'),
         path('next-task/', views.next_task, name='next-task'),
         path('give-points/', views.give_points, name='give-points'),
-    ])),
+    ], 'game'))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

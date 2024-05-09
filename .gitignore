@@ -8,6 +8,7 @@ backend/ServerBackend/ServerBackend/.DS_store
 backend/ServerBackend/.DS_store
 frontend/src/.DS_Store
 backend/ServerBackend/db.sqlite3
+backend/ServerBackend/django_debug.log
 backend/ServerBackend/ServerBackend/migrations
 backend/ServerBackend/ServerBackend/migrations/*
 backend/ServerBackend/ServerBackend/migrations/__pycache__
