@@ -7,7 +7,7 @@ import { Card } from "react-bootstrap";
 import "../styles/Profile.css";
 import defaultProfilePic from "../assets/woods.jpg";
 import { Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import { Navigate, useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackspace } from "@fortawesome/free-solid-svg-icons";
 
@@ -364,7 +364,7 @@ const Profile = () => {
               {error.includes("log in") && (
                 <div>
                   Click here:{" "}
-                  <span onClick={goToLogin}><FontAwesomeIcon icon={faBackspace} className="arrow-icon" /></span>
+                  <span onClick={Navigate('/login')}><FontAwesomeIcon icon={faBackspace} className="arrow-icon" /></span>
                 </div>
               )}
             </div>
