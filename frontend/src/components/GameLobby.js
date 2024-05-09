@@ -12,7 +12,6 @@ import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 
 
-
 const wheel_data = [
   // { option: 'bob'},
   // { option: 'alice'},
@@ -52,30 +51,12 @@ function GameLobby() {
     const [prizeNumber, setPrizeNumber] = useState(0);
 
 
-    /*
-
-    BUGS!:
-
-    When a player joins when challenge is active, they don't get the voting
-    screen. If a player leaves mid vote, you could end up softlocked, because 
-    he is counted as a particiant as of the last vote, but can't vote when leaving.
-    Points are not updated until next task is fetched, I have added a comment in task_done 
-    send message in consumers.py that explains what we need to do accordint to current implementation
-
-    1. We need to fix some useState checks to ensure the player gets the right information.
-      Perhaps in connect, we can check for game is started, or query PickedTask for done = false
-    2. We need to make it so that player disconnect triggers a reevaluation of the votes
-    3. Return a participants list, or simply a player participant + updated score when a vote is complete
-
-    */
-
-
     const handleDelete = () => {  
 
       console.log("Ending/Deleting game...")
       webSocketRef.current.close(1000, 'Admin ended game');
       setInAGame(false)
-      navigate("/")
+      navigate("/end-game")
 
   };
 
@@ -85,7 +66,7 @@ function GameLobby() {
       console.log("Leaving game...")
       webSocketRef.current.close(1000, 'Player left the game');
       setInAGame(false)
-      navigate("/")
+      navigate("/end-game")
       
   };
     const handleLeaderBoardShow = () => {
@@ -124,16 +105,8 @@ function GameLobby() {
   };
 
   useEffect(() => {
-    // console.log('uuuuuuuusseeeerrr22222222222: ', usernameArray);
   }, [usernameArray]);
 
-  // useEffect(() => {
-
-  //     const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
-  //     setUsernameArray(Array.from(playerList.values()).map(player => ({ option: player.username })));
-  //     console.log("USEEEEERNAMES", usernameArray)
-
-  // }, [playerList]);
 
   const fetchGame = () => {
 
@@ -213,24 +186,9 @@ function GameLobby() {
               taskId: taskId,
               taskVote: vote
           }));
-          // Add icons to the respective lists based on the vote
-          // if (vote === "yes") {
-          //   setCheckmarksLine1(prevCheckmarks => [...prevCheckmarks, <FontAwesomeIcon key={taskId} icon={faCheck} className="ml-2 text-success" />]);
-          // }
-    
-          // else if (vote === "no") {
-          //   setExesLine2(prevExes => [...prevExes, <FontAwesomeIcon key={taskId} icon={faTimes} className="ml-2 text-danger" />]);
-          // }
-    
-          // else if (vote === "skip") {
-          //   setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
-          // }
-    
         };
       }
   
-
-
   const startGame = () => {
 
     if (webSocketRef.current) {
@@ -268,18 +226,6 @@ function GameLobby() {
       }
     });
   };
-
-
-  //
-  // DEBUG!
-  //
-  // useEffect(() => {
-  //   console.log("useEffect debug: playerListUpdateReady changed:", playerListUpdateReady);
-
-  //   // Perform any action when waitingForSpin changes
-  //   console.log("useEffect debug: can we update? ", playerListUpdateReady ? "yes" : "no");
-  // }, [playerListUpdateReady]); // Dependency array, useEffect will run when waitingForSpin changes
-  
 
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
@@ -401,9 +347,6 @@ function GameLobby() {
                     break;
                 
                 case 'task_done':
-                    // setYesVotes(0)
-                    // setNoVotes(0)
-                    // setSkipVotes(0)
                     console.log(data.message)
                     setCheckmarksLine1([])
                     setExesLine2([])
@@ -428,12 +371,7 @@ function GameLobby() {
                 case 'task_new_vote':
 
                     console.log("new vote recieved")
-                    // console.log("Yes votes: ", data.message['yesVotes'])
-                    // console.log("no votes: ", data.message['noVotes'])
-                    // console.log("skip votes: ", data.message['skipVotes'])
-                    // setYesVotes(data.message['yesVotes'])
-                    // setNoVotes(data.message['noVotes'])
-                    // setSkipVotes(data.message['skipVotes'])
+                  
 
                     // prevVote only exists if we need to change a vote
                     const newVote = data.message['prevVote']
@@ -502,7 +440,7 @@ function GameLobby() {
 
                     console.log("GAME HAS ENDED")
 
-                    navigate("/");
+                    navigate("/end-game");
 
                   break;
                 case 'wheel_stopped':
@@ -680,8 +618,7 @@ function GameLobby() {
           {admin && gameStarted && nextTask && (
             <button 
             className="fetchTask-button" 
-            onClick={getNextTask}
-          >
+            onClick={getNextTask}> 
             Next Challenge
           </button>
           )}
@@ -696,10 +633,7 @@ function GameLobby() {
               Start Game
             </button>
           )}
-          {/* WE NEED TO FIX THE Z VALUES OF THESE BEFORE WE COMMENT THEM IN AGAIN*/}
-          {/* {<div className="wave wave1"></div>} */}
-          {/* {<div className="wave wave2"></div>} */}
-          {/* {<div className="wave wave3"></div>} */}
+     
         
         { !spunWheel &&
           <div className='roulette-wheel'>
