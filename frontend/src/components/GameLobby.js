@@ -1,3 +1,5 @@
+import { QuestionContainer } from './QuestionContainer';
+import { Leaderboard } from './Leaderboard';
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
 import axios from "axios";
@@ -591,83 +593,10 @@ function GameLobby() {
       </div>
 
 
-      <div className="leaderboard-container">
-        <button className='showhide-button' onClick={handleLeaderBoardShow}> 
-          { showLeaderBoard ? 'b' : 'z'}
-        </button>
-
-        { showLeaderBoard &&
-        <div className="leaderboard">
-          <div >
-            <h2 className="leaderboard-h">Leaderboard</h2>
-            <div className="card-body p-0">
-              <div className="list-group list-group-flush">
-                {/* Display leaderboard content here */}
-                {/* Map through players array to display each player and their score */}
-                {playerList.map((player, index) => (
-                  <div
-                  className="leaderboard-item"
-                  key={index}>
-                    <span className="me-2">{player.username}</span>
-                    <span className="badge bg-secondary ms-auto me-3" style={{ position: 'absolute', right: '0%'}}>
-                      {player.score}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          </div>
-          }
-      </div>
+<Leaderboard   handleLeaderBoardShow={handleLeaderBoardShow} showLeaderBoard={showLeaderBoard} playerList={playerList}/>
 
 {spunWheel &&
-      <div className="questions-container">
-
-        {waitingForSpin ?
-          <div className="group-question">
-            <p className="font-style">Wheel is selecting a player...</p>
-          </div>
-          :
-          <div className="group-question">
-            <h2 className="font-style-prompt">Challenge</h2>
-            <p className="font-style">{pickedPlayer}'s task</p>
-            <p className="font-style">Points: {taskPoints}</p>
-            <p className="font-style">task: {taskText}</p>
-
-
-        
-    {pickedPlayer != username && taskText && 
-    
-          <div>
-
-            <button
-              className="yes-button btn btn-sm btn-primary"
-              onClick={() => voteTask( "yes", taskId)}
-            >
-              Yes
-          
-            </button>
-            <button
-        
-              className="no-button btn btn-sm btn-danger"
-              onClick={() => voteTask("no", taskId)}
-            >
-              No
-            </button>
-            <button
-              className="undecided-button btn btn-sm btn-warning"
-              onClick={() => voteTask("skip", taskId)}
-            >
-              Skip
-            </button>
-        
-          </div>
-    }
-        </div>
-  }
-      </div>
-    
+<QuestionContainer   waitingForSpin={waitingForSpin} pickedPlayer={pickedPlayer} taskPoints={taskPoints} taskText={taskText} username={username} voteTask={voteTask} taskId={taskId}  />
 }
 
           <button

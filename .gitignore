@@ -1,5 +1,6 @@
 backend/node_modules/
 backend/ServerBackend/ServerBackend/__pychache__
+**node_modules
 frontend/node_modules/
 backend/venv/
 backend/ServerBackend/ServerBackend/migrations/
@@ -12,4 +13,4 @@ backend/ServerBackend/ServerBackend/migrations
 backend/ServerBackend/ServerBackend/migrations/*
 backend/ServerBackend/ServerBackend/migrations/__pycache__
 backend/ServerBackend/ServerBackend/management/__pycache__
-.DS_Store
+**.DS_Store
