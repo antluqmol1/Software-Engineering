@@ -47,7 +47,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     // Make a POST request to localhost:8000/create-game with the game ID
     axios
       .post(
-        "http://localhost:8000/create-game/",
+        "http://localhost:8000/game/create/",
         { gameid: gameId, id: id, description: "desc1", title: 'title1'},
         {
           headers: {

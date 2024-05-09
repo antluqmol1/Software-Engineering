@@ -9,21 +9,10 @@ import authServices from "../services/authServices";
 const Login = () => {
   const [localUsername, setLocalUsername] = useState("");
   const [password, setPassword] = useState("");
-  // const [csrfToken, setCsrfToken] = useState("");
   const navigate = useNavigate(); // Initialize useHistory hook
 
   // gets the userIsLoggedIn context from the context
   const { csrfToken, setUserIsLoggedIn, setUsername } = useContext(AuthContext);
-
-  // useEffect(() => {
-  //   // Fetch CSRF token when component mounts
-  //   axios.get("http://localhost:8000/grabtoken/", { withCredentials: true })
-  //     .then(response => {
-  //       setCsrfToken(response.data.csrfToken);
-  //     })
-  //     .catch(error => console.error('Error fetching CSRF token', error));
-  // }, []);
-
 
   const handleUsernameChange = (event) => {
     setLocalUsername(event.target.value);
@@ -37,16 +26,19 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
+
+      // make a login call to the backend
       const response = await authServices.login(localUsername, password, csrfToken)
       
+      // 200 is successful
       if (response.status === 200) {
         console.log("Login successful", response.data);
         console.log("JWT: ", response.data['JWT']);
         setUserIsLoggedIn(true)
         navigate('/');
-        // Handle successful login, e.g., redirect to another page
       } else {
         // Error
+        // Maybe we should display the error aswell.
         console.log("Failed to login")
       }
     } catch (error) {

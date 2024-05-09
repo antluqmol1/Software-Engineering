@@ -192,3 +192,55 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+import os
+
+# Assuming BASE_DIR is defined as the root directory of your Django project
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+import os
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} - {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} - {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',  # Reduce console output to INFO level
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_debug.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',  # Reduce Django internal logs to INFO level
+        },
+        'django.db.backends': {
+            'level': 'WARNING',  # Avoid verbose SQL queries
+            'handlers': ['console', 'file'],
+            'propagate': False,
+        },
+        'my_app': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',  # Keep application logs at DEBUG level
+            'propagate': False,
+        },
+    },
+}

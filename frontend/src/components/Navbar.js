@@ -5,17 +5,17 @@ import axios from "axios";
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
 import { AuthContext } from '../AuthContext';
+import authServices from "../services/authServices";
 import '../styles/Navbar.css'; // Import the CSS file
+
 
 
 
 function Navbar() {
 
   const navigate = useNavigate();
-  const cookies = new Cookies();
-  const csrfToken = cookies.get('csrftoken');
 
-  const { username, userIsLoggedIn } = useContext(AuthContext)
+  const { username, userIsLoggedIn, setUserIsLoggedIn, csrfToken } = useContext(AuthContext)
 
   const handleLogout = async () => {
 
@@ -25,14 +25,11 @@ function Navbar() {
     }
 
     try {
-      const response = await axios.post("http://localhost:8000/logout/", {}, {
-        headers: {
-          'X-CSRFToken': csrfToken,
-        }
-      });
+      const response = await authServices.logout(csrfToken);
       if (response.status === 200) {
-        console.log("Logout successful");
-        navigate('/login');
+        console.log("Logout successful")
+        setUserIsLoggedIn(false);
+        navigate('/');
       } else {
         // Could not logout!
         console.log("could not logout")
@@ -45,7 +42,7 @@ function Navbar() {
 
   const handleDeleteGame = async () => {
     try {
-      await axios.delete("http://localhost:8000/delete-game/", {}, {
+      await axios.delete("http://localhost:8000/game/delete-game/", {}, {
         headers: {
           'X-CSRFToken': csrfToken,
         }

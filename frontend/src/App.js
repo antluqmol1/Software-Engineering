@@ -40,7 +40,7 @@ function App() {
 
     // Make a GET request to initialize the session and get CSRF token
     axios
-      .get("http://localhost:8000/token/")
+      .get("http://localhost:8000/auth/token/")
       .then((response) => {
         // Handle the response here if needed
         console.log("Session initialized");

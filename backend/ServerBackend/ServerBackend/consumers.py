@@ -21,6 +21,10 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+# close codes from client that will not 
+# trigger a group wide message informing
+# them that said client has disconnected
 no_end_game_codes = [
     4001,
     1001,
@@ -470,6 +474,8 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def next_task(self, game):
+
+        # Query database for tasks
         try: 
             task_count = Tasks.objects.filter(type=game.type).count()
             if task_count == 0:
@@ -478,6 +484,9 @@ class GameLobby(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f'Error when querying tasks: {e}')
             return None
+
+        print("above logger")
+        logger.info("WS: Retrieved task count, task_count = ", task_count)
 
         # Check if task is available
         for _ in range(task_count):

@@ -10,6 +10,8 @@ import { Button } from "react-bootstrap";
 import { Navigate, useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackspace } from "@fortawesome/free-solid-svg-icons";
+import userServices from "../services/userServices";
+
 
 const Profile = () => {
   // State to control the current view in the right container
@@ -55,10 +57,17 @@ const Profile = () => {
     // Fetch user data when the component mounts
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/profile/", {
-          withCredentials: true,
-        });
-        setUserData(response.data.user_data);
+
+        // Fetch profile data
+        const response = await userServices.getProfile();
+
+        // handle response
+        if (response.status == 200) {
+          setUserData(response.data.user_data);
+        } else {
+          console.error("failed to fetch user data, response: ", response)
+        }
+
       } catch (error) {
         console.error("There was an error!", error);
 
@@ -73,15 +82,19 @@ const Profile = () => {
 
     const fetchProfilePicture = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:8000/profile/get-profile-picture/",
-          {
-            withCredentials: true,
-          }
-        );
-        const base64Image = response.data.image;
-        console.log("Received image data:", base64Image);
-        setProfilePic(`data:image/png;base64,${base64Image}`);
+
+        // Fetch pictures
+        const response = await userServices.getPictureBase64();
+
+        // handle response
+        if (response.status == 200) {
+          const base64Image = response.data.image;
+          console.log("Received image data:", base64Image);
+          setProfilePic(`data:image/png;base64,${base64Image}`);
+        } else {
+          console.error("failed to fetch pictures, response: ", response)
+        }
+
       } catch (error) {
         console.error("There was an error!", error);
       }
@@ -117,10 +130,8 @@ const Profile = () => {
     console.log(updatedValue);
 
     try {
-      // Replace 'http://localhost:8000/profile/update' with your actual backend endpoint
-      // The body of the request may need to be adjusted based on your backend API's expected format
       const response = await axios.put(
-        `http://localhost:8000/profile/update-profile/`,
+        `http://localhost:8000/user/profile/update/`,
         {
           field: field,
           value: updatedValue,
@@ -163,14 +174,22 @@ const Profile = () => {
   const handleSelectProfilePic = async (imagePath) => {
     console.log("Selected image to set as profile:", imagePath);
     try {
-      const response = await axios.post(
-        "http://localhost:8000/profile/update-profile-picture/",
-        { newProfilePicUrl: imagePath },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json", "X-CSRFToken": token },
+        const response = await axios.put(
+            "http://localhost:8000/user/profile/update-picture/",
+            { newProfilePicUrl: imagePath },
+            {
+                withCredentials: true,
+                headers: { "Content-Type": "application/json", "X-CSRFToken": token },
+            }
+        );
+        if (response.data.success) {
+            console.log("Profile picture updated successfully!");
+            // Optionally, refresh the displayed profile picture in the UI
+            setProfilePic(imagePath);
+        } else {
+            console.error("Failed to update profile picture:", response.data.error);
         }
-      );
+        
       if (response.data.success) {
         console.log("Profile picture updated successfully!");
         // Optionally, refresh the displayed profile picture in the UI
@@ -187,28 +206,25 @@ const Profile = () => {
   const handleDeleteImage = async (imagePath) => {
     console.log("Deleting image:", imagePath);
     try {
-      // Assume imagePath contains the necessary identifier for deletion
-      const response = await axios.delete(
-        `http://localhost:8000/profile/delete-profile-picture/`,
-        {
-          data: { imagePath },
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": token,
-          },
-          withCredentials: true,
-        }
-      );
+        // Assume imagePath contains the necessary identifier for deletion
+        const response = await axios.delete(`http://localhost:8000/user/profile/delete-picture/`, {
+            data: { imagePath },
+            headers: { 
+              "Content-Type": 
+              "application/json", 
+              "X-CSRFToken": token },
+            withCredentials: true
+        });
 
-      if (response.data.success) {
-        console.log("Image deleted successfully");
-        // Remove the image from the gallery state
-        setGallery((prev) => prev.filter((img) => img !== imagePath));
-      } else {
-        console.error("Failed to delete the image:", response.data.error);
-      }
+        if (response.data.success) {
+            console.log("Image deleted successfully");
+            // Remove the image from the gallery state
+            setGallery(prev => prev.filter(img => img !== imagePath));
+        } else {
+            console.error("Failed to delete the image:", response.data.error);
+        }
     } catch (error) {
-      console.error("Error deleting the image:", error);
+        console.error("Error deleting the image:", error);
     }
   };
 
@@ -224,7 +240,7 @@ const Profile = () => {
       try {
         // Send POST request to the server to upload the profile image
         const response = await axios.post(
-          "http://localhost:8000/profile/upload-profile-picture/",
+          "http://localhost:8000/user/profile/upload-picture/",
           formData,
           {
             withCredentials: true,
@@ -294,7 +310,7 @@ const Profile = () => {
 
     try {
       const response = await axios.get(
-        "http://localhost:8000/profile/get-all-profile-pictures/",
+        "http://localhost:8000/user/profile/get-all-pictures/",
         {
           withCredentials: true,
           headers: {
