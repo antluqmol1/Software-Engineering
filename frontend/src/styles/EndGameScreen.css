@@ -1,4 +1,29 @@
-.button-72 {
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+
+.game-over-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+  color: #FFFFFF;
+}
+
+.game-over-container h1 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 84px; /* Adjust based on your preference */
+  color: #FFFFFF;
+  text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.75);
+  padding: 20px;
+  background-image: linear-gradient(180deg, #ff00cc 0%, #333399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.button-play-again {
     align-items: center;
     background-color: initial;
     background-image: linear-gradient(rgba(179, 132, 201, .84), rgba(57, 31, 91, .84) 50%);
@@ -14,7 +39,6 @@
     justify-content: center;
     letter-spacing: .04em;
     line-height: 16px;
-    margin: 0;
     padding: 18px 18px;
     text-align: center;
     text-decoration: none;
@@ -22,26 +46,18 @@
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    vertical-align: baseline;
+    margin: 24px auto; /* Centers the button horizontally */
+    display: block; /* This ensures it treats margins correctly */
+    width: fit-content; /* Adjust width to content automatically */
   }
   
-  .button-72:hover {
-    background-image: linear-gradient(#B384C9, #391F5B 50%);
+  .button-play-again:hover {
+    background-color: #a044ff;
   }
-  
+
   @media (min-width: 768px) {
-    .button-72 {
+    .button-play-again {
       font-size: 21px;
       padding: 18px 34px;
     }
   }
-
-  .container {
-    color: rgb(0, 0, 0);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Adjust height as needed */
-  }
-  
-  

@@ -58,7 +58,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-form-container">
-        <h2>Welcome back! Log in</h2>
+        <h2>Welcome back!</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="input-group">
             <input
@@ -78,15 +78,12 @@ const Login = () => {
               onChange={handlePasswordChange}
             />
           </div>
-          <div className="forgot-password">
-            <a href="/forgot-password"></a>
-          </div>
           <button type="submit" className="login-button">
             Log in
           </button>
         </form>
         <div className="signup-redirect">
-          <span>Don't have a Boozechase account? </span>
+          <span>Don't have a Funchase account?</span>
           <a href="/create-user">Sign up</a>
         </div>
       </div>

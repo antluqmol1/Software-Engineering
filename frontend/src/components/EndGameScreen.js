@@ -11,10 +11,10 @@ const EndGameScreen = () => {
   };
 
   return (
-    <div className="container">
+    <div className="game-over-container">
       <div>
-        <h1>Game Over!</h1>
-        <button className="button-72" onClick={handleNavigate}>Back to Home</button>
+        <h1>GAME <br/>OVER</h1>
+        <button className="button-play-again" onClick={handleNavigate}>PLAY AGAIN?</button>
       </div>
     </div>
   );

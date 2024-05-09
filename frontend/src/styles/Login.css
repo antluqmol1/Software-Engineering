@@ -1,65 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 50px;
-  /* min-height: 100vh; */
-  /* Ensure it takes the full viewport height */
-  /* Add a background color for the whole page */
-  box-sizing: border-box;
+  height: 100vh;
+  background: linear-gradient(to right, #800080, #4B0082);
+  color: #ffffff;
 }
 
 .login-form-container {
-  max-width: 350px;
+  max-width: 320px;
   width: 100%;
   /* Ensure it is responsive */
   display: flex;
   flex-direction: column;
   align-items: center;
   /* Center align the content for better aesthetics */
-  padding: 40px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   /* More pronounced shadow */
   margin: 20px;
   /* Add spacing around the form */
 }
 
-.fun-fact-section {
-  background-color: #f8f9fd;
-  padding: 40px;
-  border-radius: 10px;
-  margin: 20px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-  /* Lighter shadow for the fun-fact-section */
-  flex: 1;
-  /* Allow it to take up the remaining space */
-  max-width: 600px;
-  /* Set a max-width for larger screens */
+.login-form-container h2 {
+  font-size: 32px; /* Adjust the size as necessary */
+  font-family: 'Poppins', sans-serif; /* Using Poppins for a modern look */
+  color: #4A00E0; /* Adjust color to match your design theme */
+  background: -webkit-linear-gradient(45deg, #6a11cb, #2575fc); /* Gradient effect */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+  transition: text-shadow 0.3s ease-in-out;
 }
 
-.login-form h2 {
-  font-size: 28px;
-  /* Slightly larger for emphasis */
-  color: #333333;
-  margin-bottom: 30px;
-  font-weight: 600;
-  /* Make the font a bit bolder */
+.login-form-container h2:hover {
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
 }
 
-.input-group {
-  width: 100%;
-  margin-bottom: 20px;
-}
 
 .input-group input {
   width: calc(100% - 20px);
   /* Subtract padding from the width */
-  padding: 15px;
+  padding: 12px;
   /* More padding for larger touch targets */
   font-size: 16px;
-  border: 2px solid #ccc;
+  border: 1px solid #ccc;
   /* Thicker border for better visibility */
   border-radius: 5px;
   margin-top: 8px;
@@ -68,210 +59,25 @@
 }
 
 .input-group input:focus {
-  border-color: #0056b3;
+  border-color: #7209b7;
   /* Highlight input on focus */
   outline: none;
   /* Remove default focus outline */
+  box-shadow: 0 0 8px rgba(114, 9, 183, 0.8);
 }
 
-.forgot-password {
-  text-align: center;
-  width: 100%;
-  margin-bottom: 25px;
-}
-
-.forgot-password a {
-  font-size: 16px;
-  /* Larger font size for readability */
-  color: #0056b3;
-  text-decoration: underline;
-  /* Underline to indicate it's clickable */
-  transition: color 0.3s;
-  /* Smooth transition for color */
-}
-
-.forgot-password a:hover,
-.forgot-password a:focus {
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 50px;
-    min-height: 100vh;
-    /* Full viewport height */
-    background: linear-gradient(135deg, #ece9e6 0%, #ffffff 100%);
-    /* Subtle gradient background */
-    box-sizing: border-box;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    /* Modern font */
-  }
-
-  .login-form-container {
-    max-width: 350px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 50px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-    /* More noticeable shadow for depth */
-    margin: 20px;
-    transition: all 0.3s ease-in-out;
-    /* Smooth transition for all properties */
-  }
-
-  .login-form-container:hover {
-    transform: translateY(-5px);
-    /* Slight raise effect on hover */
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.16);
-    /* Deeper shadow on hover */
-  }
-
-  .fun-fact-section {
-    background-color: #f8f9fd;
-    padding: 50px;
-    border-radius: 12px;
-    margin: 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    flex: 1;
-    max-width: 600px;
-    transition: all 0.3s ease-in-out;
-  }
-
-  .fun-fact-section:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
-  }
-
-  /* Typography */
-  .login-form h2 {
-    font-size: 30px;
-    color: #333;
-    margin-bottom: 30px;
-    font-weight: 700;
-    line-height: 1.2;
-    /* Improved line height for readability */
-  }
-
-  /* Inputs */
-  .input-group {
-    width: 100%;
-    margin-bottom: 20px;
-  }
-
-  .input-group input {
-    width: calc(100% - 20px);
-    padding: 16px;
-    font-size: 16px;
-    border: 2px solid #dcdfe6;
-    /* Lighter border color */
-    border-radius: 6px;
-    margin-top: 8px;
-    transition: border-color 0.2s ease-in-out;
-  }
-
-  .input-group input:focus {
-    border-color: #0056b3;
-    box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
-    /* Faint glow effect */
-    outline: none;
-  }
-
-  /* Buttons and Links */
-  .button,
-  a {
-    text-align: center;
-    display: inline-block;
-    text-decoration: none;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    /* Improve letter spacing for better readability */
-  }
-
-  .forgot-password a,
-  .signup-redirect a {
-    font-size: 16px;
-    color: #0056b3;
-    transition: all 0.2s ease-in-out;
-  }
-
-  .forgot-password a:hover,
-  .signup-redirect a:hover,
-  .forgot-password a:focus,
-  .signup-redirect a:focus {
-    color: #003d82;
-    text-decoration: none;
-    /* Subtle effect for hover state */
-  }
-
-  .login-button {
-    width: 100%;
-    padding: 18px;
-    font-size: 18px;
-    border-radius: 6px;
-    background-image: linear-gradient(45deg, #4f77f1 0%, #2a56c6 100%);
-    /* Gradient background */
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    border: none;
-    /* Remove border */
-  }
-
-  .login-button:hover {
-    background-image: linear-gradient(45deg, #3f67e1 0%, #1a46b6 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Responsiveness */
-  @media (max-width: 768px) {
-    .login-container {
-      flex-direction: column;
-      padding: 30px;
-    }
-
-    .fun-fact-section {
-      order: -1;
-      max-width: none;
-      width: 100%;
-      margin-bottom: 30px;
-    }
-  }
-
-  /* Further responsive tweaks for mobile orientation */
-  @media (max-width: 480px) {
-
-    .login-form-container,
-    .fun-fact-section {
-      padding: 30px;
-      margin: 10px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .input-group input,
-    .login-button {
-      padding: 14px;
-    }
-  }
-
-  /* Add hover and focus states */
-  color: #003d82;
-  text-decoration: none;
-  /* Remove underline on hover/focus for a clean look */
-}
 
 .login-button {
   width: 100%;
   padding: 15px;
   /* Larger padding for a bigger button */
+  margin-top: 15px;
   font-size: 18px;
   border-radius: 5px;
-  background-color: #0056b3;
-  color: white;
+  background-color: #4A00E0;
+  color: #ffffff;
   cursor: pointer;
+  border: none;
   transition: background-color 0.3s, transform 0.3s;
   /* Add transform to transitions */
 }
@@ -284,41 +90,20 @@
 
 .signup-redirect {
   text-align: center;
-  width: 100%;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .signup-redirect a {
   font-size: 16px;
   /* Consistent font size for all links */
-  color: #0056b3;
+  color: #5a67d8;
+  font-weight: bold;
   text-decoration: underline;
 }
 
 .signup-redirect a:hover,
 .signup-redirect a:focus {
   /* Add hover and focus states */
-  color: #003d82;
+  color: #2b2d42;
   text-decoration: none;
 }
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .login-container {
-    flex-direction: column;
-    /* Stack them on smaller screens */
-    padding: 30px;
-    /* Less padding on smaller screens */
-  }
-
-  .fun-fact-section {
-    order: -1;
-    /* Put the fun fact above the form on mobile */
-    max-width: none;
-    /* Allow it to take the full width */
-    width: 100%;
-    margin-bottom: 30px;
-  }
-}
-
-/* Additional media queries and styles for larger/smaller screens */
