@@ -226,10 +226,10 @@ def get_game(request):
             'activeTask': task_data
         }
 
-        return JsonResponse(response)
+        return JsonResponse(response, status=200)
     else:
         # Player is not in a game
-        return JsonResponse({'success': False, 'msg': 'not in a game'})
+        return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
 
 
 @require_http_method(['DELETE'])
@@ -252,12 +252,12 @@ def delete_game(request):
             print("player is an admin, deleting game")
             game_id = part.game.game_id
             success = clean_up_game(game_id=game_id)
-            return JsonResponse({'success': success})
+            return JsonResponse({'success': success}, status=200)
         else:
-            return JsonResponse({'success': False, 'msg': 'user is not admin of game'})
+            return JsonResponse({'success': False, 'msg': 'user is not admin of game'}, staus=403)
     else:
         print("not in a game, fail")
-        return JsonResponse({'success': False})
+        return JsonResponse({'success': False}, status=404)
 
 
 
@@ -343,11 +343,11 @@ def next_task(request):
             game.game_started = True
             game.save()
             print(f'response: description: random_task.description, points: random_task.points, pickedPlayer: random_player.user.username, taskId: random_task.task_id')
-            return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id})
+            return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id}, 200)
                 
 
     # arrive here if all tasks have been checked, or no tasks available        
-    return JsonResponse({'success': False, 'msg': 'no tasks'})
+    return JsonResponse({'success': False, 'msg': 'no tasks'}, status=404)
 
 
 @require_http_method(['GET'])
@@ -361,9 +361,9 @@ def current_task(request):
     currTask = PickedTasks.objects.filter(game=game, done=False).first()
     
     if currTask:
-        return JsonResponse({'success': True, 'taskId': currTask.task.task_id, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username})
+        return JsonResponse({'success': True, 'taskId': currTask.task.task_id, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username}, status=200)
     
-    return JsonResponse({'success': False, 'msg': 'no current task'})
+    return JsonResponse({'success': False, 'msg': 'no current task'}, status=404)
     
 
 @require_http_method(['GET'])
@@ -381,7 +381,7 @@ def give_points(request):
     player.score += points
     player.save()
 
-    return JsonResponse({'success': True})
+    return JsonResponse({'success': True}, status=200)
 
 
 @require_http_method(['GET'])
@@ -538,11 +538,12 @@ def get_image_urls(request):
     returns:
     @uris : list
     '''
-    print("get_all_images_base64")
+    print("get_all_images_participants")
     user = request.user
 
     user_id_list = get_user_ids_from_usernames(user)
 
+    username_list = get_usernames_in_game(user)
 
     url_list = get_profile_picture_on_users(user_id_list)
 
@@ -565,9 +566,14 @@ def get_image_urls(request):
         for file in uri_list
     ]
 
-    logger.info(f'returning uris: {user_files_urls}')
+    uri_dict = {}
+    for i in range(len(user_files_urls)):
+        uri_dict[username_list[i]] = user_files_urls[i]
 
-    return JsonResponse({"success": True, 'uris': user_files_urls}, status=200)
+    logger.info(f'returning uris: {uri_dict}')
+    print(f'\n\n\n\n\nreturning uris: {uri_dict}\n\n\n\n\n')
+
+    return JsonResponse({"success": True, 'uris': uri_dict}, status=200)
 
 
 @require_http_method(['GET'])
@@ -686,6 +692,30 @@ def delete_media_file(file_path):
         return True
     else:
         return False
+    
+def get_usernames_in_game(user):
+    '''
+    returns a list of usernames based on the game the user is in
+    '''
+    try:
+        print("getting user record in participant table")
+        current_user_participant = Participant.objects.get(user=user)
+        print("getting game in users participant table")
+        current_game = current_user_participant.game
+
+        print("getting array of players in same game")
+        participants_in_same_game = Participant.objects.filter(game=current_game)
+
+        usernames = []
+        for part in participants_in_same_game:
+            usernames.append(part.user.username)
+
+        # Extract relevant data to send back (e.g., usernames, scores)
+        print("sending back data")
+        return usernames
+    except:
+        logger.error("error getting usernames from game")
+
 
 def get_user_ids_from_usernames(user):
     '''

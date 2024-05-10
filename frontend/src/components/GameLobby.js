@@ -58,11 +58,18 @@ function GameLobby() {
     const handleDelete = () => {  
 
       console.log("Ending/Deleting game...")
+
+      if (webSocketRef.current) {
+        webSocketRef.current.send(JSON.stringify({
+            type: 'game_end',
+        }));
+      };
+
       webSocketRef.current.close(4020, 'Admin ended game');
       setInAGame(false)
       navigate("/end-game")
 
-  };
+    };
 
     // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
@@ -72,7 +79,7 @@ function GameLobby() {
       setInAGame(false)
       navigate("/end-game")
       
-  };
+    };
     const handleLeaderBoardShow = () => {
 
     if (showLeaderBoard)
@@ -112,11 +119,11 @@ function GameLobby() {
   }, [usernameArray]);
 
 
-  const fetchPlayerImages = () => {
+  const fetchPlayerImages = async() => {
 
     console.log("attempting to fetch profile picture urls");
 
-    const response = gameServices.getProfilePictures();
+    const response = await gameServices.getProfilePictures();
 
     console.log("fetch profile pictures: ", response);
 
@@ -308,11 +315,6 @@ function GameLobby() {
                         return prevPlayerList.filter(player => player.username !== data.message);
                     });
 
-                    if (data.admin) {
-                      console.log("Admin has quit, game is deleted")
-                      navigate('/')
-                    }
-
                     break;
                 case 'join':
                     console.log("player joined");
@@ -446,8 +448,6 @@ function GameLobby() {
                         setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
                         break;
                     }
-
-
                               // Websocket response handler
 
                   break;
@@ -456,7 +456,7 @@ function GameLobby() {
                     console.log("game end message recieved from WS")
 
                     console.log("GAME HAS ENDED")
-
+                    setInAGame(false)
                     navigate("/end-game");
 
                   break;

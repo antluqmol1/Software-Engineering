@@ -92,52 +92,57 @@ class GameLobby(AsyncWebsocketConsumer):
 
         # default value
         admin = False
+        user = await self.get_user()
+        game = await self.get_participant_game(self.user_id)
 
-        # get the username
+        # try:
+        #     print("WS: fetching user")
+        #     print("WS: fetching game")
+        #     print("WS: gameid is ", game.game_id)
+        #     game_admin = await self.get_game_admin(game)
 
-        # if close_code == 4020:
-        #     admin = True
+        #     print(f"WS: comparing {game_admin} and {user}")
+        #     if game_admin == user:
+        #         print("WS: player is admin!")
+        #         admin = True
+        #     else:
+        #         print("WS: player is a user")
+        # except Exception as e:
+        #     print("WS: Error: ", e)
+        #     print("WS: no username/game, not even connected")
+        #     return
 
-        try:
-            print("WS: fetching user")
-            user = await self.get_user()
-            print("WS: fetching game")
-            game = await self.get_participant_game(self.user_id)
-            print("WS: gameid is ", game.game_id)
-            game_admin = await self.get_game_admin(game)
+        # # If disconnected player is admin, we need to end the game
+        # # Potentially check the code, so that in case it was unintentional 
+        # # disconnect, we can pass admin to another player
 
-            print(f"WS: comparing {game_admin} and {user}")
-            if game_admin == user:
-                print("WS: player is admin!")
-                admin = True
-            else:
-                print("WS: player is a user")
-        except Exception as e:
-            print("WS: Error: ", e)
-            print("WS: no username/game, not even connected")
-            return
-
-        # If disconnected player is admin, we need to end the game
-        # Potentially check the code, so that in case it was unintentional 
-        # disconnect, we can pass admin to another player
-
-        if admin:
-            print("WS: Adming ending game")
-            game_ended = await self.end_game(game)
-            if game_ended:
-                print("WS: game deleted!")
-            else:
-                print("WS: error deleting game!")
-                return
+        # if admin:
+        #     print("WS: Adming ending game")
+        #     game_ended = await self.end_game(game)
+        #     if game_ended:
+        #         print("WS: game deleted!")
+        #     else:
+        #         print("WS: error deleting game!")
+        #         return
+        # else:
+        left_game = await self.leave_game(game) 
+        if left_game:
+            print("WS: left game!")
         else:
-            left_game = await self.leave_game(game) 
-            if left_game:
-                print("WS: left game!")
-            else:
-                print("WS: error leaving game!")
+            print("WS: error leaving game!")
 
         print("\nWS: sending message from ws\n")
         # send disconnect message to the group
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'Disconnect_Update',
+                'message': user.username,
+                'admin': admin,
+                'msg_type': 'disconnect'
+            }
+        )
+
         await self.channel_layer.group_send(
             self.game_group_name,
             {
@@ -260,19 +265,6 @@ class GameLobby(AsyncWebsocketConsumer):
                     }
                     )
 
-                # ADMIN DECIDES WHEN NEXT TASK IS FETCHED, WE CAN REMOVE THIS I THINK
-                # # fetch the next task
-                # response = await self.next_task(game)
-
-                # await self.channel_layer.group_send(
-                #     self.game_group_name, 
-                #     {
-                #         'type': 'Task',  # This refers to the method name `Task`
-                #         'message': response,
-                #         'msg_type': 'new_task'
-                #     }
-                #     )
-
             case 'new_task':
 
                 game = await self.get_participant_game(self.user_id)
@@ -293,6 +285,13 @@ class GameLobby(AsyncWebsocketConsumer):
                 response = {
                     'game_end': True
                 }
+                game = await self.get_participant_game(self.user_id)
+                end_game = await self.end_game(game)
+
+                if end_game:
+                    print("WS: game ended")
+                else:
+                    print("WS: failed to end game")
 
                 print("WS: sending game_end message to other members")
                 await self.channel_layer.group_send(
@@ -311,8 +310,9 @@ class GameLobby(AsyncWebsocketConsumer):
 
     # Message methods
     async def Game_End(self, event):
+        print("WS: Game_End message method")
         message = event['message']
-        msg_type = event.get('mgs_type', 'No msg_type')
+        msg_type = event.get('msg_type', 'No msg_type')
 
         await self.send(text_data=json.dumps({
             'message': message,
@@ -415,6 +415,7 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def end_game(self, game):
         print("\tWS: end_game")
+        
         try:
             game_to_delete = Game.objects.get(game_id=game.game_id)
             print("\tWS: Fetch successfull, ", game_to_delete.game_id)

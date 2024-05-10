@@ -16,10 +16,10 @@ const FrontPage = () => {
   const navigate = useNavigate(); // Initialize useHistory hook
 
   // const userIsLoggedIn = useCheckUserLoggedIn();
-  const { username, setUsername, userIsLoggedIn, inAGame, setInAGame} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
+  const { username, setUsername, userIsLoggedIn, inAGame, setInAGame, loading} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
   console.log("userIsLoggedIn: ", userIsLoggedIn)
   useEffect(() => {
-    if (userIsLoggedIn === false) {
+    if (!userIsLoggedIn && !loading) {
       // If not logged in, redirect to the login page
       console.log("Not logged in");
       navigate("/login");
@@ -179,15 +179,6 @@ const FrontPage = () => {
               Create Game
             </button>
           </div>
-          // <div className="buttons-container">
-          //   {/* add some stuff here*/}
-          //   <button className="login-button" onClick={handleLoginClick}>
-          //     Login
-          //   </button>
-          //   <button className="login-button" onClick={handleSignUpClick}>
-          //     Sign Up
-          //   </button>
-          // </div>
         )}
         {activeOption === "join" && (
           <div className="game-action-container">
