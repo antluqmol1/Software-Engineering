@@ -58,7 +58,7 @@ function GameLobby() {
     const handleDelete = () => {  
 
       console.log("Ending/Deleting game...")
-      webSocketRef.current.close(1000, 'Admin ended game');
+      webSocketRef.current.close(4020, 'Admin ended game');
       setInAGame(false)
       navigate("/end-game")
 

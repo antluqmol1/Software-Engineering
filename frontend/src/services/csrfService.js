@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // get a csrf token from the backend
 const getCsrfToken = async () => {
+    console.log("csrfService: Getting token")
   try {
     const response = await axios.get('http://localhost:8000/auth/grabtoken/', { withCredentials: true });
     return response.data.csrfToken;

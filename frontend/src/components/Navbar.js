@@ -25,6 +25,7 @@ function Navbar() {
     }
 
     try {
+      console.log("trying to logout with this csrf token ", csrfToken)
       const response = await authServices.logout(csrfToken);
       if (response.status === 200) {
         console.log("Logout successful")

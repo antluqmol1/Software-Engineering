@@ -4,6 +4,7 @@ import "../styles/Login.css"; // Make sure your CSS matches the layout and style
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
 import { AuthContext } from '../AuthContext';
 import authServices from "../services/authServices";
+import csrfServices from "../services/csrfService";
 
 
 const Login = () => {
@@ -12,7 +13,7 @@ const Login = () => {
   const navigate = useNavigate(); // Initialize useHistory hook
 
   // gets the userIsLoggedIn context from the context
-  const { csrfToken, setUserIsLoggedIn, setUsername } = useContext(AuthContext);
+  const { csrfToken, setCsrfToken, setUserIsLoggedIn, setUsername } = useContext(AuthContext);
 
   const handleUsernameChange = (event) => {
     setLocalUsername(event.target.value);
@@ -34,7 +35,16 @@ const Login = () => {
       if (response.status === 200) {
         console.log("Login successful", response.data);
         console.log("JWT: ", response.data['JWT']);
-        setUserIsLoggedIn(true)
+
+        // Ask for new csrf token if logged in, old one is not suitable anymore
+        const newCsrfToken = await csrfServices.getCsrfToken();
+        if (newCsrfToken !== null) {
+          setCsrfToken(newCsrfToken)
+        } else {
+          console.log("NOT GETTING NEW CSRFTOKEN")
+        }
+
+        setUserIsLoggedIn(true);
         navigate('/');
       } else {
         // Error

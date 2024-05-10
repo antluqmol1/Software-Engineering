@@ -94,16 +94,26 @@ class GameLobby(AsyncWebsocketConsumer):
         admin = False
 
         # get the username
-        try: 
-            print("WS: attempting to fetch user and game")
+
+        # if close_code == 4020:
+        #     admin = True
+
+        try:
+            print("WS: fetching user")
             user = await self.get_user()
+            print("WS: fetching game")
             game = await self.get_participant_game(self.user_id)
-            print("WS: can we not print game.admin")
-            print("WS: game.admin ", game.admin)
-            if game.admin == user:
+            print("WS: gameid is ", game.game_id)
+            game_admin = await self.get_game_admin(game)
+
+            print(f"WS: comparing {game_admin} and {user}")
+            if game_admin == user:
                 print("WS: player is admin!")
                 admin = True
-        except:
+            else:
+                print("WS: player is a user")
+        except Exception as e:
+            print("WS: Error: ", e)
             print("WS: no username/game, not even connected")
             return
 
@@ -362,16 +372,29 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_participant_game(self, user_id):
         print("\tWS: get_participant_game")
-        try: 
+        try:
+            print("\tWS: querying database")
             part = Participant.objects.get(user_id=user_id)
+            print("\tWS: query complete")
             game = part.game
-            game_dict = model_to_dict(game)
-            print("\tWS: admin: ", game.admin)
-            print("\tWS: returning game: ", game_dict)
+            print("\tWS: returning game")
+            # game_dict = model_to_dict(game)
+            # print("\tWS: admin: ", game.admin)
+            # print("\tWS: returning game: ", game_dict)
+
             return game
         except Participant.DoesNotExist:
             print("\tWS: Participant does not exist")
             return None
+    
+    @database_sync_to_async
+    def get_game_admin(self, game):
+        print("\tWS: get_game_admin")
+        try:
+            return game.admin
+        except Exception as e:
+            print("failed to get game admin, error ", e)
+            
         
     # Database function
     @database_sync_to_async

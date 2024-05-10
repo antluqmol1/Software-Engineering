@@ -3,7 +3,7 @@ import config from '../config';
 
 
 const createUser = async (first_name, last_name, username, email, password, csrfToken) => {
-    return axios.put(`${config.API_BASE_URL}/user/put/`, {
+    return axios.post(`${config.API_BASE_URL}/user/create/`, {
             first_name,
             last_name,
             username,

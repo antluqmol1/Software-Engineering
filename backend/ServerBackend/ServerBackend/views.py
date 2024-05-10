@@ -176,15 +176,16 @@ def create_game(request):
     return JsonResponse({'success': True}, status=200)
         
         
-'''
-Used when checking if a player is in game
-Returns 
-@gameId : string
-@isAdmin : boolean
-'''
+
 @require_http_method(['GET'])
 @require_authentication
 def get_game(request):
+    '''
+    Used when checking if a player is in game
+    Returns 
+    @gameId : string
+    @isAdmin : boolean
+    '''
     user = request.user
 
     # Checks if player is currently in a game
@@ -280,19 +281,17 @@ def clean_up_game(game_id):
         return False
 
 
-        
-'''
-Returns the next task of the game type the player is currently in.
-Loops through the PickedTasks table until it finds a unique task for
-the current game.
-Returns:
-@description : string
-@points : int
-'''
-
 @require_http_method(['GET'])
 @require_authentication
 def next_task(request):
+    '''
+    Returns the next task of the game type the player is currently in.
+    Loops through the PickedTasks table until it finds a unique task for
+    the current game.
+    Returns:
+    @description : string
+    @points : int
+    '''
     user = request.user
 
     # get the participant, game, and extract type
@@ -370,7 +369,6 @@ def current_task(request):
 @require_http_method(['GET'])
 @require_authentication
 def give_points(request):
-    user = request.user
 
     data = json.loads(request.body) 
     points = data.get('points')
@@ -389,13 +387,20 @@ def give_points(request):
 @require_http_method(['GET'])
 @require_authentication
 def get_game_participants(request):
+    '''
+    Gets all participants in the game the user is currently in
+    returns:
+    @participants : list
+    '''
     print("get game participants")
 
     user = request.user
 
-
-    print("getting user record in participant table")
-    current_user_participant = Participant.objects.get(user=user)
+    try:
+        logger.info("getting user record in participant table")
+        current_user_participant = Participant.objects.get(user=user)
+    except Participant.DoesNotExist:
+        return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
     print("getting game in users participant table")
     current_game = current_user_participant.game
 
@@ -407,33 +412,48 @@ def get_game_participants(request):
     participant_data = [{'username': p.user.username, 'score': p.score} 
                         for p in participants_in_same_game]
 
-    return JsonResponse({'participants': participant_data})
+    return JsonResponse({'participants': participant_data}, status=200)
 
 
 @require_http_method(['GET'])
 def grab_token(request):
+    '''
+    Generates a csrf token for the user
+    returns:
+    @csrfToken : string
+    '''
     # Ensure a CSRF token is set in the user's session
+    # must be generated again if the user logs in
     csrf_token = get_token(request)
     print("returning token: ", csrf_token)
-    # Return the token in a JSON response
-    return JsonResponse({'csrfToken': csrf_token})
+    return JsonResponse({'csrfToken': csrf_token}, status=200)
 
 
 @require_http_method(['POST'])
 @require_authentication
 def user_logout(request):
+    '''
+    Logs the user out
+    '''
     print("logging out")
     try:
         logout(request)
+        success = True
     except Exception as e:
         print("Error logging out, error: ", e)
+        success = False
 
-    return JsonResponse({'success': True, 'msg': 'logged out'}, status=200)
+    return JsonResponse({'success': success}, status=200)
 
 
 @require_http_method(['GET'])
 @require_authentication
 def get_profile(request):
+    '''
+    returns the profile of the user
+    returns:
+    @user_data : dict
+    '''
     print("get profile")
 
     user = request.user
@@ -449,6 +469,9 @@ def get_profile(request):
 @require_http_method(['PUT'])
 @require_authentication
 def update_profile(request):
+    '''
+    Updates the profile of the user
+    '''
     print("updating profile")
 
     user = request.user
@@ -476,6 +499,9 @@ Recieves a DataForm form
 @require_http_method(['POST'])
 @require_authentication
 def upload_image_base64(request):
+    '''
+    Updates the profile picture of the user based on the image provided
+    '''
     print("upload_image_base64")
 
     user = request.user
@@ -488,20 +514,6 @@ def upload_image_base64(request):
         extension = profile_picture.name.split('.')[-1].lower()
         if extension not in ['png', 'jpg', 'jpeg']:
             return JsonResponse({'success': False, 'error': 'Unsupported file format, must be png, jpg, or jpeg'}, status=400)
-        
-        file_path = f'ServerBackend/media/custom/{user.id}.{extension}'
-
-        # delete old profile pic
-        if "preset" not in user.profile_pic.path:
-            print("user is using custom, delete old profile pic")
-            try:
-                # fix this
-                # old_file_path = user.profile_pic.path
-                # if default_storage.exists(old_file_path):
-                #     default_storage.delete(old_file_path)
-                print("old profile pic deleted")    
-            except Exception as e:
-                print(f"Error deleting old image: {str(e)}")
         
         # Save new image
         try:
@@ -521,6 +533,11 @@ def upload_image_base64(request):
 @require_http_method(['GET'])
 @require_authentication
 def get_image_urls(request):
+    '''
+    Gets the profile picture of all users in the game
+    returns:
+    @uris : list
+    '''
     print("get_all_images_base64")
     user = request.user
 
@@ -548,12 +565,19 @@ def get_image_urls(request):
         for file in uri_list
     ]
 
+    logger.info(f'returning uris: {user_files_urls}')
+
     return JsonResponse({"success": True, 'uris': user_files_urls}, status=200)
 
 
 @require_http_method(['GET'])
 @require_authentication
 def get_image_base64(request):
+    '''
+    Returns the profile picture of the user as a base64 encoded string
+    returns:
+    @image : string
+    '''
     print("get_image_base64")
 
     user = request.user
@@ -572,6 +596,9 @@ def get_image_base64(request):
 @require_http_method(['GET'])
 @require_authentication
 def get_all_images_base64(request): #RENAME! NOT USING BASE64
+    '''
+    Returns all images in the belonging to the user as a list of URLs
+    '''
     print("get_all_images_base64")
     user = request.user
     print("user is authenticated")
@@ -605,6 +632,9 @@ def get_all_images_base64(request): #RENAME! NOT USING BASE64
 @require_http_method(['PUT'])
 @require_authentication
 def select_image(request):
+    '''
+    Updates the current profile picture of the user based on the image path provided
+    '''
     print("select image")
     
     user = request.user
@@ -629,9 +659,11 @@ def select_image(request):
 @require_http_method(['DELETE'])
 @require_authentication
 def delete_image(request):
+    '''
+    Delets the image specified in the request
+    '''
     print("select image")
     
-    user = request.user
     data = json.loads(request.body)
     new_profile_pic_url = data.get('imagePath')
     print("is authenticated")
@@ -656,7 +688,9 @@ def delete_media_file(file_path):
         return False
 
 def get_user_ids_from_usernames(user):
-
+    '''
+    returns a list of user ids based on a list of usernames
+    '''
     try:
         print("getting user record in participant table")
         current_user_participant = Participant.objects.get(user=user)
@@ -678,6 +712,9 @@ def get_user_ids_from_usernames(user):
 
 
 def get_profile_picture_on_users(user_id_list):
+    '''
+    returns a list of profile picture urls based on user_id_list
+    '''
 
     url_list = []
     for id in user_id_list:
@@ -695,9 +732,14 @@ def get_profile_picture_on_users(user_id_list):
 # @require_authentication
 @require_http_method(['POST'])
 def user_login(request):
-    print("inside user_login")
+    '''
+    Logs the user in using djangos built in authentication
+    Also generates a JWT token for the user, neccessary for websocket
+    returns:
+    @JWT : string
+    '''
+    print("user_login")
 
-    # Get username and password from request.POST
     data = json.loads(request.body)
 
     username = data.get('username')
@@ -707,6 +749,7 @@ def user_login(request):
     print(password)
 
     logger.info("attempting to authenticate...")
+
     # Use Django's authenticate function to verify credentials
     user = authenticate(username=username, password=password)
     logger.info("authentication complete!")
@@ -722,34 +765,47 @@ def user_login(request):
         response = JsonResponse({'success': True, 'JWT': token}, status=200)
 
         response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
-        # Return a JSON response or redirect as per your application's flow
         return response
 
-'''
-Gets the username of the client
-'''
+
 @require_http_method(['GET'])
 @require_authentication
 def get_username(request):
+    '''
+    Gets the username of the client
+    returns:
+    @username : string
+    '''
     print("get_username")
 
     user = request.user
 
     return JsonResponse({'success': True, 'username': user.username}, status=200)
 
-'''
-Tells the client wether they are logged in or not
-'''
+
 @require_http_method(['GET'])
-@require_authentication
-def get_login_status(request):
+def get_status(request): # RENAME!
+    '''
+    Returns relevant user data:
+    @loggedIn : boolean
+    @username : string
+    @inAGame : boolean
+    '''
     print("get_login_status")
 
     user = request.user
 
     if user.is_authenticated:
+        
+        username = user.username
+
+        if Participant.objects.filter(user=user).exists():
+            in_a_game = True
+        else:
+            in_a_game = False
+
         print("user is logged in, returning 200")
-        return JsonResponse({'success': True, 'msg': 'logged in'}, status=200)
+        return JsonResponse({'success': True, 'loggedIn': True, 'username': username, 'inAGame': in_a_game}, status=200)
     else:
         print("not logged in")
         return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
@@ -796,7 +852,6 @@ def put_admin(request):
 
 
 @require_http_method(['POST'])
-@require_authentication
 def create_user(request):
     # Creates a new user
     print("put_user")

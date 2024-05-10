@@ -28,12 +28,12 @@ urlpatterns = [
         path('token/', views.grab_token, name='grab_token'), # not sure if we need to group these
         path('login/', views.user_login, name='user_login'),
         path('logout/', views.user_logout, name='user_logout'),
-        path('get-status/', views.get_login_status, name='get_login_status'),
+        path('get-status/', views.get_status, name='get_login_status'),
     ], 'auth'))),
 
     path('user/', include(([
-        path('put/', views.create_user, name='put_user'),
-        path('put-admin/', views.put_admin, name='put_admin'),
+        path('create/', views.create_user, name='put_user'),
+        path('create-admin/', views.put_admin, name='put_admin'),
         path('get-username/', views.get_username, name='get_user'),
         path('profile/', include(([
             path('get/', views.get_profile, name='get_profile'),
