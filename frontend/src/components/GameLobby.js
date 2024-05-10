@@ -26,6 +26,7 @@ function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
     const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
+    const [URIArray, setURIArray] = useState([{ uri: 'null'}]);
 
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
