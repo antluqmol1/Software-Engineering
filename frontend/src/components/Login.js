@@ -10,6 +10,7 @@ import csrfServices from "../services/csrfService";
 const Login = () => {
   const [localUsername, setLocalUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // State to hold error message
   const navigate = useNavigate(); // Initialize useHistory hook
 
   // gets the userIsLoggedIn context from the context
@@ -26,6 +27,7 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError(""); // Clear previous errors
     try {
 
       // make a login call to the backend
@@ -47,19 +49,26 @@ const Login = () => {
         setUserIsLoggedIn(true);
         navigate('/');
       } else {
-        // Error
-        // Maybe we should display the error aswell.
-        console.log("Failed to login")
+        console.log("Login failed with status: ", response.status)
+        setError("Login failed. Please check your credentials."); // Set error message
       }
     } catch (error) {
-      console.error("Login failed", error);
-      // Handle login failure, e.g., display error message
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message); // Use server-provided message
+      } else if (error.response && error.response.status === 401) {
+        setError("Unauthorized access. Please check your credentials and try again.");
+      } else {
+        // Generic error message if the error object doesn't contain specific details
+        setError("An error occurred. Please try again.");
+      }
+      console.error("Login error:", error);
     }
   };
 
   return (
     <div className="login-container">
       <div className="login-form-container">
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <h2>Welcome back!</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="input-group">

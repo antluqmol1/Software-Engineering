@@ -14,50 +14,49 @@ import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 import gameServices from "../services/gameServices";
 
-
-
-const wheel_data = [
-  // { option: 'bob'},
-  // { option: 'alice'},
-  // { option: 'frank'},
-]
-
 function GameLobby() {
-    const [playerList, setPlayerList] = useState([]);
-    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
-    const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
-    const [URIArray, setURIArray] = useState([{ uri: 'null'}]);
+    
+    //Used in the leaderboard
+    const [playerList, setPlayerList] = useState([]); //list of players in a game
 
+    //States of the game
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
+
+    //task related states
     const [taskText, setTaskText] = useState(null);
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
-    const [pickedPlayer, setPickedPlayer] = useState(null);
     const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
-
-    const [spunWheel, setSpunWheel] = useState(false);
-    const [waitingForSpin, setWaitingForSpin] = useState(false);
     const [nextTask, setNextTask] = useState(false)
     
+    //Lists for different types of votes
     const [checkmarksLine1, setCheckmarksLine1] = useState([]);
     const [exesLine2, setExesLine2] = useState([]);
     const [questionLine3, setQuestionLine3] = useState([]);
-    const [showLeaderBoard, setShowLeaderBoard] = useState(true);
-    const [wheelAudio, setWheelAudio] = useState(new Audio(SpinSound));
-
+    
     const navigate = useNavigate();
+    
+    //context variables
+    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
-
+    
+    //Roulette wheel related states
+    const [wheelData, setWheelData] = useState([{ oprtion: 'null', uri: 'null'}]);
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
-
-
+    const [spunWheel, setSpunWheel] = useState(false);
+    const [waitingForSpin, setWaitingForSpin] = useState(false); //state for handling joinning mid game
+    const wheelAudio = new Audio(SpinSound); //Audio effect for wheel
+    const [pickedPlayer, setPickedPlayer] = useState(null); //who will recieve the next task
+    
+    
+    //function to Delete game
     const handleDelete = () => {  
-
+      
       console.log("Ending/Deleting game...")
 
       if (webSocketRef.current) {
@@ -81,18 +80,6 @@ function GameLobby() {
       navigate("/end-game")
       
     };
-    const handleLeaderBoardShow = () => {
-
-    if (showLeaderBoard)
-    {
-      setShowLeaderBoard(false);
-    }
-    else
-    {
-      setShowLeaderBoard(true);
-    }
-    console.log(showLeaderBoard)
-  };
 
 
   // Function to fetch the list of participants from the server
@@ -104,32 +91,31 @@ function GameLobby() {
       })
       .then((response) => {
         setPlayerList(response.data.participants);
-        const usernames = Array.from(response.data.participants.values()).map(player => ({ option: player.username }));
-        setUsernameArray(usernames);
-
-        console.log('Username array:', usernames);
-        console.log('Username array2222:', wheel_data);
-
       })
       .catch((error) => {
         console.error("Error fetching player list:", error);
       });
   };
 
-  useEffect(() => {
-  }, [usernameArray]);
-
-
   const fetchPlayerImages = async() => {
 
     console.log("attempting to fetch profile picture urls");
-
+    //Fetch list from backend
     const response = await gameServices.getProfilePictures();
+    
+    //setting list with option and image uri if they are in a custom folder
+    const newData = Object.entries(response.data.uris).map(([username, uri]) => (
 
-    console.log("fetch profile pictures: ", response);
-
+      {
+        option: username,
+        image: uri.includes('custom') ? { uri: uri } : null
+      }
+      
+    ));
+    setWheelData(newData)
   }
 
+  //Function to fetch game
   const fetchGame = () => {
 
       axios.get("http://localhost:8000/game/get/",
@@ -217,6 +203,7 @@ function GameLobby() {
       }));
   }
   }
+
   const getNextTask = () => {
 
     setNextTask(false)
@@ -257,22 +244,15 @@ function GameLobby() {
 
     console.log('Updating userNameArray', playerList)
     console.log("logged in? ", inAGame)
-    if (playerList.length > 0) {
-      const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
-      setUsernameArray(usernames);
-    }
+
+    fetchPlayerImages(token)
+
 
   }, [playerList]);
 
 
   //incoming change, this return is incoming change
     useEffect(() => {
-        
-      console.log('HAHHAHAHHAALALLALALA SOUND LOAD')
-      const audio = new Audio(SpinSound)
-      console.log(audio)
-        setWheelAudio(audio)
-
 
         // new loaing state makes sure we don't perform actions before the right values are set
         if (!loading && !inAGame) {
@@ -295,18 +275,17 @@ function GameLobby() {
         webSocketRef.current.onopen = (event) => {
             console.log('WebSocket Connected');
         };
-
+        
+        // Websocket response handler
         webSocketRef.current.onmessage = (event) => {
             // Handle incoming messages
             const data = JSON.parse(event.data);
-            console.log('Message from ws ', data.message);
-            // console.log('Raw data ', data);
-            // console.log('Raw event ', event);
-            console.log('msg_type ', data.msg_type)
-            
+            console.log('Message from ws ', data.message, 'msg_type ', data.msg_type);            
 
             // Websocket response handler
             switch (data.msg_type) {
+                
+                //When an existing player disconnects from the game
                 case 'disconnect':
                     console.log("player disconnected");
                     console.log(data.message);
@@ -315,6 +294,7 @@ function GameLobby() {
                     });
 
                     break;
+                //When a new player joins the game
                 case 'join':
                     console.log("player joined");
                     console.log("Can we update player list? ", mustSpin ? "yes" : "no");
@@ -340,12 +320,10 @@ function GameLobby() {
                             return [...prevPlayerList, data.message];
                           }
                         });
-                    // Update the list of usernames as well
-
                     break;
                     
+                // fetches new task from backend and handles state changes
                 case 'new_task':
-                    console.log("IRJIGJRIJGRIJI Picked from Newtask: ", data.message['pickedPlayer'])
 
                     setTaskId(data.message['taskId']);
                     setTaskText(data.message['taskText']);
@@ -353,17 +331,14 @@ function GameLobby() {
                     setPickedPlayer(data.message['pickedPlayer']);
                     setGameStarted(data.message['gameStarted']);
                     setNextTask(false)
-                    console.log(data.message['pickedPlayer'])
-                    console.log(data.message['participants'])
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
                     setPlayerList(data.message['participants']);
-                    console.log("NEW TASK TESTING PLAYERLIST: ", playerList);
                     const sortedPlayerList = data.message.participants.sort((a, b) => b.score - a.score);
                     setPlayerList(sortedPlayerList);
-                    console.log("Wheeel audio", wheelAudio)
                     wheelAudio.play()
                     break;
                 
+                //Re-inits states when one task is done, before next task is fetched
                 case 'task_done':
                     console.log(data.message)
                     setCheckmarksLine1([])
@@ -374,7 +349,7 @@ function GameLobby() {
                     console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer']);
                     console.log("prev task user: ", data.message['username'], " new score ", data.message['score']);
                     
-                    if (data.message['winner'] == true) {
+                    if (data.message['winner'] === true) {
                       console.log("player has won, playerlist with new score")
                       updatePlayerList(data.message['player&score'])
                     } else {
@@ -386,6 +361,7 @@ function GameLobby() {
 
                     break;
 
+                //Handling recieving new votes
                 case 'task_new_vote':
 
                     console.log("new vote recieved")
@@ -395,15 +371,12 @@ function GameLobby() {
                     const newVote = data.message['prevVote']
                     var vote = data.message['newVote'];
 
-                    
-                    console.log("newVote value, ", newVote);
-                    console.log("prevVote value, ", data.message['prevVote']);
-                    console.log("newVote value, ", data.message['newVote']);
 
-                    if (newVote != undefined) {
+                    if (newVote !== undefined) {
                       console.log("change vote detected")
                       const prevVote = data.message['prevVote'];
-
+                      
+                      //Remove previous vote if the player had already voted
                       const removeVote = (voteType) => {
                         switch (voteType) {
                           case 'yes':
@@ -431,7 +404,8 @@ function GameLobby() {
                       console.log("new vote detected", vote)
                       setTotalVotes(prevTotalVotes => prevTotalVotes + 1);
                     }
-
+                    
+                    //Set the new vote to whatever the vote was
                     console.log(vote)
                     switch (vote) {
                       case 'yes':
@@ -447,7 +421,6 @@ function GameLobby() {
                         setQuestionLine3(prevQuestions => [...prevQuestions, <FontAwesomeIcon key={taskId} icon={faQuestion} className="ml-2 text-warning" />]);
                         break;
                     }
-                              // Websocket response handler
 
                   break;
 
@@ -459,20 +432,20 @@ function GameLobby() {
                     navigate("/end-game");
 
                   break;
+
+                //When the wheel has stopped spinning and everyone recieves the task
                 case 'wheel_stopped':
-                  console.log("wheel_stopped message")
-                  console.log("current waitingForSpin, ", waitingForSpin)
+                  console.log("wheel_stopped message");
                   if (!waitingForSpin) {
-                    console.log("setting to false")
                     setWaitingForSpin(false);
                   } else {
-                    console.log("waitingForSpin did not change state...")
+                    console.error("waitingForSpin did not change state...")
                   }
                 break;
             }
         
         };
-
+        
         webSocketRef.current.onclose = () => {
             console.log('WebSocket Disconnected');
         };
@@ -491,7 +464,6 @@ function GameLobby() {
       if (!mustSpin) {
         console.log('Handle spin click')
 
-        const newPrizeNumber = Math.floor(Math.random() * wheel_data.length);
         const index = usernames.findIndex(player => player.username === username);
         
         setPrizeNumber(index);
@@ -511,16 +483,16 @@ function GameLobby() {
 
     return (
         <div className="game-lobby">
+          
           <div className="GameID">GameID: {gameID}</div>
           {/* Leaderboard */}
 
           {/* Display total votes count */}
           <div className="game-lobby">
+            
             <div className="vote-count">
               <h3 className="tVotes">Total votes: {totalVotes}</h3>
-              {/* <p>Yes votes: {yesVotes}</p>
-              <p>No votes: {noVotes}</p>
-              <p>Skip votes: {skipVotes}</p> */}
+          
           {/* Display checkmarks for "Yes" votes */}
           <div>
               {checkmarksLine1.map((checkmark, index) => (
@@ -535,17 +507,19 @@ function GameLobby() {
             ))}
           </div>
   
-            {/* Display question's for "Skip" votes */}
-            <div>
-              {questionLine3.map((question, index) => (
-                <span className="single-vote" key={index}>{question}</span>
-              ))}
-            </div>
+          {/* Display question's for "Skip" votes */}
+          <div>
+            {questionLine3.map((question, index) => (
+              <span className="single-vote" key={index}>{question}</span>
+            ))}
+          </div>
+
+        
         </div>
       </div>
 
 
-<Leaderboard   handleLeaderBoardShow={handleLeaderBoardShow} showLeaderBoard={showLeaderBoard} playerList={playerList}/>
+<Leaderboard playerList={playerList}/>
 
 {spunWheel &&
 <QuestionContainer   waitingForSpin={waitingForSpin} pickedPlayer={pickedPlayer} taskPoints={taskPoints} taskText={taskText} username={username} voteTask={voteTask} taskId={taskId}  />
@@ -584,10 +558,10 @@ function GameLobby() {
             <Wheel
             mustStartSpinning={mustSpin}
             prizeNumber={prizeNumber}
-            data={usernameArray}
+            data={wheelData}
             // spinDuration={1.2}
             backgroundColors={['#a35cb5', '#c971d9', '#c251d6']}
-            textColors={['white']}
+            textColors={['#ffffff']}
             onStopSpinning={() => {
               setMustSpin(false);
             }}

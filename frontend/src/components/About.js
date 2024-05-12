@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/About.css"; // Make sure your CSS matches the layout and style in the image
+import "../styles/About.css";
 
 const About = () => {
 
@@ -7,7 +7,7 @@ const About = () => {
     <div className="about-container">
       <h1 className="about-title">Welcome to FunChase!</h1>
 
-      <div className="game-info">
+      <div className="section game-info">
         <h2>Game Overview</h2>
         <p>
           FunChase is a social game designed for gatherings where players can join lobbies and engage in three different game modes: "Night out", "Family friendly", and "Mountain hike". 
@@ -15,8 +15,8 @@ const About = () => {
         </p>
       </div>
 
-      <div className="how-to-play">
-        <h2>How to Play</h2>
+      <div className="section how-to-play">
+        <h2>How to Play?</h2>
         <ol>
           <li>Create a user and log in.</li>
           <li>Join or create a lobby.</li>
