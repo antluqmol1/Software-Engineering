@@ -16,7 +16,7 @@ const useFormErrorHandling = () => {
     if (error.response.status === 409) {
       setErrorMessage(error.response.data.error);
     } else {
-      setErrorMessage('An error occurred. Please try again later.');
+      setErrorMessage('An error occurred. Please try again.');
     }
   } else if (error.request) {
     setErrorMessage('Network error. Please check your connection and try again.');
@@ -94,7 +94,10 @@ const CreateUser = () => {
     <div className="signup-container">
       <form className="signup-form-container" onSubmit={handleSubmit}>
         <h2>Create User</h2>
-        {errorMessage && <p className="error-message">{errorMessage}</p>}
+        {/* {errorMessage && <p className="error-message">{errorMessage}</p>} */}
+        {errorMessage && <div className="d-flex justify-content-center">
+          <div className="alert alert-danger" role="alert">{errorMessage}</div>
+        </div>}
         <div>
           <label htmlFor="firstname">First Name:</label>
           <input
