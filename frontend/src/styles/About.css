@@ -3,12 +3,14 @@
 
 .about-container {
   max-width: 800px;
+  height: 80vh;
   margin: 80px auto 0;
   padding: 20px;
   background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
   border-radius: 15px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   text-align: center;
+  overflow: scroll;
 }
 
 /* color: #5E2A84;

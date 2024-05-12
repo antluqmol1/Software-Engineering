@@ -15,9 +15,11 @@ import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound fil
 import gameServices from "../services/gameServices";
 
 function GameLobby() {
+    
     //Used in the leaderboard
     const [playerList, setPlayerList] = useState([]); //list of players in a game
 
+    //States of the game
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
@@ -27,7 +29,6 @@ function GameLobby() {
     const [taskPoints, setTaskPoints] = useState(null);
     const [taskId, setTaskId] = useState(null);
     const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
-    
     const [nextTask, setNextTask] = useState(false)
     
     //Lists for different types of votes
