@@ -36,7 +36,7 @@ We use http cookies that contain JWT, given upon login, to validate connections
 class GameLobby(AsyncWebsocketConsumer):
 
     async def connect(self):
-        print("WS: gamelobby, connecting...")
+        logger.debug("WS: gamelobby, connecting...")
         # add to a group? or is the group the participant/game
         token = self.scope['cookies'].get('auth_token')
 
@@ -47,19 +47,19 @@ class GameLobby(AsyncWebsocketConsumer):
 
             # get the user id from the token payload
             self.user_id = payload.get('user_id')
-            print(f'WS: user connecting is {self.user_id}')
+            logger.debug(f'WS: user connecting is {self.user_id}')
 
             # query the database for the game via participant
             game = await self.get_participant_game(user_id=self.user_id)
-            print(f'WS: Game_id: {game.game_id}')
-            print(f'WS: num_players: {game.num_players}')
+            logger.debug(f'WS: Game_id: {game.game_id}')
+            logger.debug(f'WS: num_players: {game.num_players}')
 
             # set the name of the group, all people in same group has the same name
             self.game_group_name = f'game_{game.game_id}'
-            print(f'WS: joined channel group {self.game_group_name}')
+            logger.debug(f'WS: joined channel group {self.game_group_name}')
 
             # Add this channel to a group based on game_id
-            print(f'WS: Joining group')
+            logger.debug(f'WS: Joining group')
             await self.channel_layer.group_add(
                 self.game_group_name,
                 self.channel_name
@@ -70,7 +70,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
             logger.info(f"WebSocket connected: {self.channel_name}")
 
-            print("\nWS: sending message from ws\n")
+            logger.debug("\nWS: sending message from ws\n")
             await self.channel_layer.group_send(
             self.game_group_name, 
             {
@@ -84,7 +84,7 @@ class GameLobby(AsyncWebsocketConsumer):
             await self.close(reason="Not logged in", code=4001)
 
     async def disconnect(self, close_code):
-        print("WS: connection closed: ", close_code)
+        logger.debug(f"WS: connection closed: {close_code}")
         logger.info(f"WebSocket disconnected: {self.channel_name} with code {close_code}")
 
         if close_code in no_end_game_codes:
@@ -96,20 +96,20 @@ class GameLobby(AsyncWebsocketConsumer):
         game = await self.get_participant_game(self.user_id)
 
         # try:
-        #     print("WS: fetching user")
-        #     print("WS: fetching game")
-        #     print("WS: gameid is ", game.game_id)
+        #     logger.debug("WS: fetching user")
+        #     logger.debug("WS: fetching game")
+        #     logger.debug("WS: gameid is ", game.game_id)
         #     game_admin = await self.get_game_admin(game)
 
-        #     print(f"WS: comparing {game_admin} and {user}")
+        #     logger.debug(f"WS: comparing {game_admin} and {user}")
         #     if game_admin == user:
-        #         print("WS: player is admin!")
+        #         logger.debug("WS: player is admin!")
         #         admin = True
         #     else:
-        #         print("WS: player is a user")
+        #         logger.debug("WS: player is a user")
         # except Exception as e:
-        #     print("WS: Error: ", e)
-        #     print("WS: no username/game, not even connected")
+        #     logger.debug("WS: Error: ", e)
+        #     logger.debug("WS: no username/game, not even connected")
         #     return
 
         # # If disconnected player is admin, we need to end the game
@@ -117,21 +117,21 @@ class GameLobby(AsyncWebsocketConsumer):
         # # disconnect, we can pass admin to another player
 
         # if admin:
-        #     print("WS: Adming ending game")
+        #     logger.debug("WS: Adming ending game")
         #     game_ended = await self.end_game(game)
         #     if game_ended:
-        #         print("WS: game deleted!")
+        #         logger.debug("WS: game deleted!")
         #     else:
-        #         print("WS: error deleting game!")
+        #         logger.debug("WS: error deleting game!")
         #         return
         # else:
         left_game = await self.leave_game(game) 
         if left_game:
-            print("WS: left game!")
+            logger.debug("WS: left game!")
         else:
-            print("WS: error leaving game!")
+            logger.debug("WS: error leaving game!")
 
-        print("\nWS: sending message from ws\n")
+        logger.debug("\nWS: sending message from ws\n")
         # send disconnect message to the group
         await self.channel_layer.group_send(
             self.game_group_name,
@@ -158,25 +158,25 @@ class GameLobby(AsyncWebsocketConsumer):
             self.game_group_name,
             self.channel_name
         )
-        print(f"WS: {user.username} was removed from {self.game_group_name}")
+        logger.debug(f"WS: {user.username} was removed from {self.game_group_name}")
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        print("\nWS: recieve ...")
-        print(f'\nWS: message: \n{text_data_json}\n')
+        logger.debug("\nWS: recieve ...")
+        logger.debug(f'\nWS: message: \n{text_data_json}\n')
         # message = text_data_json['message']
         msg_type = text_data_json['type']
 
-        print("WS: checking message type\n")
+        logger.debug("WS: checking message type\n")
 
         match msg_type:
             case "task_vote":
-                print("WS: task_vote")
+                logger.debug("WS: task_vote")
 
                 task_id = text_data_json['taskId']
                 vote = text_data_json['taskVote']
 
-                print(f'WS: taskId: {task_id}, vote: {vote}')
+                logger.debug(f'WS: taskId: {task_id}, vote: {vote}')
 
                 vote_user = await self.get_user()
 
@@ -192,8 +192,8 @@ class GameLobby(AsyncWebsocketConsumer):
                     case 'no':
                         vote_input = False
 
-                print(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
-                print(f'WS: vote_input: {vote_input}')
+                logger.debug(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
+                logger.debug(f'WS: vote_input: {vote_input}')
                 
                 # Create new vote.
                 previous_vote, newVote = await self.add_new_vote(vote_user, task, game, vote_input)
@@ -233,7 +233,7 @@ class GameLobby(AsyncWebsocketConsumer):
                             'newVote': 'yes' if newVote.vote is True else 'no' if newVote.vote is False else 'skip'
                         }
 
-                    print(f'WS: Vote response: {response}')
+                    logger.debug(f'WS: Vote response: {response}')
 
                     await self.channel_layer.group_send(
                     self.game_group_name, 
@@ -281,7 +281,7 @@ class GameLobby(AsyncWebsocketConsumer):
                 )
 
             case 'game_end':
-                print("WS: game_end")
+                logger.debug("WS: game_end")
                 response = {
                     'game_end': True
                 }
@@ -289,11 +289,11 @@ class GameLobby(AsyncWebsocketConsumer):
                 end_game = await self.end_game(game)
 
                 if end_game:
-                    print("WS: game ended")
+                    logger.debug("WS: game ended")
                 else:
-                    print("WS: failed to end game")
+                    logger.debug("WS: failed to end game")
 
-                print("WS: sending game_end message to other members")
+                logger.debug("WS: sending game_end message to other members")
                 await self.channel_layer.group_send(
                 self.game_group_name, 
                 {
@@ -310,7 +310,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
     # Message methods
     async def Game_End(self, event):
-        print("WS: Game_End message method")
+        logger.debug("WS: Game_End message method")
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
 
@@ -356,7 +356,7 @@ class GameLobby(AsyncWebsocketConsumer):
     async def wheel_stop_message(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
-        print("\nWS: CEL IS SENDING MESSAGE!\n")
+        logger.debug("\nWS: CEL IS SENDING MESSAGE!\n")
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
@@ -371,64 +371,64 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def get_participant_game(self, user_id):
-        print("\tWS: get_participant_game")
+        logger.debug("\tWS: get_participant_game")
         try:
-            print("\tWS: querying database")
+            logger.debug("\tWS: querying database")
             part = Participant.objects.get(user_id=user_id)
-            print("\tWS: query complete")
+            logger.debug("\tWS: query complete")
             game = part.game
-            print("\tWS: returning game")
+            logger.debug("\tWS: returning game")
             # game_dict = model_to_dict(game)
-            # print("\tWS: admin: ", game.admin)
-            # print("\tWS: returning game: ", game_dict)
+            # logger.debug("\tWS: admin: ", game.admin)
+            # logger.debug("\tWS: returning game: ", game_dict)
 
             return game
         except Participant.DoesNotExist:
-            print("\tWS: Participant does not exist")
+            logger.debug("\tWS: Participant does not exist")
             return None
     
     @database_sync_to_async
     def get_game_admin(self, game):
-        print("\tWS: get_game_admin")
+        logger.debug("\tWS: get_game_admin")
         try:
             return game.admin
         except Exception as e:
-            print("failed to get game admin, error ", e)
+            logger.debug(f"failed to get game admin, error {str(e)}")
             
         
     # Database function
     @database_sync_to_async
     def leave_game(self, game):
-        print("\tWS: leave_game")
+        logger.debug("\tWS: leave_game")
         try:
             player = Participant.objects.get(user=self.user_id)
             player.delete()
             game.num_players -= 1
             game.save()
-            print("\tWS: successfully left the game")
+            logger.debug("\tWS: successfully left the game")
             return True
         except:
-            print("\tWS: failed to leave the game")
+            logger.debug("\tWS: failed to leave the game")
             return False
     
     # Database function
     @database_sync_to_async
     def end_game(self, game):
-        print("\tWS: end_game")
+        logger.debug("\tWS: end_game")
         
         try:
             game_to_delete = Game.objects.get(game_id=game.game_id)
-            print("\tWS: Fetch successfull, ", game_to_delete.game_id)
+            logger.debug(f"\tWS: Fetch successfull, {game_to_delete.game_id}")
         except Exception as e:
-            print("\tWS: Fetch failed error: ", str(e))
+            logger.debug(f"\tWS: Fetch failed error: {str(e)}")
             return False
 
         try:
             game_to_delete.delete()
-            print("\tWS: Delete successfull")
+            logger.debug("\tWS: Delete successfull")
             return True
         except Exception as e:
-            print("\tWS: Delete failed error: ", str(e))
+            logger.debug(f"\tWS: Delete failed error: {str(e)}")
             return False
         
     # Database function
@@ -474,7 +474,7 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def start_wheel_spin(self, game_id):
-        print("WS: start_wheel_spin")
+        logger.debug("WS: start_wheel_spin")
         try:
             # Logic to start the wheel spinning
             game = Game.objects.get(game_id=game_id)
@@ -485,13 +485,13 @@ class GameLobby(AsyncWebsocketConsumer):
             try:
                 end_wheel_spin.apply_async((game_id,), countdown=12)
             except Exception as e:
-                print(str(e))
-            print("WS: successfully called celery")
+                logger.debug(str(e))
+            logger.debug("WS: successfully called celery")
 
             # return {'success': True, 'message': 'Wheel is spinning!'}
             return True
         except Exception as e:
-            print("WS: start_wheel_spin failed!, ", str(e))
+            logger.debug(f"WS: start_wheel_spin failed!, {str(e)}")
             return False
 
 
@@ -509,25 +509,33 @@ class GameLobby(AsyncWebsocketConsumer):
             logger.error(f'Error when querying tasks: {e}')
             return None
 
-        print("above logger")
-        logger.info("WS: Retrieved task count, task_count = ", task_count)
+        logger.debug("above logger")
+        logger.info(f"WS: Retrieved task count, task_count = {task_count}")
 
         # Check if task is available
         for _ in range(task_count):
 
-            random_task = Tasks.objects.filter(type = game.type).order_by('?').first()
-            # check if this task is already picked
-            taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
+            try:
+                random_task = Tasks.objects.filter(type = game.type).order_by('?').first()
+                # check if this task is already picked
+                taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
+            except:
+                logger.error("WS: Error when querying tasks")
+                return None
 
             # if not, we save it to PickedTasks, and return the question
             if not taskExist:
                 random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
 
                 if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
-                    participants = Participant.objects.filter(game=game)
-                    for p in participants:
-                        p.isPicked = False
-                        p.save()
+                    try:
+                        participants = Participant.objects.filter(game=game)
+                        for p in participants:
+                            p.isPicked = False
+                            p.save()
+                    except Exception as e:
+                        logger.error(f"WS: Error when refreshing players: {e}")
+                        return None
 
                     random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
 
@@ -568,7 +576,7 @@ class GameLobby(AsyncWebsocketConsumer):
             # participants_in_same_game = Participant.objects.filter(game=game)
             new_participant = Participant.objects.get(user=self.user_id)
 
-            print(f'WS: new participant being added: {new_participant.user}')
+            logger.debug(f'WS: new participant being added: {new_participant.user}')
 
             participant_data = {
                 'username': new_participant.user.username,
@@ -587,13 +595,13 @@ class GameLobby(AsyncWebsocketConsumer):
     '''
     @database_sync_to_async
     def get_user(self):
-        print("\tWS: get_user")
+        logger.debug("\tWS: get_user")
         try:
             player = User.objects.get(id=self.user_id)
-            print("\tWS: Returning player: ", player.username)
+            logger.debug(f"\tWS: Returning player: {player.username}")
             return player
         except User.DoesNotExist:
-            print("\tWS: User does not exist")
+            logger.debug("\tWS: User does not exist")
             return None
         
 
@@ -658,7 +666,7 @@ class GameLobby(AsyncWebsocketConsumer):
         try:
             existing_vote = Response.objects.filter(user=user, game=game, task=task).first()
             if existing_vote:   # check for existing Response record and edit it
-                print("WS: vote exists, editing the vote")
+                logger.debug("WS: vote exists, editing the vote")
 
                 previous_vote = None
                 
@@ -675,8 +683,8 @@ class GameLobby(AsyncWebsocketConsumer):
                 return previous_vote, existing_vote
             
             else:    # create new Response record
-                print("WS: Creatig new vote")
-                print(f'WS: New record: user: {user}, task: {task}, game: {game}, vote: {vote}')
+                logger.debug("WS: Creatig new vote")
+                logger.debug(f'WS: New record: user: {user}, task: {task}, game: {game}, vote: {vote}')
                 new_vote = Response(user=user,
                                     task=task,
                                     game=game,
@@ -685,13 +693,13 @@ class GameLobby(AsyncWebsocketConsumer):
                 return None, new_vote
             
         except IntegrityError as e:
-            print(f"WS: IntegrityError - {str(e)}")
+            logger.debug(f"WS: IntegrityError - {str(e)}")
             return None
         except ValidationError as e:
-            print(f"WS: ValidationError - {str(e)}")
+            logger.debug(f"WS: ValidationError - {str(e)}")
             return None
         except Exception as e:
-            print(f"WS: Unexpected error - {str(e)}")
+            logger.debug(f"WS: Unexpected error - {str(e)}")
             return None
     
     # database function
@@ -726,13 +734,13 @@ def validate_jwt(token):
         # Decode the token
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         # Optionally, you could return the payload if needed
-        print(f'WS: payload')
+        logger.debug(f'WS: payload')
         return payload
     except ExpiredSignatureError:
         # Handle expired token, e.g., return False or raise an error
-        print("WS: expired token")
+        logger.debug("WS: expired token")
         return False
     except InvalidTokenError:
         # Handle invalid token, e.g., return False or raise an error
-        print("WS: invalid token")
+        logger.debug("WS: invalid token")
         return False

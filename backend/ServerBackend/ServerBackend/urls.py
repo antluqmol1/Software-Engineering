@@ -37,10 +37,10 @@ urlpatterns = [
         path('get-username/', views.get_username, name='get_user'),
         path('profile/', include(([
             path('get/', views.get_profile, name='get_profile'),
-            path('update/', views.update_profile, name='update-profile'),
+            path('update/', views.update_profile, name='update_profile'),
             path('get-picture/', views.get_image_base64, name='get_profile_picture'),
-            path('upload-picture/', views.upload_image_base64, name='get_profile_picture'),
-            path('get-all-pictures/', views.get_all_images_base64, name='get_all_profile_pictures'),
+            path('upload-picture/', views.upload_image_base64, name='upload_profile_picture'),
+            path('get-all-pictures/', views.get_all_images, name='get_all_profile_pictures'),
             path('update-picture/', views.select_image, name='update_profile_picture'),
             path('delete-picture/', views.delete_image, name='delete_profile_picture'),
         ], 'profile'))),
@@ -48,15 +48,15 @@ urlpatterns = [
     
     path('game/', include(([
         path('create/', views.create_game, name='create_game'),
-        path('delete/', views.delete_game, name='delete-game'),
-        path('join/', views.join_game, name='join-game'),
-        path('leave/', views.leave_game, name='leave-game'), # websocket handles leaving, redundant
+        path('delete/', views.delete_game, name='delete_game'),
+        path('join/', views.join_game, name='join_game'),
+        path('leave/', views.leave_game, name='leave_game'), # websocket handles leaving, redundant
         path('get/', views.get_game, name='get_game'),
         path('get-participants/', views.get_game_participants, name='get_game_participants'),
         path('get-participants-images/', views.get_image_urls, name='get_participants_urls'),
-        path('current-task/', views.current_task, name='current-task'),
-        path('next-task/', views.next_task, name='next-task'),
-        path('give-points/', views.give_points, name='give-points'),
+        path('current-task/', views.current_task, name='current_task'),
+        path('next-task/', views.next_task, name='next_task'),
+        path('give-points/', views.give_points, name='give_points'),
     ], 'game'))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

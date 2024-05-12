@@ -193,14 +193,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-import os
-
-# Assuming BASE_DIR is defined as the root directory of your Django project
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-import os
-
+# Logging configuration
+CONSOLE_LOGGING_LEVEL = "DEBUG"
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -216,7 +210,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'INFO',  # Reduce console output to INFO level
+            'level': CONSOLE_LOGGING_LEVEL, 
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
@@ -237,7 +231,7 @@ LOGGING = {
             'handlers': ['console', 'file'],
             'propagate': False,
         },
-        'my_app': {
+        'ServerBackend': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',  # Keep application logs at DEBUG level
             'propagate': False,

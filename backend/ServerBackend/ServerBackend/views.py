@@ -51,90 +51,267 @@ def require_authentication(view_func):
                     }, status=401)
         return view_func(request, *args, **kwargs)
     return _authentication_check
-    
-
-@csrf_exempt
-def hello_world(request):
-    return JsonResponse({'message': 'Welcome to boozechase'})
 
 
-
-@csrf_exempt
-def home_page(request):
-    return JsonResponse({'message': 'Welcome to boozechase'})
-
+#|======================================================================================|
+#| auth views                                                                           |
+#| views for user authentication                                                        |
+#|======================================================================================|
 
 def generate_JWT(user):
-    logger.error("this is a test error")
+    logger.info(f"generating JWT token for user {user.username}")
     payload = {
         'user_id': user.id,
         'exp': dt.now(timezone.utc) + timedelta(hours=12),
         'iat': dt.now(timezone.utc)
     }
 
-    print(f'testing datetime: {dt.now(timezone.utc)}')
+    logger.debug(f'testing datetime: {dt.now(timezone.utc)}')
 
     JWToken = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return JWToken
 
 
-@require_http_method(['POST'])
-@require_authentication
-def join_game(request):
-    print("joining game")
+@require_http_method(['GET'])
+def grab_token(request):
+    '''
+    Generates a csrf token for the user
+    returns:
+    @csrfToken : string
+    '''
+    # Ensure a CSRF token is set in the user's session
+    # must be generated again if the user logs in
+    csrf_token = get_token(request)
+    logger.debug(f"{request.user.username} assigned token: {csrf_token}")
+    return JsonResponse({'csrfToken': csrf_token}, status=200)
 
-    user = request.user
+
+@require_http_method(['POST'])
+def user_login(request):
+    '''
+    Logs the user in using djangos built in authentication
+    Also generates a JWT token for the user, neccessary for websocket
+    returns:
+    @JWT : string
+    '''
+    logger.debug("user_login")
 
     data = json.loads(request.body)
 
-    gameId = data.get('gameid').lower()
-    print(f'attempting to join game {gameId}')
+    username = data.get('username')
+    password = data.get('password')
 
-    # should return a unique game
-    try:
-        game = Game.objects.get(game_id = gameId)
-        game.num_players += 1
-        game.save()
-    except:
-        print("game not found")
-        return JsonResponse({'success': False, 'msg': 'invalid game code'}, status=404)
-    
-    print("joining game")
-    player = Participant(game = game,
-                            user = user,
-                            score = 0)
-    
-    player.save()
+    logger.debug(username)
+    logger.debug(password)
 
-    return JsonResponse({'success': True, 'msg': 'joined game'}, status=200)
-        
+    logger.info("attempting to authenticate...")
 
-@require_http_method(['PUT'])
+    # Use Django's authenticate function to verify credentials
+    user = authenticate(username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+        logger.info("authentication complete!")
+        logger.info("generating JWT")
+        token = generate_JWT(user)
+
+        response = JsonResponse({'success': True, 'msg': 'Login successful','JWT': token}, status=200)
+
+        logger.info("adding JWT to httpOnly cookie")
+        response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
+        return response
+    else: 
+        logger.info("login failed")
+        return JsonResponse({'success': False, 'error': 'invalid credentials'}, status=401)
+
+
+@require_http_method(['POST'])
 @require_authentication
-def leave_game(request):
-    print("leaving game")
+def user_logout(request):
+    '''
+    Logs the user out
+    '''
+    logger.debug("logging out")
+    try:
+        logout(request)
+        success = True
+    except Exception as e:
+        logger.debug(f"Error logging out, error: {e}")
+        success = False
+
+    return JsonResponse({'success': success}, status=200)
+
+
+#|======================================================================================|
+#| user views                                                                           |
+#| views for user logic/status                                                          |
+#|======================================================================================|
+
+@require_http_method(['GET'])
+@require_authentication
+def get_username(request):
+    '''
+    Gets the username of the client
+    returns:
+    @username : string
+    '''
+    logger.debug("get_username")
 
     user = request.user
 
-    print("user is authenticated")
-    player = Participant.objects.get(user=user)
-    print(f'player {player.user.username} leaving game with id: {player.game.game_id}')
+    return JsonResponse({'success': True, 'username': user.username}, status=200)
 
-    game = Game.objects.get(game_id=player.game.game_id)
-    game.num_players -= 1
-    print(f'new game num_players: {game.num_players}')
-    game.save()
-    print("saved game to database")
 
-    player.delete()
-    print("player deleted from participants")
+@require_http_method(['GET'])
+def get_status(request): # RENAME!
+    '''
+    Returns relevant user data:
+    @loggedIn : boolean
+    @username : string
+    @inAGame : boolean
+    '''
+    logger.debug("get_login_status")
 
-    return JsonResponse({'success': True}, status=200)
+    user = request.user
 
+    if user.is_authenticated:
+        
+        username = user.username
+
+        if Participant.objects.filter(user=user).exists():
+            in_a_game = True
+        else:
+            in_a_game = False
+
+        logger.debug("user is logged in, returning 200")
+        return JsonResponse({'success': True, 'loggedIn': True, 'username': username, 'inAGame': in_a_game}, status=200)
+    else:
+        logger.debug("not logged in")
+        return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
+        
+
+@require_http_method(['POST'])
+@require_authentication
+def put_admin(request):
+    try:
+        data = json.loads(request.body)
+
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+
+
+        # Validate the information
+        if not (first_name and last_name and email and password):
+            return JsonResponse({'error': 'Missing fields'}, status=400)
+
+        # Create a new user instance but don't save it yet
+        new_user = User(first_name=first_name, last_name=last_name, username=username, email=email)
+
+        # Set the password
+        new_user.set_password(password)
+
+        # Validate and save the user
+        new_user.full_clean()
+        new_user.save()
+
+        return JsonResponse({'message': 'User created successfully', 'user_id': new_user.id}, status=200)
+    
+    except json.JSONDecodeError:
+        # JSON data could not be parsed
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except ValidationError as e:
+        # Invalid data
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        # Any other errors
+        return JsonResponse({'error': 'An error occurred'}, status=500)
+
+
+@require_http_method(['POST'])
+def create_user(request):
+    # Creates a new user
+    logger.debug("put_user")
+    try:
+        data = json.loads(request.body)
+
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+
+        # Validate the information
+        if not (first_name and last_name and username and email and password):
+            return JsonResponse({'error': 'Missing fields'}, status=400)
+        
+
+        # Check if the username or email is already in use
+        existing_user = User.objects.filter(username=username).exists()
+        existing_email = User.objects.filter(email=email).exists()
+
+        #
+        # FIX RETURNS, PERHAPS WE SHOULD NOT SEND BACK THE USERNAME AND/OR EMAIL
+        #
+        if existing_user and existing_email:
+            return JsonResponse({'success': False, 'error': 'Both username and email are already in use'}, status=409)
+        elif existing_user:
+            return JsonResponse({'success': False, 'error': f'Username "{existing_user.username}" is already in use'}, status=409)
+        elif existing_email:
+            return JsonResponse({'success': False, 'error': f'Email "{existing_email.email}" is already in use'}, status=409)
+
+        new_user = User(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
+
+        # Set the password
+        new_user.set_password(password)
+
+        new_user.full_clean()  # Validate the information
+        new_user.save()
+
+        return JsonResponse({'success': True, 'message': 'User created successfully', 'user_id': new_user.id}, status=200)
+
+    except json.JSONDecodeError:
+        # JSON data could not be parsed
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except ValidationError as e:
+        # Invalid data
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        # Any other errors
+        return JsonResponse({'error': 'An error occurred'}, status=500)
+
+
+# This is not being used yet, might need a delete account in profile page
+@require_http_method(['DELETE'])
+@require_authentication
+def delete_user(request):
+
+    try:
+        pass
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        # Any other errors
+        return JsonResponse({'error': 'An error occurred'}, status=500)
+
+
+#|======================================================================================|
+#| game views                                                                           |
+#| views for game logic                                                                 |
+#|======================================================================================|
 
 @require_http_method(['POST'])
 @require_authentication
 def create_game(request):
+    '''
+    Creates a game in the database and adds the user as a participant
+    returns:
+    @success : boolean
+    '''
     user = request.user
 
     data = json.loads(request.body)
@@ -143,27 +320,29 @@ def create_game(request):
     type = data.get('id')
     title = data.get('title')
     description = data.get('description')
-    print(gameId)
+    logger.info(f"player {user.username} is creating a game with id: {gameId}")
+    logger.debug(f'gameId: {gameId}, type: {type}, title: {title}, description: {description}')
 
     potential_participant = Participant.objects.filter(user=user).exists()
     
+    # check if player is already in a game
+    # REVISE THIS, WE NEED TO FIGURE OUT WHAT WE WANT TO DO IF A PLAYER IS ALREADY IN A GAME AND THEY MAKE THIS REQUEST
     if potential_participant:
         potential_participant = Participant.objects.filter(user=user)
-
+        logger.debug(f"{user.username} is already in a game, deleting player record")
         Participant.objects.filter(user=user).delete()
         return JsonResponse({'success': False, 'error': 'already in a game'}, status=409)
     else:
-        print("not in a game")
+        logger.debug("not in a game")
 
     # create game in the database
     new_game = Game(game_id = gameId,
                     type=type,
                     description=description, 
                     admin=user,
-                    start_time=dt.now(), 
                     end_time=None,
                     game_started=False)
-    
+    # save the game record
     new_game.save()
     
     # Create a participant in the created game(admin)
@@ -171,11 +350,12 @@ def create_game(request):
                             user = user,
                             score = 0)
     
+    # save the player record
     player.save()
+    logger.info("game created and player added")
 
     return JsonResponse({'success': True}, status=200)
-        
-        
+
 
 @require_http_method(['GET'])
 @require_authentication
@@ -191,15 +371,16 @@ def get_game(request):
     # Checks if player is currently in a game
     potential_participant = Participant.objects.filter(user=user).exists()
     if potential_participant:
-
         # Query the participant record for the player
         part = Participant.objects.get(user=user)
-
+        logger.info(f"{part.user.username} is retrieving game {part.game.game_id}")
+    
         # Check if there is an active task
         active_task = PickedTasks.objects.filter(game=part.game, done=False).first()
-        print(f'value of active_task: {active_task}')
+        logger.debug(f'retrieved active task, if it exists')
 
         if active_task:
+            logger.debug(f"active task exists, task id: {active_task.task.task_id}, assigned to {active_task.user.username}")
             task_data = {
                 'description': active_task.task.description,
                 'points': active_task.task.points,
@@ -207,6 +388,7 @@ def get_game(request):
                 'taskId': active_task.task.task_id
             }
         else:
+            logger.debug("no active task")
             task_data = None
         
         # checks if player is admin
@@ -214,70 +396,141 @@ def get_game(request):
             is_admin = True
         else:
             is_admin = False
-        # return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id})
 
         response = {
-            'success': True, 
-            'gameId': part.game.game_id, 
-            'isAdmin': is_admin, 
-            'username': user.username, 
-            'gameStarted': part.game.game_started, 
+            'success': True,
+            'gameId': part.game.game_id,
+            'isAdmin': is_admin,
+            'username': user.username,
+            'gameStarted': part.game.game_started,
             'isSpinning': part.game.wheel_spinning,
             'activeTask': task_data
         }
 
+        logger.info(f'{part.user.username} successfully retrieved game')
         return JsonResponse(response, status=200)
     else:
         # Player is not in a game
+        logger.info(f"{request.user.username} is not in a game")
         return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
+
+
+@require_http_method(['POST'])
+@require_authentication
+def join_game(request):
+
+    user = request.user
+
+    data = json.loads(request.body)
+
+    gameId = data.get('gameid').lower()
+    logger.debug(f'{user.username} is attempting to join game {gameId}')
+
+    # should return a unique game
+    try:
+        game = Game.objects.get(game_id = gameId)
+        game.num_players += 1
+        game.save()
+        logger.debug("game found, incrementing num_players")
+    except:
+        logger.warning("game not found")
+        return JsonResponse({'success': False, 'msg': 'invalid game code'}, status=404)
+    
+    player = Participant(game = game,
+                            user = user,
+                            score = 0)
+    
+    player.save()
+    logger.debug("joined game")
+
+    return JsonResponse({'success': True, 'msg': 'joined game'}, status=200)
+        
+
+@require_http_method(['PUT'])
+@require_authentication
+def leave_game(request):
+    '''
+    Leaves the game the user is currently in
+    returns:
+    @success : boolean
+    '''
+    user = request.user
+
+    # attempt to retrieve the player
+    try:
+        logger.info(f'player {player.user.username} leaving game with id: {player.game.game_id}')
+        player = Participant.objects.get(user=user)
+    except Participant.DoesNotExist:
+        logger.warning("player not found")
+        return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
+    
+    # attempt to retrieve the game
+    # !!!!!!
+    # Game is part of the player object, change this later to be more explicit
+    # !!!!!!
+    try:
+        logger.debug("attempting to retrieve game")
+        game = Game.objects.get(game_id=player.game.game_id)
+    except Game.DoesNotExist:
+        logger.warning("game not found")
+        return JsonResponse({'success': False, 'msg': 'game not found'}, status=404)
+    logger.debug(f'old game num_players: {game.num_players}')
+    game.num_players -= 1
+    logger.debug(f'new game num_players: {game.num_players}')
+    game.save()
+    logger.debug("saved game to database")
+
+    player.delete()
+    logger.info("player deleted from participants")
+
+    return JsonResponse({'success': True}, status=200)
 
 
 @require_http_method(['DELETE'])
 @require_authentication
 def delete_game(request):
-    print('delete game')
+    logger.debug('delete game')
 
     user = request.user
 
     potential_participant = Participant.objects.filter(user=user).exists()
     # potential_participant = Participant.objects.get(user=user)
     if potential_participant:
-        print("in a game, checking if admin")
+        logger.debug("in a game, checking if admin")
         part = Participant.objects.get(user=user)
 
         admin = part.game.admin
-        print(f'is this a player ID?: {admin}')
+        logger.debug(f'is this a player ID?: {admin}')
 
         if user == admin:
-            print("player is an admin, deleting game")
+            logger.debug("player is an admin, deleting game")
             game_id = part.game.game_id
             success = clean_up_game(game_id=game_id)
             return JsonResponse({'success': success}, status=200)
         else:
             return JsonResponse({'success': False, 'msg': 'user is not admin of game'}, staus=403)
     else:
-        print("not in a game, fail")
+        logger.debug("not in a game, fail")
         return JsonResponse({'success': False}, status=404)
-
-
+    
 
 def clean_up_game(game_id):
 
     try:
         games_to_delete = Game.objects.filter(game_id=game_id)
         players_to_delete = Participant.objects.filter(game_id=game_id)
-        print("retrieved game and players")
+        logger.debug("retrieved game and players")
     except:
-        print("failed to retrieve game and participant")
+        logger.debug("failed to retrieve game and participant")
         return False
 
     try:
         games_to_delete.delete()
         players_to_delete.delete()
-        print("deleted game and participants")
+        logger.debug("deleted game and participants")
         return True
     except:
-        print("failed to delete game and players")
+        logger.debug("failed to delete game and players")
         return False
 
 
@@ -342,7 +595,7 @@ def next_task(request):
 
             game.game_started = True
             game.save()
-            print(f'response: description: random_task.description, points: random_task.points, pickedPlayer: random_player.user.username, taskId: random_task.task_id')
+            logger.debug(f'response: description: random_task.description, points: random_task.points, pickedPlayer: random_player.user.username, taskId: random_task.task_id')
             return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id}, 200)
                 
 
@@ -353,34 +606,57 @@ def next_task(request):
 @require_http_method(['GET'])
 @require_authentication
 def current_task(request):
+    '''
+    Returns the current task of the game the player is currently in
+    returns:
+    @taskId : string
+    @description : string
+    @points : int
+    @pickedPlayer : string
+    '''
     user = request.user
+    logger.info(f"{user.username} is getting current task")
 
-    part = Participant.objects.get(user=user)
-    game = part.game
+    try:
+        part = Participant.objects.get(user=user)
+        game = part.game
+    except Participant.DoesNotExist:
+        logger.warning("player not in a game")
+        return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
 
     currTask = PickedTasks.objects.filter(game=game, done=False).first()
     
     if currTask:
+        logger.info("returning current task")
         return JsonResponse({'success': True, 'taskId': currTask.task.task_id, 'description': currTask.task.description, 'points': currTask.task.points, 'pickedPlayer': currTask.user.username}, status=200)
     
+    logger.info("no current task")
     return JsonResponse({'success': False, 'msg': 'no current task'}, status=404)
     
 
 @require_http_method(['GET'])
 @require_authentication
 def give_points(request):
+    logger.warning("give_points should not be used, use websocket instead")
 
-    data = json.loads(request.body) 
+    data = json.loads(request.body)
     points = data.get('points')
     username = data.get('username')
 
+    logger.info(f"giving {points} points to {username}")
+
     # get the participant record for the user receiving the points
-    player = Participant.objects.get(user=User.objects.get(username=username))
+    try:
+        player = Participant.objects.get(user=User.objects.get(username=username))
+    except Participant.DoesNotExist:
+        logger.warning(f"{username} is not in a game")
+        return JsonResponse({'success': False, 'msg': 'player not found'}, status=404)
 
     # update the score
     player.score += points
     player.save()
 
+    logger.info(f"points given to {player.user.username}")
     return JsonResponse({'success': True}, status=200)
 
 
@@ -392,58 +668,34 @@ def get_game_participants(request):
     returns:
     @participants : list
     '''
-    print("get game participants")
 
     user = request.user
+    logger.info(f'{user.username} is getting participants table current game')
 
     try:
-        logger.info("getting user record in participant table")
+        logger.debug("getting user record in participant table")
         current_user_participant = Participant.objects.get(user=user)
     except Participant.DoesNotExist:
+        logger.warning(f"{user.username} is not in a game")
         return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
-    print("getting game in users participant table")
+    # logger.debug("getting game in users participant table")
     current_game = current_user_participant.game
 
-    print("getting array of players in same game")
+    # logger.debug("getting array of players in same game")
     participants_in_same_game = Participant.objects.filter(game=current_game)
 
-    # Extract relevant data to send back (e.g., usernames, scores)
-    print("sending back data")
+    # logger.debug("sending back data")
     participant_data = [{'username': p.user.username, 'score': p.score} 
                         for p in participants_in_same_game]
-
+    
+    logger.info(f"returning participants: {participant_data}")
     return JsonResponse({'participants': participant_data}, status=200)
 
 
-@require_http_method(['GET'])
-def grab_token(request):
-    '''
-    Generates a csrf token for the user
-    returns:
-    @csrfToken : string
-    '''
-    # Ensure a CSRF token is set in the user's session
-    # must be generated again if the user logs in
-    csrf_token = get_token(request)
-    print("returning token: ", csrf_token)
-    return JsonResponse({'csrfToken': csrf_token}, status=200)
-
-
-@require_http_method(['POST'])
-@require_authentication
-def user_logout(request):
-    '''
-    Logs the user out
-    '''
-    print("logging out")
-    try:
-        logout(request)
-        success = True
-    except Exception as e:
-        print("Error logging out, error: ", e)
-        success = False
-
-    return JsonResponse({'success': success}, status=200)
+#|======================================================================================|
+#| profile views                                                                        |
+#| views for user profile                                                               |
+#|======================================================================================|
 
 
 @require_http_method(['GET'])
@@ -454,7 +706,7 @@ def get_profile(request):
     returns:
     @user_data : dict
     '''
-    print("get profile")
+    logger.info(f"{request.user.username} is fetching profile")
 
     user = request.user
     user_data = {
@@ -472,24 +724,133 @@ def update_profile(request):
     '''
     Updates the profile of the user
     '''
-    print("updating profile")
+    logger.info(f"{request.user.username} is updating profile")
 
     user = request.user
 
     data = json.loads(request.body)
 
     field = data.get('field')
-    print(f'field: {field}')
+    logger.debug(f'field: {field}')
     new_value = data.get('value')
-    print(f'field: {new_value}')
+    logger.debug(f'field: {new_value}')
     
     # set attributes of the user
     setattr(user, field, new_value)
 
     # save it to the database
     user.save()
+    logger.info("profile updated")
     return JsonResponse({'success': True})
 
+@require_http_method(['GET'])
+@require_authentication
+def get_image_base64(request):
+    '''
+    Returns the profile picture of the user as a base64 encoded string
+    returns:
+    @image : string
+    '''
+
+    user = request.user
+    logger.info(f"{user.username} is fetching his profile picture")
+    try:
+        logger.debug("getting profile picture")
+        path = user.profile_pic.path
+        logger.debug(f'path to profile_pic: {path}')
+        with open(path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        logger.debug("sending image as base64 string")
+        return JsonResponse({'image': encoded_string}, status=200)
+    except IOError:
+        logger.error("Could not locate file")
+        return JsonResponse({'error': 'Image not found'}, status=404)
+
+
+@require_http_method(['GET'])
+@require_authentication
+def get_all_images(request):
+    '''
+    Returns all images in the belonging to the user as a list of URLs
+    '''
+    user = request.user
+    logger.info(f"{user.username} is fetching all profile pictures")
+    # Construct the path where user's images are stored
+    user_images_path_1 = f'{user.id}_'
+    user_images_path_2 = f'{user.id}.'
+    all_files = default_storage.listdir('custom/')[1]  # Second element contains file names
+    
+    # Filter files that start with the user ID followed by an underscore or dot
+    edge_case_pic = [file for file in all_files if file.startswith(user_images_path_2)]
+    additional_pics = [file for file in all_files if file.startswith(user_images_path_1)]
+
+    # join the lists
+    user_pics = edge_case_pic + additional_pics
+
+    # current site and protocol
+    current_site = get_current_site(request)
+    protocol = 'https' if request.is_secure() else 'http'
+    
+
+    # Create full URLs for each file, so that they are reachable from the frontend
+    user_files_urls = [
+        f"{protocol}://{current_site.domain}{default_storage.url(os.path.join('custom/', file))}"
+        for file in user_pics
+    ]
+
+    logger.info(f'returning sending urls: {user_files_urls}')
+    return JsonResponse({'success': True, 'files': user_files_urls}, status=200)
+    
+
+@require_http_method(['PUT'])
+@require_authentication
+def select_image(request):
+    '''
+    Updates the current profile picture of the user based on the image path provided
+    '''
+    
+    user = request.user
+    logger.info(f"{user.username} is updating profile picture")
+    data = json.loads(request.body)
+    new_profile_pic_url = data.get('newProfilePicUrl')
+    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+    logger.debug(f'new profile pic url {relative_path}')
+
+    if not new_profile_pic_url:
+        logger.error("no image URL provided")
+        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
+    
+    try: 
+        user.profile_pic = relative_path
+        user.save()
+    except Exception as e:
+        logger.debug("error updating profile picture")
+        return JsonResponse({'error': 'Could not change profile picture'}, status=500)
+
+    return JsonResponse({'success': True}, status=200)
+    
+
+@require_http_method(['DELETE'])
+@require_authentication
+def delete_image(request):
+    '''
+    Delets the image specified in the request
+    '''
+    logger.debug("select image")
+    
+    data = json.loads(request.body)
+    new_profile_pic_url = data.get('imagePath')
+    logger.debug("is authenticated")
+    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+    logger.debug(f'new profile pic url {relative_path}')
+
+    if not new_profile_pic_url:
+        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
+    
+    if delete_media_file(relative_path):
+        return JsonResponse({'success': True}, status=200)
+    else:
+        return JsonResponse({'error': 'Could not delete profile picture'}, status=500)
 
 
 '''
@@ -502,31 +863,32 @@ def upload_image_base64(request):
     '''
     Updates the profile picture of the user based on the image provided
     '''
-    print("upload_image_base64")
 
     user = request.user
+    logger.info(f"{user.username} is updating profile picture")
 
     profile_picture = request.FILES.get('profileImage')
 
     if profile_picture:
-        print("picture is valid")
+        logger.debug("picture is valid")
 
         extension = profile_picture.name.split('.')[-1].lower()
         if extension not in ['png', 'jpg', 'jpeg']:
+            logger.warning("unsupported file format")
             return JsonResponse({'success': False, 'error': 'Unsupported file format, must be png, jpg, or jpeg'}, status=400)
         
         # Save new image
         try:
             user.profile_pic.save(f"{user.id}.{extension}", profile_picture)
             user.save()
-            print("New profile picture stored")
+            logger.info("New profile picture stored")
             return JsonResponse({'success': True}, status=201)
         except Exception as e:
             # Handle exceptions
-            print("could not save picture. error: ", e)
+            logger.info(f"could not save picture. error: {e}")
             return JsonResponse({'success': False}, status=500)
     else:
-        print("no image provided")
+        logger.info("no image provided")
         return JsonResponse({'error': 'No image file provided'}, status=400)
 
 
@@ -538,8 +900,9 @@ def get_image_urls(request):
     returns:
     @uris : list
     '''
-    print("get_all_images_participants")
     user = request.user
+
+    logger.info(f'{user.username} is fetching game profile pictures')
 
     user_id_list = get_user_ids_from_usernames(user)
 
@@ -571,119 +934,8 @@ def get_image_urls(request):
         uri_dict[username_list[i]] = user_files_urls[i]
 
     logger.info(f'returning uris: {uri_dict}')
-    print(f'\n\n\n\n\nreturning uris: {uri_dict}\n\n\n\n\n')
 
     return JsonResponse({"success": True, 'uris': uri_dict}, status=200)
-
-
-@require_http_method(['GET'])
-@require_authentication
-def get_image_base64(request):
-    '''
-    Returns the profile picture of the user as a base64 encoded string
-    returns:
-    @image : string
-    '''
-    print("get_image_base64")
-
-    user = request.user
-    try:
-        print("getting profile picture")
-        path = user.profile_pic.path
-        print(f'path to profile_pic: {path}')
-        with open(path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-        return JsonResponse({'image': encoded_string}, status=200)
-    except IOError:
-        print("Could not locate file")
-        return JsonResponse({'error': 'Image not found'}, status=404)
-
-
-@require_http_method(['GET'])
-@require_authentication
-def get_all_images_base64(request): #RENAME! NOT USING BASE64
-    '''
-    Returns all images in the belonging to the user as a list of URLs
-    '''
-    print("get_all_images_base64")
-    user = request.user
-    print("user is authenticated")
-    # Construct the path where user's images are stored
-    user_images_path_1 = f'{user.id}_'
-    user_images_path_2 = f'{user.id}.'
-    all_files = default_storage.listdir('custom/')[1]  # Second element contains file names
-    
-    # Filter files that start with the user ID followed by an underscore or dot
-    edge_case_pic = [file for file in all_files if file.startswith(user_images_path_2)]
-    additional_pics = [file for file in all_files if file.startswith(user_images_path_1)]
-
-    # join the lists
-    user_pics = edge_case_pic + additional_pics
-
-    # current site and protocol
-    current_site = get_current_site(request)
-    protocol = 'https' if request.is_secure() else 'http'
-    
-
-    # Create full URLs for each file, so that they are reachable from the frontend
-    user_files_urls = [
-        f"{protocol}://{current_site.domain}{default_storage.url(os.path.join('custom/', file))}"
-        for file in user_pics
-    ]
-
-    print(f'sending files: {user_files_urls}')
-    return JsonResponse({'success': True, 'files': user_files_urls}, status=200)
-    
-
-@require_http_method(['PUT'])
-@require_authentication
-def select_image(request):
-    '''
-    Updates the current profile picture of the user based on the image path provided
-    '''
-    print("select image")
-    
-    user = request.user
-    data = json.loads(request.body)
-    new_profile_pic_url = data.get('newProfilePicUrl')
-    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
-    print(f'new profile pic url {relative_path}')
-
-    if not new_profile_pic_url:
-        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
-    
-    try: 
-        user.profile_pic = relative_path
-        user.save()
-    except Exception as e:
-        print("error updating profile picture")
-        return JsonResponse({'error': 'Could not change profile picture'}, status=500)
-
-    return JsonResponse({'success': True}, status=200)
-    
-
-@require_http_method(['DELETE'])
-@require_authentication
-def delete_image(request):
-    '''
-    Delets the image specified in the request
-    '''
-    print("select image")
-    
-    data = json.loads(request.body)
-    new_profile_pic_url = data.get('imagePath')
-    print("is authenticated")
-    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
-    print(f'new profile pic url {relative_path}')
-
-    if not new_profile_pic_url:
-        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
-    
-    if delete_media_file(relative_path):
-        return JsonResponse({'success': True}, status=200)
-    else:
-        return JsonResponse({'error': 'Could not delete profile picture'}, status=500)
-
 
 def delete_media_file(file_path):
     """Deletes a file from the media storage."""
@@ -692,18 +944,19 @@ def delete_media_file(file_path):
         return True
     else:
         return False
-    
+
+
 def get_usernames_in_game(user):
     '''
     returns a list of usernames based on the game the user is in
     '''
     try:
-        print("getting user record in participant table")
+        logger.debug("getting user record in participant table")
         current_user_participant = Participant.objects.get(user=user)
-        print("getting game in users participant table")
+        logger.debug("getting game in users participant table")
         current_game = current_user_participant.game
 
-        print("getting array of players in same game")
+        logger.debug("getting array of players in same game")
         participants_in_same_game = Participant.objects.filter(game=current_game)
 
         usernames = []
@@ -711,7 +964,7 @@ def get_usernames_in_game(user):
             usernames.append(part.user.username)
 
         # Extract relevant data to send back (e.g., usernames, scores)
-        print("sending back data")
+        logger.debug("sending back data")
         return usernames
     except:
         logger.error("error getting usernames from game")
@@ -722,12 +975,12 @@ def get_user_ids_from_usernames(user):
     returns a list of user ids based on a list of usernames
     '''
     try:
-        print("getting user record in participant table")
+        logger.debug("getting user record in participant table")
         current_user_participant = Participant.objects.get(user=user)
-        print("getting game in users participant table")
+        logger.debug("getting game in users participant table")
         current_game = current_user_participant.game
 
-        print("getting array of players in same game")
+        logger.debug("getting array of players in same game")
         participants_in_same_game = Participant.objects.filter(game=current_game)
 
         user_ids = []
@@ -735,7 +988,7 @@ def get_user_ids_from_usernames(user):
             user_ids.append(part.user.id)
 
         # Extract relevant data to send back (e.g., usernames, scores)
-        print("sending back data")
+        logger.debug("sending back data")
         return user_ids
     except:
         logger.error("error getting user ids from game")
@@ -756,191 +1009,3 @@ def get_profile_picture_on_users(user_id_list):
         url_list.append(user.profile_pic.path)
 
     return url_list
-
-
-
-# @require_authentication
-@require_http_method(['POST'])
-def user_login(request):
-    '''
-    Logs the user in using djangos built in authentication
-    Also generates a JWT token for the user, neccessary for websocket
-    returns:
-    @JWT : string
-    '''
-    print("user_login")
-
-    data = json.loads(request.body)
-
-    username = data.get('username')
-    password = data.get('password')
-
-    print(username)
-    print(password)
-
-    logger.info("attempting to authenticate...")
-
-    # Use Django's authenticate function to verify credentials
-    user = authenticate(username=username, password=password)
-    logger.info("authentication complete!")
-
-    if user is not None:
-        logger.info("attempting to login")
-        login(request, user)
-        logger.info("Login complete!")
-        logger.info("generating JWT")
-        token = generate_JWT(user)
-        print(f'JWT: {token}')
-
-        response = JsonResponse({'success': True, 'JWT': token}, status=200)
-
-        response.set_cookie('auth_token', token, httponly=True, path='/ws/', samesite='Lax', secure=True)
-        return response
-
-
-@require_http_method(['GET'])
-@require_authentication
-def get_username(request):
-    '''
-    Gets the username of the client
-    returns:
-    @username : string
-    '''
-    print("get_username")
-
-    user = request.user
-
-    return JsonResponse({'success': True, 'username': user.username}, status=200)
-
-
-@require_http_method(['GET'])
-def get_status(request): # RENAME!
-    '''
-    Returns relevant user data:
-    @loggedIn : boolean
-    @username : string
-    @inAGame : boolean
-    '''
-    print("get_login_status")
-
-    user = request.user
-
-    if user.is_authenticated:
-        
-        username = user.username
-
-        if Participant.objects.filter(user=user).exists():
-            in_a_game = True
-        else:
-            in_a_game = False
-
-        print("user is logged in, returning 200")
-        return JsonResponse({'success': True, 'loggedIn': True, 'username': username, 'inAGame': in_a_game}, status=200)
-    else:
-        print("not logged in")
-        return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
-        
-
-@require_http_method(['POST'])
-@require_authentication
-def put_admin(request):
-    try:
-        data = json.loads(request.body)
-
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-
-
-        # Validate the information
-        if not (first_name and last_name and email and password):
-            return JsonResponse({'error': 'Missing fields'}, status=400)
-
-        # Create a new user instance but don't save it yet
-        new_user = User(first_name=first_name, last_name=last_name, username=username, email=email)
-
-        # Set the password
-        new_user.set_password(password)
-
-        # Validate and save the user
-        new_user.full_clean()
-        new_user.save()
-
-        return JsonResponse({'message': 'User created successfully', 'user_id': new_user.id}, status=200)
-    
-    except json.JSONDecodeError:
-        # JSON data could not be parsed
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except ValidationError as e:
-        # Invalid data
-        return JsonResponse({'error': str(e)}, status=400)
-    except Exception as e:
-        # Any other errors
-        return JsonResponse({'error': 'An error occurred'}, status=500)
-
-
-@require_http_method(['POST'])
-def create_user(request):
-    # Creates a new user
-    print("put_user")
-    try:
-        data = json.loads(request.body)
-
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-
-        # Validate the information
-        if not (first_name and last_name and username and email and password):
-            return JsonResponse({'error': 'Missing fields'}, status=400)
-
-        # Check if the username or email is already in use
-        existing_user = User.objects.filter(username=username).first()
-        existing_email = User.objects.filter(email=email).first()
-        
-        if existing_user and existing_email:
-            return JsonResponse({'error': 'Both username and email are already in use'}, status=409)
-        elif existing_user:
-            return JsonResponse({'error': f'Username "{existing_user.username}" is already in use'}, status=409)
-        elif existing_email:
-            return JsonResponse({'error': f'Email "{existing_email.email}" is already in use'}, status=409)
-
-        new_user = User(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
-
-        # Set the password
-        new_user.set_password(password)
-
-        new_user.full_clean()  # Validate the information
-        new_user.save()
-
-        return JsonResponse({'success': True, 'message': 'User created successfully', 'user_id': new_user.id}, status=200)
-
-    except json.JSONDecodeError:
-        # JSON data could not be parsed
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except ValidationError as e:
-        # Invalid data
-        return JsonResponse({'error': str(e)}, status=400)
-    except Exception as e:
-        # Any other errors
-        return JsonResponse({'error': 'An error occurred'}, status=500)
-
-
-# have not done this yet
-@require_http_method(['DELETE'])
-@require_authentication
-def delete_user(request):
-
-    try:
-        pass
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': str(e)}, status=400)
-    except Exception as e:
-        # Any other errors
-        return JsonResponse({'error': 'An error occurred'}, status=500)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from datetime import datetime as dt, timedelta, timezone
+from django.utils import timezone
 
 
 # Custom manager for the User model
@@ -137,7 +138,7 @@ class Game(models.Model):
     # active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
     
     # Start time of the game
-    start_time = models.DateTimeField()
+    start_time = models.DateTimeField(default=timezone.now)
   
     # End time of the game; nullable and blank to handle ongoing games
     end_time = models.DateTimeField(null=True, blank=True)
@@ -158,7 +159,7 @@ class PickedTasks(models.Model):
 
     done = models.BooleanField(default=False)
 
-    time = models.DateTimeField(default=dt.now())
+    time = models.DateTimeField(default=timezone.now)
 
     # this ensures that the combination of task and game must be unique
     class meta:
@@ -170,7 +171,7 @@ Keep track of users participating in a game, including their scores.
 '''
 class Participant(models.Model):
     # User participating in the game; ForeignKey links to the User model
-    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     
     # Game in which the user is participating; ForeignKey links to the Game model
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
