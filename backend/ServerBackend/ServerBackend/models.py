@@ -213,9 +213,13 @@ class Response(models.Model):
 
 class GameHistory(models.Model):
 
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    game_id = models.CharField(max_length=255, null=False, default=None, primary_key=True)
 
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    title = models.CharField(max_length=255)
+
+    description = models.TextField()
+
+    winner = models.CharField(max_length=30)
 
     start_time = models.DateTimeField()
   
@@ -224,11 +228,11 @@ class GameHistory(models.Model):
 
 class PickedTasksHistory(models.Model):
 
+    game_id = models.CharField(max_length=255, null=False, default=None, primary_key=True)
+
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
 
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    user = models.CharField(max_length=30)
 
     time = models.DateTimeField()
 

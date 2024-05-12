@@ -132,8 +132,6 @@ function GameLobby() {
 
   const fetchGame = () => {
 
-    
-
       axios.get("http://localhost:8000/game/get/",
           {
               headers: {

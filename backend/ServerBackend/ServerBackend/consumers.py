@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate
 from django.conf import settings
 from channels.layers import get_channel_layer
 from datetime import datetime as dt, timedelta, timezone
-from .models import User, Game, Participant, PickedTasks, Tasks, Response
+from .models import User, Game, Participant, PickedTasks, Tasks, Response, GameHistory, PickedTasksHistory
 from .tasks import end_wheel_spin
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
@@ -204,22 +204,22 @@ class GameLobby(AsyncWebsocketConsumer):
                 response = {}
 
                 # Check if the overwhelming majority has voted, and end game if one-sided.
-                if ((participants - 1)/2 - skipVotes) < yesVotes:                            # Player wins
+                if ((participants - 1)/2 - skipVotes) < yesVotes or (yesVotes == noVotes) & yesVotes != 0:  
                     # Removes responses for specific task, in specific game.
-                    await self.next_task_preperation(game, task)
-                    # Gives player points
+                    await self.next_task_preperation(game, task)                                # Player wins
+                    # Gives player points.
                     response = await self.give_player_points(game, task)
+                    # Add Task to history table.
+                    await self.update_PickedTasksHistory(game, task, True)
 
-                elif ((participants - 1)/2 - skipVotes) < noVotes:                            # Player loses
-                    # Removes responses for specific task, in specific game.
+
+                elif ((participants - 1)/2 - skipVotes) < noVotes:                            
+                    # Removes responses for specific task, in specific game.                    # Player loses
                     await self.next_task_preperation(game, task)
                     response = {'winner': False}
+                    # Add Task to history table.    
+                    await self.update_PickedTasksHistory(game, task, False)
 
-                elif (yesVotes == noVotes) & yesVotes != 0:                                    # Draw, but player wins the task.
-                    # Removes responses for specific task, in specific game.
-                    await self.next_task_preperation(game, task)
-                    # Gives player points
-                    response = await self.give_player_points(game, task)
 
                 else:                                                                   # Vote continues
 
@@ -368,6 +368,20 @@ class GameLobby(AsyncWebsocketConsumer):
 #|                   DATABASE                                           |
 #|                   FUNCTIONS                                          |
 #|======================================================================|
+
+    # Database function
+    @database_sync_to_async
+    def update_PickedTasksHistory(self, game, task, bool):
+        try:
+            current_task = PickedTasks.objects.get(game=game, task=task)
+            task_history = PickedTasksHistory(task=task, game_id=game.game_id, user=current_task.user.username, time=dt.now(), win=bool)
+            task_history.save()
+            return True
+        except Exception as e:
+            print(f'WS: Error when updating task history: {e}')
+            return False
+
+
     # Database function
     @database_sync_to_async
     def get_participant_game(self, user_id):
@@ -415,10 +429,32 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def end_game(self, game):
         print("\tWS: end_game")
-        
+
+        try:
+            participants = Participant.objects.filter(game=game)
+
+            gameWinner = None
+            for participant in participants:
+                if gameWinner is None or participant.score > gameWinner.score:
+                    gameWinner = participant
+
+            game_history = GameHistory(game_id=game.game_id, 
+                                    title=game.title, 
+                                    description=game.description,
+                                    winner=gameWinner.user.username, 
+                                    start_time=game.start_time, 
+                                    end_time=dt.now())
+            game_history.save()
+            
+        except Exception as e:
+            print("WS: Error when updating game history: ", e)
+            return False
+         
+
         try:
             game_to_delete = Game.objects.get(game_id=game.game_id)
             print("\tWS: Fetch successfull, ", game_to_delete.game_id)
+
         except Exception as e:
             print("\tWS: Fetch failed error: ", str(e))
             return False
