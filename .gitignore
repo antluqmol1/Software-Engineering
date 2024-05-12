@@ -1,19 +1,19 @@
-backend/node_modules/
-backend/ServerBackend/ServerBackend/__pychache__
+# Recursive ignores
+.vscode
+**.pyc
+**.DS_Store
 **node_modules
-frontend/node_modules/
-backend/venv/
-backend/ServerBackend/ServerBackend/migrations/
-backend/ServerBackend/ServerBackend/__pycache__/
-backend/ServerBackend/ServerBackend/.DS_store
-backend/ServerBackend/.DS_store
+**__pycache__
+**.coverage
+
+# frontend ignores
 frontend/src/.DS_Store
+frontend/node_modules/
+
+# backend ignores
+backend/venv/
+backend/node_modules/
+backend/ServerBackend/htmlcov
 backend/ServerBackend/db.sqlite3
 backend/ServerBackend/django_debug.log
-backend/ServerBackend/ServerBackend/migrations
-backend/ServerBackend/ServerBackend/migrations/*
-backend/ServerBackend/ServerBackend/migrations/__pycache__
-backend/ServerBackend/ServerBackend/management/__pycache__
-backend/ServerBackend/ServerBackend/management/commands/__pycache__
-**.DS_Store
-.vscode
+backend/ServerBackend/.coverage

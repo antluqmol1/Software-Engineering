@@ -13,6 +13,7 @@ import { faCheck, faTimes, faQuestion, } from "@fortawesome/free-solid-svg-icons
 import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 import gameServices from "../services/gameServices";
+import csrfService from '../services/csrfService';
 
 
 
@@ -24,10 +25,9 @@ const wheel_data = [
 
 function GameLobby() {
     const [playerList, setPlayerList] = useState([]);
-    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
     const [usernameArray, setUsernameArray] = useState([{ option: 'null'}]);
     const [URIArray, setURIArray] = useState([{ uri: 'null'}]);
-
+    
     const [admin, setAdmin] = useState(false);
     const [gameID, setGameID] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
@@ -36,7 +36,7 @@ function GameLobby() {
     const [taskId, setTaskId] = useState(null);
     const [pickedPlayer, setPickedPlayer] = useState(null);
     const [totalVotes, setTotalVotes] = useState(0); // New state for total votes
-
+    
     const [spunWheel, setSpunWheel] = useState(false);
     const [waitingForSpin, setWaitingForSpin] = useState(false);
     const [nextTask, setNextTask] = useState(false)
@@ -46,30 +46,31 @@ function GameLobby() {
     const [questionLine3, setQuestionLine3] = useState([]);
     const [showLeaderBoard, setShowLeaderBoard] = useState(true);
     const [wheelAudio, setWheelAudio] = useState(new Audio(SpinSound));
-
+    
     const navigate = useNavigate();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
-
+    
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
-
-
+    
+    const { loading, username, inAGame, setInAGame, userIsLoggedIn} = useContext(AuthContext);
+    
     const handleDelete = () => {  
-
+      
       console.log("Ending/Deleting game...")
-
+      
       if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
-            type: 'game_end',
+          type: 'game_end',
         }));
       };
 
       webSocketRef.current.close(4020, 'Admin ended game');
       setInAGame(false)
       navigate("/end-game")
-
+      
     };
 
     // Request to backend for leaving game(removing player from DB).
@@ -124,7 +125,7 @@ function GameLobby() {
 
     console.log("attempting to fetch profile picture urls");
 
-    const response = await gameServices.getProfilePictures();
+    const response = await gameServices.getProfilePictures(token);
 
     console.log("fetch profile pictures: ", response);
 
@@ -249,6 +250,18 @@ function GameLobby() {
     });
   };
 
+    // NOT WORKING, FIX
+    useEffect (() => {
+
+      if (!loading && !userIsLoggedIn) {
+        navigate("/")
+      }else {
+        console.log("In a game")
+      }
+  
+    }, [loading, userIsLoggedIn]); 
+  
+
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
 
@@ -263,7 +276,7 @@ function GameLobby() {
       const usernames = Array.from(playerList.values()).map(player => ({ option: player.username }));
       setUsernameArray(usernames);
     }
-
+  
   }, [playerList]);
 
 
