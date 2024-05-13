@@ -14,13 +14,14 @@
     top: 0%;
     width: 100%;
     background-color: #e2c3dd4f; /* Background color of the navbar */
-    background: linear-gradient(#694873, #210f41aa);
+    background: linear-gradient(#694873, #210f41);
     color: #fff; /* Text color */
     padding: 10px 20px; /* Padding around the navbar */
     display: flex; /* Use flexbox layout */
     justify-content: space-between; /* Align items with space between them */
     align-items: center; /* Vertically center items */
     /* font-weight: 600; */
+    z-index: 9999;
 
   }
   

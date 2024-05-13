@@ -1,6 +1,6 @@
 // Profile.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import Cookies from "universal-cookie";
 import { Card, CardBody, CardTitle } from "react-bootstrap";
@@ -11,11 +11,15 @@ import { Navigate, useNavigate } from "react-router-dom"; // Import useNavigate 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackspace } from "@fortawesome/free-solid-svg-icons";
 import userServices from "../services/userServices";
+import { AuthContext } from '../AuthContext';
+
 
 
 const Profile = () => {
   // State to control the current view in the right container
   const [currentView, setCurrentView] = useState("editProfile");
+
+  const { userIsLoggedIn, loading} = useContext(AuthContext);
 
   // State for storing user data
   const [userData, setUserData] = useState({
@@ -43,6 +47,8 @@ const Profile = () => {
   // state for changing the password
   const [showChangePassword, setShowChangePassword] = useState(false);
 
+  // navigate
+  const navigate = useNavigate(); // Initialize useHistory hook
   // State for storing game history
   const [gameHistory, setGameHistory] = useState([]);
   const [showGameHistory, setShowGameHistory] = useState(false);
@@ -64,8 +70,20 @@ const Profile = () => {
 
   console.log("getting profile");
 
+  // NOT WORKING, FIX
+  useEffect (() => {
+
+    if (!loading && !userIsLoggedIn) {
+      navigate("/")
+    }else {
+      console.log("In a game")
+    }
+
+  }, [loading, userIsLoggedIn]); 
+
   // Fetch user data when component mounts
   useEffect(() => {
+
     // Fetch user data when the component mounts
     const fetchUserData = async () => {
       try {
@@ -86,9 +104,9 @@ const Profile = () => {
 
         // Check if the error is due to unauthorized access
         if (error.response.status === 401) {
-          setError("Please log in to view your profile.");
+          // setError("Please log in to view your profile.");
         } else {
-          setError("An unexpected error occurred. Please try again later.");
+          // setError("An unexpected error occurred. Please try again later.");
         }
       }
     };
@@ -263,7 +281,7 @@ const Profile = () => {
 
         try {
           const response = await axios.get(
-            "http://localhost:8000/profile/get-all-profile-pictures/",
+            "http://localhost:8000/user/profile/get-all-pictures/",
             {
               withCredentials: true,
               headers: {

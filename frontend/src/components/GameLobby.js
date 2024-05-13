@@ -13,6 +13,7 @@ import { faCheck, faTimes, faQuestion, } from "@fortawesome/free-solid-svg-icons
 import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 import gameServices from "../services/gameServices";
+import PolkadotBackground from './PolkadotBackground';
 
 function GameLobby() {
     
@@ -39,7 +40,7 @@ function GameLobby() {
     const navigate = useNavigate();
     
     //context variables
-    const { loading, username, inAGame, setInAGame } = useContext(AuthContext);
+    const { loading, username, inAGame, setInAGame, userIsLoggedIn } = useContext(AuthContext);
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
@@ -58,17 +59,17 @@ function GameLobby() {
     const handleDelete = () => {  
       
       console.log("Ending/Deleting game...")
-
+      
       if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
-            type: 'game_end',
+          type: 'game_end',
         }));
       };
 
       webSocketRef.current.close(4020, 'Admin ended game');
       setInAGame(false)
       navigate("/end-game")
-
+      
     };
 
     // Request to backend for leaving game(removing player from DB).
@@ -234,17 +235,30 @@ function GameLobby() {
     });
   };
 
+    // NOT WORKING, FIX
+    useEffect (() => {
+
+      if (!loading && !userIsLoggedIn) {
+        navigate("/")
+      }else {
+        console.log("In a game")
+      }
+  
+    }, [loading, userIsLoggedIn]); 
+  
+
   // Log the updated playerList within a useEffect hook
   useEffect(() => {
 
     // Don't update the username Array when wheel is spinning
     if (mustSpin === true) {
+      console.log('TOOTOTOOOTOTOTOO')
       return;
     }
 
     console.log('Updating userNameArray', playerList)
     console.log("logged in? ", inAGame)
-
+    
     fetchPlayerImages(token)
 
 
@@ -569,6 +583,7 @@ function GameLobby() {
             {/* <button onClick={handleSpinClick}>SPIN</button> */}
             </div>
           }
+        <PolkadotBackground></PolkadotBackground>
 
         
         </div>

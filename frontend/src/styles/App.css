@@ -139,3 +139,14 @@
     top: 35%;
     height: 60%;
 }
+
+
+@keyframes moveDiagonal {
+    from {
+      background-position: 0% 0%; /* Start from the top-left corner */
+    }
+    to {
+      background-position: 100% 100%; /* Move to the bottom-right corner */
+    }
+  }
+  

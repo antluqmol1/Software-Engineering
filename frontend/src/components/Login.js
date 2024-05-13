@@ -45,7 +45,7 @@ const Login = () => {
         } else {
           console.log("NOT GETTING NEW CSRFTOKEN")
         }
-
+        setUsername(localUsername);
         setUserIsLoggedIn(true);
         navigate('/');
       } else {

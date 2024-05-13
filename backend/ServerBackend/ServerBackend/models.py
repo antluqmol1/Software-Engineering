@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from datetime import datetime as dt, timedelta, timezone
+from django.utils import timezone
 
 
 # Custom manager for the User model
@@ -164,7 +165,7 @@ Keep track of users participating in a game, including their scores.
 '''
 class Participant(models.Model):
     # User participating in the game; ForeignKey links to the User model
-    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     
     # Game in which the user is participating; ForeignKey links to the Game model
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
