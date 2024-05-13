@@ -1,9 +1,10 @@
 import React from 'react';
 import imageUrl from '../assets/Polkadots2.png';
+import imageUrl2 from '../assets/17.png';
 
 const PolkadotBackground = () => {
   const styles = {
-    backgroundImage: `url(${imageUrl})`,
+    backgroundImage: `url(${imageUrl2})`,
     backgroundRepeat: 'repeat',
     opacity: 0.2, // Adjust opacity to make it more transparent
     position: 'fixed',
