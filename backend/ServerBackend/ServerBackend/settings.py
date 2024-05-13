@@ -16,7 +16,7 @@ import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(f'\n\nBASE_DIR{BASE_DIR}\n\n\n')
+print(f'\nBASE_DIR{BASE_DIR}\n')
 
 
 # Quick-start development settings - unsuitable for production
@@ -67,7 +67,6 @@ ALLOWED_HOSTS = [
 ]
 
 # Application definition
-print("before apps")
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
@@ -81,9 +80,6 @@ INSTALLED_APPS = [
     'ServerBackend.apps.ServerBackendConfig',
     'django_extensions',
 ]
-
-print("before apps")
-
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -200,11 +196,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[{asctime}] {levelname} {name} - {message}',
+            'format': '[{asctime}] {levelname} {module} {filename} - {message}',
             'style': '{',
         },
         'simple': {
-            'format': '{levelname} - {message}',
+            'format': '{levelname} {module} - {message}',
             'style': '{',
         },
     },

@@ -1,7 +1,8 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from ServerBackend.models import User, Tasks, Game, PickedTasks, Participant
-import logging  
+import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +16,9 @@ class AuthTestCase(TestCase):
                                              username="test_user",
                                              email="test@example.com",
                                              password="password123")
-        self.login_url = reverse('user_login')
-        self.logout_url = reverse('user_logout')
-        self.get_profile_url = reverse('get_profile')
+        self.login_url = reverse('auth:user_login')
+        self.logout_url = reverse('auth:user_logout')
+        self.get_profile_url = reverse('user:profile:get_profile')
         
     def tearDown(self):
         logger.info("Tearing down test auth...")
@@ -28,39 +29,56 @@ class AuthTestCase(TestCase):
         # Test the login functionality
         logger.info("Testing login...")
         # Attempt to login with wrong password
-        response = self.client.post(self.login_url, data={'username': 'test_user', 'password': 'wrong_password'})
+        logger.info("Testing with wrong password...")
+        response = self.client.post(self.login_url, 
+                                    data=json.dumps({'username': 'test_user', 'password': 'wrong_password'}),
+                                    content_type='application/json')
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json['msg'], 'Invalid credentials')
-        
+        self.assertEqual(response.json()['error'], 'Invalid credentials')
+
+        logger.info("Testing with missing fields...")
+        # login with missing fields
+        response = self.client.post(self.login_url, 
+                                    data=json.dumps({'username': None, 'password': None}),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error'], 'Missing username or password')
+
+        logger.info("Testing with correct info...")
         # Login with proper password
-        response = self.client.post(self.login_url, data={'username': 'test_user', 'password': 'password123'})
+        response = self.client.post(self.login_url, 
+                                    data=json.dumps({'username': 'test_user', 'password': 'password123'}),
+                                    content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['msg'], 'Login successful')
-        # check that token is issued
-        self.assertIsNone(response.json["token"])
+        self.assertEqual(response.json()['msg'], 'Login successful')
+
+        # check that token is issued, now that we are logged in
+        self.assertIsNotNone(response.json()["JWT"])
 
     def test_logout(self):
         logger.info("Testing logout...")
         # Test the logout functionality
         # Login with proper password
         # Might still be logged in, might remove this
-        response = self.client.post(self.login_url, data={'username': 'test_user', 'password': 'password123'})
+        response = self.client.post(self.login_url, 
+                                    data=json.dumps({'username': 'test_user', 'password': 'password123'}),
+                                    content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['msg'], 'Login successful')
-        
+        self.assertEqual(response.json()['msg'], 'Login successful')
+
         # Logout
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['success'], True)
+        self.assertEqual(response.json()['success'], True)
 
         # Logout when not logged in
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json['success'], True)
-        self.assertEqual(response.json['msg'], 'not authenticated')
+        self.assertEqual(response.json()['success'], False)
+        self.assertEqual(response.json()['msg'], 'not authenticated')
         
         # Attempt to access a protected resource after logout
         response = self.client.get(self.get_profile_url)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json['success'], False)
-        self.assertEqual(response.json['msg'], 'not authenticated')
+        self.assertEqual(response.json()['success'], False)
+        self.assertEqual(response.json()['msg'], 'not authenticated')

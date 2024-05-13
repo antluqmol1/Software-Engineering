@@ -4,7 +4,6 @@ import base64
 import logging
 import os
 from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
 from django.contrib.sites.shortcuts import get_current_site
 from datetime import datetime as dt, timedelta, timezone
 from .models import User, Game, Participant, Tasks, PickedTasks
@@ -94,18 +93,16 @@ def user_login(request):
     returns:
     @JWT : string
     '''
-    logger.debug("user_login")
-
     data = json.loads(request.body)
 
     username = data.get('username')
     password = data.get('password')
 
-    logger.debug(username)
-    logger.debug(password)
+    if not (username and password):
+        return JsonResponse({'success': False, 'error': 'Missing username or password'}, status=400)
 
     logger.info("attempting to authenticate...")
-
+    
     # Use Django's authenticate function to verify credentials
     user = authenticate(username=username, password=password)
 
@@ -122,7 +119,7 @@ def user_login(request):
         return response
     else: 
         logger.info("login failed")
-        return JsonResponse({'success': False, 'error': 'invalid credentials'}, status=401)
+        return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
 
 
 @require_http_method(['POST'])
@@ -689,208 +686,7 @@ def get_game_participants(request):
                         for p in participants_in_same_game]
     
     logger.info(f"returning participants: {participant_data}")
-    return JsonResponse({'participants': participant_data}, status=200)
-
-
-#|======================================================================================|
-#| profile views                                                                        |
-#| views for user profile                                                               |
-#|======================================================================================|
-
-
-@require_http_method(['GET'])
-@require_authentication
-def get_profile(request):
-    '''
-    returns the profile of the user
-    returns:
-    @user_data : dict
-    '''
-    logger.info(f"{request.user.username} is fetching profile")
-
-    user = request.user
-    user_data = {
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'username': user.username,
-        'email': user.email,
-    }
-    return JsonResponse({'user_data': user_data})
-
-
-@require_http_method(['PUT'])
-@require_authentication
-def update_profile(request):
-    '''
-    Updates the profile of the user
-    '''
-    logger.info(f"{request.user.username} is updating profile")
-
-    user = request.user
-
-    data = json.loads(request.body)
-
-    field = data.get('field')
-    logger.debug(f'field: {field}')
-    new_value = data.get('value')
-    logger.debug(f'field: {new_value}')
-    
-    # set attributes of the user
-    setattr(user, field, new_value)
-
-    # save it to the database
-    user.save()
-    logger.info("profile updated")
-    return JsonResponse({'success': True})
-
-@require_http_method(['GET'])
-@require_authentication
-def get_image_base64(request):
-    '''
-    Returns the profile picture of the user as a base64 encoded string
-    returns:
-    @image : string
-    '''
-
-    user = request.user
-    logger.info(f"{user.username} is fetching his profile picture")
-    try:
-        logger.debug("getting profile picture")
-        path = user.profile_pic.path
-        logger.debug(f'path to profile_pic: {path}')
-        with open(path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-        logger.debug("sending image as base64 string")
-        return JsonResponse({'image': encoded_string}, status=200)
-    except IOError:
-        logger.error("Could not locate file")
-        return JsonResponse({'error': 'Image not found'}, status=404)
-
-
-@require_http_method(['GET'])
-@require_authentication
-def get_all_images(request):
-    '''
-    Returns all images in the belonging to the user as a list of URLs
-    '''
-    user = request.user
-    logger.info(f"{user.username} is fetching all profile pictures")
-    # Construct the path where user's images are stored
-    user_images_path_1 = f'{user.id}_'
-    user_images_path_2 = f'{user.id}.'
-    all_files = default_storage.listdir('custom/')[1]  # Second element contains file names
-    
-    # Filter files that start with the user ID followed by an underscore or dot
-    edge_case_pic = [file for file in all_files if file.startswith(user_images_path_2)]
-    additional_pics = [file for file in all_files if file.startswith(user_images_path_1)]
-
-    # join the lists
-    user_pics = edge_case_pic + additional_pics
-
-    # current site and protocol
-    current_site = get_current_site(request)
-    protocol = 'https' if request.is_secure() else 'http'
-    
-
-    # Create full URLs for each file, so that they are reachable from the frontend
-    user_files_urls = [
-        f"{protocol}://{current_site.domain}{default_storage.url(os.path.join('custom/', file))}"
-        for file in user_pics
-    ]
-
-    logger.info(f'returning sending urls: {user_files_urls}')
-    return JsonResponse({'success': True, 'files': user_files_urls}, status=200)
-    
-
-@require_http_method(['PUT'])
-@require_authentication
-def select_image(request):
-    '''
-    Updates the current profile picture of the user based on the image path provided
-    '''
-    
-    user = request.user
-    logger.info(f"{user.username} is updating profile picture")
-    data = json.loads(request.body)
-    new_profile_pic_url = data.get('newProfilePicUrl')
-    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
-    logger.debug(f'new profile pic url {relative_path}')
-
-    if not new_profile_pic_url:
-        logger.error("no image URL provided")
-        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
-    
-    try: 
-        user.profile_pic = relative_path
-        user.save()
-    except Exception as e:
-        logger.debug("error updating profile picture")
-        return JsonResponse({'error': 'Could not change profile picture'}, status=500)
-
-    return JsonResponse({'success': True}, status=200)
-    
-
-@require_http_method(['DELETE'])
-@require_authentication
-def delete_image(request):
-    '''
-    Delets the image specified in the request
-    '''
-    logger.debug("select image")
-    
-    data = json.loads(request.body)
-    new_profile_pic_url = data.get('imagePath')
-    logger.debug("is authenticated")
-    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
-    logger.debug(f'new profile pic url {relative_path}')
-
-    if not new_profile_pic_url:
-        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
-    
-    if delete_media_file(relative_path):
-        return JsonResponse({'success': True}, status=200)
-    else:
-        return JsonResponse({'error': 'Could not delete profile picture'}, status=500)
-
-
-'''
-Updates the users profile picture
-Recieves a DataForm form
-'''
-@require_http_method(['POST'])
-@require_authentication
-def upload_image_base64(request):
-    '''
-    Updates the profile picture of the user based on the image provided
-    '''
-
-    user = request.user
-    logger.info(f"{user.username} is updating profile picture")
-
-    profile_picture = request.FILES.get('profileImage')
-
-    if profile_picture:
-        logger.debug("picture is valid")
-
-        extension = profile_picture.name.split('.')[-1].lower()
-        if extension not in ['png', 'jpg', 'jpeg']:
-            logger.warning("unsupported file format")
-            return JsonResponse({'success': False, 'error': 'Unsupported file format, must be png, jpg, or jpeg'}, status=400)
-        
-        # Save new image
-        try:
-            user.profile_pic.save(f"{user.id}.{extension}", profile_picture)
-            user.save()
-            logger.info("New profile picture stored")
-            return JsonResponse({'success': True}, status=201)
-        except Exception as e:
-            # Handle exceptions
-            logger.info(f"could not save picture. error: {e}")
-            return JsonResponse({'success': False}, status=500)
-    else:
-        logger.info("no image provided")
-        return JsonResponse({'error': 'No image file provided'}, status=400)
-
+    return JsonResponse({'success': True, 'participants': participant_data}, status=200)
 
 @require_http_method(['GET'])
 @require_authentication
@@ -936,6 +732,229 @@ def get_image_urls(request):
     logger.info(f'returning uris: {uri_dict}')
 
     return JsonResponse({"success": True, 'uris': uri_dict}, status=200)
+
+
+#|======================================================================================|
+#| profile views                                                                        |
+#| views for user profile                                                               |
+#|======================================================================================|
+
+
+@require_http_method(['GET'])
+@require_authentication
+def get_profile(request):
+    '''
+    returns the profile of the user
+    returns:
+    @user_data : dict
+    '''
+    logger.info(f"{request.user.username} is fetching profile")
+
+    user = request.user
+    user_data = {
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'username': user.username,
+        'email': user.email,
+    }
+    return JsonResponse({'success': True, 'user_data': user_data}, status=200)
+
+
+@require_http_method(['PUT'])
+@require_authentication
+def update_profile(request):
+    '''
+    Updates the profile of the user
+    '''
+    logger.info(f"{request.user.username} is updating profile")
+
+    user = request.user
+
+    data = json.loads(request.body)
+
+    field = data.get('field')
+    logger.debug(f'field: {field}')
+    new_value = data.get('value')
+    logger.debug(f'field: {new_value}')
+
+    if field not in ['first_name', 'last_name', 'username']:
+        logger.error("invalid field")
+        return JsonResponse({'success': False, 'error': 'Invalid field'}, status=400)
+    
+    # set attributes of the user
+    setattr(user, field, new_value)
+
+    # save it to the database
+    user.save()
+    logger.info("profile updated")
+    return JsonResponse({'success': True, 'msg': 'Profile updated successfully'}, status=200)
+
+@require_http_method(['GET'])
+@require_authentication
+def get_image_base64(request):
+    '''
+    Returns the profile picture of the user as a base64 encoded string
+    returns:
+    @image : string
+    '''
+
+    user = request.user
+    logger.info(f"{user.username} is fetching his profile picture")
+    try:
+        logger.debug("getting profile picture")
+        path = user.profile_pic.path
+        logger.debug(f'path to profile_pic: {path}')
+        with open(path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        logger.debug("sending image as base64 string")
+        return JsonResponse({'success': True, 'image': encoded_string}, status=200)
+    except IOError:
+        logger.error("Could not locate file")
+        return JsonResponse({'success': False, 'error': 'Image not found'}, status=404)
+
+
+@require_http_method(['GET'])
+@require_authentication
+def get_all_images(request):
+    '''
+    Returns all images in the belonging to the user as a list of URLs
+    '''
+    user = request.user
+    logger.info(f"{user.username} is fetching all profile pictures")
+    # Construct the path where user's images are stored
+    user_images_path_1 = f'{user.id}_'
+    user_images_path_2 = f'{user.id}.'
+    all_files = default_storage.listdir('custom/')[1]  # Second element contains file names
+    
+    # Filter files that start with the user ID followed by an underscore or dot
+    edge_case_pic = [file for file in all_files if file.startswith(user_images_path_2)]
+    additional_pics = [file for file in all_files if file.startswith(user_images_path_1)]
+
+    # join the lists
+    user_pics = edge_case_pic + additional_pics
+
+    # current site and protocol
+    current_site = get_current_site(request)
+    protocol = 'https' if request.is_secure() else 'http'
+    
+    if user_pics == []:
+        logger.debug("no images found")
+        return JsonResponse({'success': False, 'error': 'No images found'}, status=404)
+
+    # Create full URLs for each file, so that they are reachable from the frontend
+    user_files_urls = [
+        f"{protocol}://{current_site.domain}{default_storage.url(os.path.join('custom/', file))}"
+        for file in user_pics
+    ]
+
+    logger.info(f'returning sending urls: {user_files_urls}')
+    return JsonResponse({'success': True, 'files': user_files_urls}, status=200)
+    
+
+@require_http_method(['PUT'])
+@require_authentication
+def select_image(request):
+    '''
+    Updates the current profile picture of the user based on the image path provided
+    '''
+    
+    user = request.user
+    logger.info(f"{user.username} is updating profile picture")
+    data = json.loads(request.body)
+    new_profile_pic_url = data.get('newProfilePicUrl')
+    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+    logger.debug(f'new profile pic url {relative_path}')
+
+    if not new_profile_pic_url:
+        logger.error("no image URL provided")
+        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
+    
+    try: 
+        user.profile_pic = relative_path
+        user.save()
+    except Exception as e:
+        logger.debug("error updating profile picture")
+        return JsonResponse({'error': 'Could not change profile picture'}, status=500)
+
+    return JsonResponse({'success': True}, status=200)
+    
+
+@require_http_method(['DELETE'])
+@require_authentication
+def delete_image(request):
+    '''
+    Delets the image specified in the request
+    '''
+    
+    logger.info(f'{request.user.username} is deleting a profile picture')
+
+    # get the image path
+    data = json.loads(request.body)
+    new_profile_pic_url = data.get('imagePath')
+
+    # create a relative path
+    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+    logger.debug(f'deleting pic url {relative_path}')
+
+    # Check if an image URL was provided
+    if not new_profile_pic_url:
+        logger.error("no image URL provided")
+        return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
+    
+    # check if attempting to delete current profile pic
+    if relative_path == request.user.profile_pic:
+        logger.debug("giving client default preset photo")
+        request.user.profile_pic = 'presets/preset_1.png'
+        request.user.save()
+    
+    # attempt to delete the image
+    if delete_media_file(relative_path):
+        logger.info("profile picture deleted")
+        return JsonResponse({'success': True}, status=200)
+    else:
+        logger.error("failed to deleted photo")
+        return JsonResponse({'success': False, 'error': 'Could not delete profile picture'}, status=500)
+
+
+'''
+Updates the users profile picture
+Recieves a DataForm form
+'''
+@require_http_method(['POST'])
+@require_authentication
+def upload_image(request):
+    '''
+    Updates the profile picture of the user based on the image provided
+    '''
+
+    user = request.user
+    logger.info(f"{user.username} is updating profile picture")
+
+    profile_picture = request.FILES.get('profileImage')
+
+    if profile_picture:
+        logger.debug("picture is valid")
+        logger.debug(profile_picture)
+
+        # extract the file extension
+        extension = profile_picture.name.split('.')[-1].lower()
+        if extension not in ['png', 'jpg', 'jpeg']:
+            logger.warning("unsupported file format")
+            return JsonResponse({'success': False, 'error': 'Unsupported file format, must be png, jpg, or jpeg'}, status=400)
+        
+        # Save new image
+        try:
+            user.profile_pic.save(f"{user.id}.{extension}", profile_picture)
+            user.save()
+            logger.info("New profile picture stored")
+            return JsonResponse({'success': True, 'msg': 'Updated image successfully', 'path': user.profile_pic.path}, status=201)
+        except Exception as e:
+            logger.info(f"could not save picture. error: {e}")
+            return JsonResponse({'success': False}, status=500)
+    else:
+        logger.info("no image provided")
+        return JsonResponse({'error': 'No image file provided'}, status=400)
+
 
 def delete_media_file(file_path):
     """Deletes a file from the media storage."""

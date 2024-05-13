@@ -72,10 +72,14 @@ const CreateUser = () => {
       if (response.data.success == true) {
 
         try{
-          response = authServices.login(username, password, csrfToken);
-          if (response.data.status == 200) {
+          const loginResponse = await authServices.login(username, password, csrfToken);
+          console.log("login complete?")
+          if (loginResponse.data.success == true) {
+            console.log("navigating to profile page")
+            setUserIsLoggedIn(true);
             navigate("/profile")
           }
+          console.log("after navigate") 
         }
         catch (error){
           console.error("login failed", error)

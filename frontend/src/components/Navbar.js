@@ -15,7 +15,7 @@ function Navbar() {
 
   const navigate = useNavigate();
 
-  const { username, userIsLoggedIn, setUserIsLoggedIn, csrfToken } = useContext(AuthContext)
+  const { username, setUsername, userIsLoggedIn, setUserIsLoggedIn, csrfToken } = useContext(AuthContext)
 
   const handleLogout = async () => {
 
@@ -30,6 +30,7 @@ function Navbar() {
       if (response.status === 200) {
         console.log("Logout successful")
         setUserIsLoggedIn(false);
+        setUsername(null);
         navigate('/');
       } else {
         // Could not logout!

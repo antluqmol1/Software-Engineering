@@ -36,21 +36,22 @@ var fonts = {
 
 
 function App() {
-  useEffect(() => {
+  // SHOULD NOT NEED THIS ANYMORE, I THINK?
+  // useEffect(() => {
 
-    // Make a GET request to initialize the session and get CSRF token
-    axios
-      .get("http://localhost:8000/auth/token/")
-      .then((response) => {
-        // Handle the response here if needed
-        console.log("Session initialized");
-        console.log("CSRF token from server:", response.data.csrfToken);
-      })
-      .catch((error) => {
-        // Handle any errors here
-        console.error("Error initializing session", error);
-      });
-  }, []); // The empty array ensures this runs once when the component mounts
+  //   // Make a GET request to initialize the session and get CSRF token
+  //   axios
+  //     .get("http://localhost:8000/auth/token/")
+  //     .then((response) => {
+  //       // Handle the response here if needed
+  //       console.log("Session initialized");
+  //       console.log("CSRF token from server:", response.data.csrfToken);
+  //     })
+  //     .catch((error) => {
+  //       // Handle any errors here
+  //       console.error("Error initializing session", error);
+  //     });
+  // }, []); // The empty array ensures this runs once when the component mounts
 
   return (
     <Router>

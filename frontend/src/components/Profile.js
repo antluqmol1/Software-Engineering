@@ -272,7 +272,7 @@ const Profile = () => {
 
         try {
           const response = await axios.get(
-            "http://localhost:8000/profile/get-all-profile-pictures/",
+            "http://localhost:8000/user/profile/get-all-pictures/",
             {
               withCredentials: true,
               headers: {
