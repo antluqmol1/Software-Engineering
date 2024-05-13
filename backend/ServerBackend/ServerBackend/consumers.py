@@ -417,7 +417,7 @@ class GameLobby(AsyncWebsocketConsumer):
         try:
             player = Participant.objects.get(user=self.user_id)
             
-            participantHist = ParticipantHistory(user=player.user, game=player.game.game_id)
+            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id)
             participantHist.save()
 
             player.delete()
@@ -425,8 +425,8 @@ class GameLobby(AsyncWebsocketConsumer):
             game.save()
             logger.debug("\tWS: successfully left the game")
             return True
-        except:
-            logger.debug("\tWS: failed to leave the game")
+        except Exception as e:
+            logger.debug(f"\tWS: failed to leave the game, error: {e}")
             return False
     
     # Database function

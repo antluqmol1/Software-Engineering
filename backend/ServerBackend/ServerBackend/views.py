@@ -874,7 +874,7 @@ def select_image(request):
         user.save()
     except Exception as e:
         logger.debug("error updating profile picture")
-        return JsonResponse({'error': 'Could not change profile picture'}, status=500)
+        return JsonResponse({'success': False, 'error': 'Could not change profile picture'}, status=500)
 
     return JsonResponse({'success': True}, status=200)
     
@@ -924,7 +924,8 @@ Recieves a DataForm form
 @require_authentication
 def upload_image(request):
     '''
-    Updates the profile picture of the user based on the image provided
+    Uploads and updates the profile picture 
+    of the user based on the image provided.
     '''
 
     user = request.user

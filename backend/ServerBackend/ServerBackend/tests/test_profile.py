@@ -47,6 +47,9 @@ class TestProfile(TestCase):
         # init relative_image_path
         self.relative_image_path = None
 
+        # custom media url
+        self.media_url = 'localhost:8000/media/'
+
         self.client.login(username='test_user', password='testing401')
 
     def tearDown(self):
@@ -133,7 +136,6 @@ class TestProfile(TestCase):
         logger.info("Testing get all pictures view...")
 
         # retrieving custom pictures when none exist
-        # ACTUALLY: we are saving the pictures in media folder,
         response = self.client.get(self.get_all_pictures_url)
         self.assertFalse(response.json()['success'])
         self.assertEqual(response.status_code, 404)
@@ -158,6 +160,35 @@ class TestProfile(TestCase):
 
     def test_update_picture_view(self):
         logger.info("Testing update picture view...")
+        # Open test image and upload
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.join(dir_path, 'media_for_tests', 'profile_pic_test.png')
+        with open(file_path, 'rb') as file:
+            # Create a dictionary with the file data
+            data = {'profileImage': file}
+            # Upload the picture
+            response = self.client.post(self.upload_picture_url, data, format='multipart')
+            self.assertEqual(response.status_code, 201)
+            self.assertTrue(response.json()['success'])
+            self.assertEqual(response.json()['msg'], 'Updated image successfully')
+
+        # open another test image and upload
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        file_path = os.path.join(dir_path, 'media_for_tests', 'profile_pic_test_2.png')
+        with open(file_path, 'rb') as file:
+            # Create a dictionary with the file data
+            data = {'profileImage': file}
+            # Upload the picture
+            response = self.client.post(self.upload_picture_url, data, format='multipart')
+            self.assertEqual(response.status_code, 201)
+            self.assertTrue(response.json()['success'])
+            self.assertEqual(response.json()['msg'], 'Updated image successfully')
+            self.relative_image_path = response.json()['path']
+
+        # change profile picture an invalid image
+        response = self.client.put(self.update_picture_url, 
+                                    data=json.dumps({'newProfilePicUrl': self.media_url + 'custom/invalidphoto.png'}), #hardcoded media url, matches what is sendt from frontend
+                                    content_type='application/json')
 
 
     def test_delete_picture_view(self):
