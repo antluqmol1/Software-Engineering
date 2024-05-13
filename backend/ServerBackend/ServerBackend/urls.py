@@ -43,6 +43,7 @@ urlpatterns = [
             path('get-all-pictures/', views.get_all_images_base64, name='get_all_profile_pictures'),
             path('update-picture/', views.select_image, name='update_profile_picture'),
             path('delete-picture/', views.delete_image, name='delete_profile_picture'),
+            path('game-details/', views.game_details, name='fetch_game_details'),
         ], 'profile'))),
     ], 'user'))),
     

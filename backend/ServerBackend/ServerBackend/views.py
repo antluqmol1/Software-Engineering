@@ -469,12 +469,51 @@ def get_profile(request):
     gameList = []
     for game in gameHist:
         gameDict = {
+            'game_id': game.game_id,
             'title': game.title,
             'start_time': game.start_time,
         }
         gameList.append(gameDict)
 
     return JsonResponse({'user_data': user_data, 'game_history': gameList})
+
+
+@require_http_method(['POST'])
+@require_authentication
+def game_details(request):
+
+    data = json.loads(request.body)
+    
+    game_id = data.get('game_id')
+
+    
+    game = GameHistory.objects.get(game_id=game_id)
+    gameDetails = {
+        'title': game.title,
+    }
+
+    tasks = PickedTasksHistory.objects.filter(game_id=game_id)
+    tasklist = []
+    for task in tasks:
+        taskDetails = Tasks.objects.get(task_id=task.task_id)
+        tasklist.append({
+            'description': taskDetails.description,
+            'points': taskDetails.points,
+            'pickedPlayer': task.username,
+            'win': task.win,
+            'time': task.time,
+        })
+
+    participants = ParticipantHistory.objects.filter(game_id=game_id)
+    scoreboard = []
+    for participant in participants:
+        scoreboard.append({
+            'username': participant.user.username,
+            'score': participant.score,
+        })
+
+
+    return JsonResponse({'game_details': gameDetails, 'tasks': tasklist, 'scoreboard': scoreboard, 'success': True}, status=200)
 
 
 @require_http_method(['PUT'])

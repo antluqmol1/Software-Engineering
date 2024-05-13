@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Cookies from "universal-cookie";
-import { Card } from "react-bootstrap";
+import { Card, CardBody, CardTitle } from "react-bootstrap";
 import "../styles/Profile.css";
 import defaultProfilePic from "../assets/woods.jpg";
 import { Button } from "react-bootstrap";
@@ -46,6 +46,14 @@ const Profile = () => {
   // State for storing game history
   const [gameHistory, setGameHistory] = useState([]);
   const [showGameHistory, setShowGameHistory] = useState(false);
+
+  // State for showing game details.
+  const [gameDetails, setGameDetails] = useState({
+    'title': "",
+    });
+  const [gameTasks, setGameTasks] = useState([]);
+  const [scoreboard, setScoreboard] = useState([]);
+  const [showGameDetails, setShowGameDetails] = useState(false);
 
   // State for storing any potential errors
   const [error, setError] = useState(null);
@@ -346,6 +354,7 @@ const Profile = () => {
       setShowChangePassword(true);
       setShowGallery(false);
       setShowGameHistory(false);
+      setShowGameDetails(false);
     }
 
     // try {
@@ -383,8 +392,46 @@ const Profile = () => {
       setShowGameHistory(true);
       setShowGallery(false);
       setShowChangePassword(false);
+      setShowGameDetails(false);
     }
+  };
 
+    // Function to toggle the visibility of the game details
+  const handleToggleGameDetails = async (gameID) => {
+    if (showGameDetails) {
+      // Go back to game history
+      setShowGameDetails(false);
+      setShowGameHistory(true);
+      return;
+    } else {
+      // Otherwise, show the game details
+      setShowGameDetails(true);
+      setShowGameHistory(false);
+      setShowGallery(false);
+      setShowChangePassword(false);
+
+      const response = await axios.post(
+        "http://localhost:8000/user/profile/game-details/",
+        {
+          game_id: gameID,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": token,
+          },
+        }
+      )
+      
+      if (response.data.success) {
+        console.log(response.data);
+        setGameDetails(response.data.game_details);
+        setGameTasks(response.data.tasks);
+        setScoreboard(response.data.scoreboard);
+      }
+    }
+  
 
   // Render error message if an error occurred
   if (error) {
@@ -479,16 +526,30 @@ const Profile = () => {
           <Card.Body>
             <Card.Title>Game History</Card.Title>
             {gameHistory.map((game, index) => (
-              <Card.Text key={index} className="game-item">
+              <Card.Text 
+                key={index} 
+                className="game-item"
+                onClick={() => {
+                  handleToggleGameDetails(game.game_id);
+                }}
+              >
                 <strong>Title:</strong> {game.title}
                 <strong>Start Time:</strong> {game.start_time}<br/>
               </Card.Text>
             ))}
           </Card.Body>
         </Card>
+      );   
+    }
+    else if(showGameDetails) {
+      return (
+        console.log(gameDetails),
+        console.log(gameTasks),
+        console.log(scoreboard),
+        {/*Implement a scetion of tasks that are scrollable and a scoreboard next to it(with title on top)*/}
       );
-    
-    } else {
+    }   
+    else {
       return (
         <Card className="profile-card">
           <Card.Body>
