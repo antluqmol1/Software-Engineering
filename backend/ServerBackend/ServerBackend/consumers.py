@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate
 from django.conf import settings
 from channels.layers import get_channel_layer
 from datetime import datetime as dt, timedelta, timezone
-from .models import User, Game, Participant, PickedTasks, Tasks, Response, GameHistory, PickedTasksHistory
+from .models import User, Game, Participant, PickedTasks, Tasks, Response, GameHistory, PickedTasksHistory, ParticipantHistory
 from .tasks import end_wheel_spin
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from channels.db import database_sync_to_async
@@ -416,6 +416,10 @@ class GameLobby(AsyncWebsocketConsumer):
         print("\tWS: leave_game")
         try:
             player = Participant.objects.get(user=self.user_id)
+            
+            participantHist = ParticipantHistory(user=player.user, game=player.game.game_id)
+            participantHist.save()
+
             player.delete()
             game.num_players -= 1
             game.save()
@@ -435,6 +439,8 @@ class GameLobby(AsyncWebsocketConsumer):
 
             gameWinner = None
             for participant in participants:
+                participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id)
+                participantHist.save()
                 if gameWinner is None or participant.score > gameWinner.score:
                     gameWinner = participant
 
@@ -443,7 +449,7 @@ class GameLobby(AsyncWebsocketConsumer):
                                     description=game.description,
                                     winner=gameWinner.user.username, 
                                     start_time=game.start_time, 
-                                    end_time=dt.now())
+                                    end_time=dt.date(dt.now()))
             game_history.save()
             
         except Exception as e:

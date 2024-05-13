@@ -7,7 +7,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib.sites.shortcuts import get_current_site
 from datetime import datetime as dt, timedelta, timezone
-from .models import User, Game, Participant, Tasks, PickedTasks
+from .models import User, Game, Participant, Tasks, PickedTasks, GameHistory, PickedTasksHistory, ParticipantHistory
 from .tasks import end_wheel_spin
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
@@ -160,8 +160,7 @@ def create_game(request):
                     type=type,
                     description=description, 
                     admin=user,
-                    start_time=dt.now(), 
-                    end_time=None,
+                    start_time=dt.date(dt.now()), 
                     game_started=False)
     
     new_game.save()
@@ -463,7 +462,19 @@ def get_profile(request):
         'username': user.username,
         'email': user.email,
     }
-    return JsonResponse({'user_data': user_data})
+
+    gamesPlayed = ParticipantHistory.objects.filter(user=user)
+    gameHist = GameHistory.objects.filter(game_id__in=gamesPlayed.values_list('game_id', flat=True))
+
+    gameList = []
+    for game in gameHist:
+        gameDict = {
+            'title': game.title,
+            'start_time': game.start_time,
+        }
+        gameList.append(gameDict)
+
+    return JsonResponse({'user_data': user_data, 'game_history': gameList})
 
 
 @require_http_method(['PUT'])

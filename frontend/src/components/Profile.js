@@ -25,6 +25,10 @@ const Profile = () => {
     email: "",
   });
 
+  // State for storing game history
+  const [gameHistory, setGameHistory] = useState([]);
+
+
   //State for editing first_name, last_name or username
   const [editing, setEditing] = useState({
     first_name: false,
@@ -64,8 +68,9 @@ const Profile = () => {
         // handle response
         if (response.status == 200) {
           setUserData(response.data.user_data);
+          setGameHistory(response.data.game_history);
         } else {
-          console.error("failed to fetch user data, response: ", response)
+          console.error("failed to fetch user data/game history, response: ", response)
         }
 
       } catch (error) {
@@ -586,6 +591,19 @@ const Profile = () => {
         </div>
         {/* Right-side container */}
         {renderRightContainer()}
+
+        {/* Game History */}
+        <Card className="game-history-card">
+              <Card.Body>
+                <Card.Title>Game History</Card.Title>
+                {gameHistory.map((game, index) => (
+                  <Card.Text key={index} className="game-item">
+                    <strong>Title:</strong> {game.title}
+                    <strong>Start Time:</strong> {game.start_time}<br/>
+                  </Card.Text>
+                ))}
+              </Card.Body>
+            </Card>
       </div>
 
       <div className="wave wave1"></div>

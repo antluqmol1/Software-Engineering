@@ -132,15 +132,9 @@ class Game(models.Model):
 
     # Number of players in the game
     num_players = models.IntegerField(default=0)
-
-    # Active task in the game; a ForeignKey links to the Tasks model
-    # active_task = models.ForeignKey(Tasks, on_delete=models.CASCADE, null=True, blank=True)
     
     # Start time of the game
-    start_time = models.DateTimeField()
-  
-    # End time of the game; nullable and blank to handle ongoing games
-    end_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateField()
 
     # boolen to check if game is started.
     game_started = models.BooleanField(default=False)
@@ -158,7 +152,7 @@ class PickedTasks(models.Model):
 
     done = models.BooleanField(default=False)
 
-    time = models.DateTimeField(default=dt.now())
+    time = models.TimeField(default=dt.now())
 
     # this ensures that the combination of task and game must be unique
     class meta:
@@ -221,9 +215,9 @@ class GameHistory(models.Model):
 
     winner = models.CharField(max_length=30)
 
-    start_time = models.DateTimeField()
+    start_time = models.DateField()
   
-    end_time = models.DateTimeField()
+    end_time = models.DateField()
 
 
 class PickedTasksHistory(models.Model):
@@ -232,25 +226,23 @@ class PickedTasksHistory(models.Model):
 
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
 
-    user = models.CharField(max_length=30)
+    username = models.CharField(max_length=30)
 
-    time = models.DateTimeField()
+    time = models.TimeField()
 
     win = models.BooleanField(default=False)
 
     # this ensures that the combination of task and game must be unique
     class meta:
-        unique_together = ('task', 'game', 'user')
+        unique_together = ('task', 'game_id', 'username')
 
 
 
-
-'''
-Store the overall leaderboard for a game, ranking participants based on their scores.
-'''
-# class Leaderboard(models.Model):
-#     # Game for which the leaderboard is created; OneToOneField ensures a one-to-one relationship
-#     game_id = models.OneToOneField(Game, on_delete=models.CASCADE, primary_key=True)
+class ParticipantHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     
-#     # Participants included in the leaderboard; ManyToManyField links to the Participant model
-#     participants = models.ManyToManyField(Participant, related_name='leaderboard_entries')
+    game_id = models.CharField(max_length=255, null=False, default=None)
+
+    # this ensures that the combination of task and game must be unique
+    class meta:
+        unique_together = ('user', 'game_id')
