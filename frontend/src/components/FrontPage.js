@@ -6,6 +6,7 @@ import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
 import { AuthContext } from '../AuthContext';
+import PolkadotBackground from "./PolkadotBackground";
 
 const FrontPage = () => {
   // const [username, setUsername] = useState(null);
@@ -209,50 +210,6 @@ const FrontPage = () => {
     </div>
   );
 
-  // Here us your code ali, if you want you can see if you can get this to work?
-  return (
-    <div className="home-container">
-    <div className = 'wave wave1'></div>
-    <div className = 'wave wave2'></div>
-    <div className = 'wave wave3'></div>
-    <div className="home-content">
-      <h1 className='font-style-h'>Funchase</h1>
-      {userIsLoggedIn ? (
-        <p>Welcome back {username ? username : "loading..."}</p>
-      ) : (
-        <p>Please login or create an account</p>
-      )}
-      {userIsLoggedIn ? (
-        <div className="buttons-container">
-          <button
-            className={`button ${activeOption === "join" ? "active" : ""}`}
-            onClick={() => toggleActiveOption("join")}
-          >
-            Join Game
-          </button>
-          <button
-            className={`button ${activeOption === "create" ? "active" : ""}`}
-            onClick={() => handleCreateGameSubmit()}
-          >
-            Create Game
-          </button>
-        </div>
-      ) : (
-        <div className="buttons-container">
-          <button
-            className={`button ${activeOption === "join" ? "active" : ""}`}
-            onClick={() => toggleActiveOption("join")}
-          >
-            Join Game
-          </button>
-          <button className="SignUp-button" onClick={handleSignUpClick}>
-            Create Game
-          </button>
-        </div>
-      )}
-    </div>
-  </div>
-);
 };
 
 export default FrontPage;

@@ -1,36 +1,80 @@
-/* styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 
 .about-container {
-    max-width: 800px;
-    margin: 80px auto 0; 
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    text-align: center; 
+  max-width: 800px;
+  height: 80vh;
+  margin: 80px auto 0;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  overflow: scroll;
+}
+
+/* color: #5E2A84;
+    font-size: 270%;
+    margin-bottom: 2rem;
+    font-weight: 900;
+    letter-spacing: 5px;
+} */
+
+.about-title {
+  font-family: "Pamit";
+  letter-spacing: 5px;
+  font-size: 270%; /* Larger font size for the title */
+  font-weight: 900; /* Slightly lighter weight for modern look */
+  color: #5E2A84; /* Deep purple */
+  margin-bottom: 2rem;
+}
+
+.section {
+  margin-bottom: 30px;
+  padding: 20px; 
+  box-shadow: none;
+}
+
+.section h2 {
+  font-size: 26px; /* Increased font size for more prominence */
+  background: -webkit-linear-gradient(45deg, #800080, #4B0082); /* Gradient text effect */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; /* Makes the text color transparent, showing only the gradient */
+  margin: 0px 0px 20px; /* Adjust margins as needed */
+  font-weight: bold; /* Make the title bold for better visibility */
+  font-family: 'Montserrat', sans-serif;
+}
+
+
+.section p, .section ol {
+  text-align: left;
+  font-size: 18px; /* Larger font size for better readability */
+  color: #444444; /* Darker color for text */
+  line-height: 1.6; /* Increased line height for better readability */
+}
+
+.section ol {
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 12px; /* Increased spacing for a cleaner look */
+  font-size: 16px; /* Standardizing font size for list items */
+}
+
+/* Adding a hover effect to enhance interactivity */
+.section:hover {
+  background-color: rgba(240, 240, 240, 0.9);
+}
+
+/* Responsive design tweaks */
+@media (max-width: 768px) {
+  .about-container {
+      margin: 40px 20px;
+      padding: 15px;
   }
-  
-  .about-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
+
+  .about-title, .section h2 {
+      font-size: 28px; /* Adjusting font size for smaller screens */
   }
-  
-  .game-info, .how-to-play {
-    margin-bottom: 20px;
-  }
-  
-  .how-to-play ol {
-    text-align: left; /* Align the list items to the left */
-  }
-  
-  .contact-info {
-    margin-top: 20px;
-    font-style: italic;
-  }
-  
-  .contact-info a {
-    color: blue;
-    text-decoration: underline;
-  }
-  
+}

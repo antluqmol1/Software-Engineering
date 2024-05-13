@@ -2,11 +2,32 @@ import React from "react";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
 
+import { useState } from "react";
+
+
 export function Leaderboard({
-  handleLeaderBoardShow,
-  showLeaderBoard,
   playerList
-}) {
+}) 
+
+
+
+{
+  const [showLeaderBoard, setShowLeaderBoard] = useState(true);
+
+  const handleLeaderBoardShow = () => {
+
+    if (showLeaderBoard)
+    {
+      setShowLeaderBoard(false);
+    }
+    else
+    {
+      setShowLeaderBoard(true);
+    }
+    console.log(showLeaderBoard)
+  };
+
+
   return <div className="leaderboard-container">
         <button className='showhide-button' onClick={handleLeaderBoardShow}> 
           {showLeaderBoard ? 'b' : 'z'}
@@ -38,4 +59,4 @@ export function Leaderboard({
           </div>}
       </div>;
 }
-  
+export default Leaderboard;

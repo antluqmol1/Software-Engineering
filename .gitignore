@@ -17,3 +17,4 @@ backend/ServerBackend/htmlcov
 backend/ServerBackend/db.sqlite3
 backend/ServerBackend/django_debug.log
 backend/ServerBackend/.coverage
+backend/ServerBackend/dump.rdb

@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 50px;
+  padding: 20px;
   /* height: 100vh;
   background: linear-gradient(to right, #800080, #4B0082); */
   color: #ffffff;
@@ -23,8 +23,8 @@
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   /* More pronounced shadow */
-  margin: 20px;
-  margin-top: 15vw;
+  margin: 10px;
+  margin-top: 8vw;
   /* Add spacing around the form */
 }
 
@@ -100,6 +100,7 @@
   color: #5a67d8;
   font-weight: bold;
   text-decoration: underline;
+  z-index: 9999;
 }
 
 .signup-redirect a:hover,

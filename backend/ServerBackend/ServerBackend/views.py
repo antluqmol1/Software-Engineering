@@ -6,7 +6,7 @@ import os
 from django.core.files.storage import default_storage
 from django.contrib.sites.shortcuts import get_current_site
 from datetime import datetime as dt, timedelta, timezone
-from .models import User, Game, Participant, Tasks, PickedTasks
+from .models import User, Game, Participant, Tasks, PickedTasks, GameHistory, PickedTasksHistory, ParticipantHistory
 from .tasks import end_wheel_spin
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
@@ -337,7 +337,7 @@ def create_game(request):
                     type=type,
                     description=description, 
                     admin=user,
-                    end_time=None,
+                    start_time=dt.date(dt.now()), # CHANGE TO DJANGO TIME
                     game_started=False)
     # save the game record
     new_game.save()

@@ -49,6 +49,9 @@ const Profile = () => {
 
   // navigate
   const navigate = useNavigate(); // Initialize useHistory hook
+  // State for storing game history
+  const [gameHistory, setGameHistory] = useState([]);
+  const [showGameHistory, setShowGameHistory] = useState(false);
 
   // State for storing any potential errors
   const [error, setError] = useState(null);
@@ -83,8 +86,9 @@ const Profile = () => {
         // handle response
         if (response.status == 200) {
           setUserData(response.data.user_data);
+          setGameHistory(response.data.game_history);
         } else {
-          console.error("failed to fetch user data, response: ", response)
+          console.error("failed to fetch user data/game history, response: ", response)
         }
 
       } catch (error) {
@@ -123,9 +127,6 @@ const Profile = () => {
     fetchProfilePicture();
   }, []);
 
-  // Handlers for switching views
-  const showEditProfile = () => setCurrentView("editProfile");
-  const showGalleryView = () => setCurrentView("gallery");
 
   // Handle field editing
   const handleEdit = (field) => {
@@ -325,6 +326,7 @@ const Profile = () => {
     } else {
       setShowGallery(true);
       setShowChangePassword(false);
+      setShowGameHistory(false);
     }
 
     try {
@@ -361,6 +363,7 @@ const Profile = () => {
       // Otherwise, show the change password form and hide the gallery
       setShowChangePassword(true);
       setShowGallery(false);
+      setShowGameHistory(false);
     }
 
     // try {
@@ -387,6 +390,20 @@ const Profile = () => {
     // }
   };
 
+  // Function to toggle the visibility of the game history
+  const handleToggleGameHistory = async () => {
+    if (showGameHistory) {
+      // If the game history is currently shown, hide it
+      setShowGameHistory(false);
+      return;
+    } else {
+      // Otherwise, show the game history and hide the gallery
+      setShowGameHistory(true);
+      setShowGallery(false);
+      setShowChangePassword(false);
+    }
+
+
   // Render error message if an error occurred
   if (error) {
     return (
@@ -407,6 +424,7 @@ const Profile = () => {
         )}
       </div>
     );
+  }
   };
 
   const renderRightContainer = () => {
@@ -473,6 +491,21 @@ const Profile = () => {
           </form>
         </div>
       );
+    } else if(showGameHistory) {
+      return (
+        <Card className="game-history-card">
+          <Card.Body>
+            <Card.Title>Game History</Card.Title>
+            {gameHistory.map((game, index) => (
+              <Card.Text key={index} className="game-item">
+                <strong>Title:</strong> {game.title}
+                <strong>Start Time:</strong> {game.start_time}<br/>
+              </Card.Text>
+            ))}
+          </Card.Body>
+        </Card>
+      );
+    
     } else {
       return (
         <Card className="profile-card">
@@ -602,9 +635,16 @@ const Profile = () => {
               {showChangePassword ? "hide Change Password Section" : "Change password"}
             </button>
           </div>
+          {/* Show Game History Button */}
+          <div>
+            <button onClick={handleToggleGameHistory}>
+              {showGameHistory ? "hide Game History" : "show game history"}
+            </button>
+          </div>
         </div>
         {/* Right-side container */}
         {renderRightContainer()}
+        
       </div>
 
       <div className="wave wave1"></div>
