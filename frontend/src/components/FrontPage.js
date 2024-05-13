@@ -6,6 +6,7 @@ import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
 import { AuthContext } from '../AuthContext';
+import PolkadotBackground from "./PolkadotBackground";
 
 const FrontPage = () => {
   // const [username, setUsername] = useState(null);

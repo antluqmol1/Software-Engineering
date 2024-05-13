@@ -80,7 +80,6 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  z-index: 999;
 }
 
 .question-container h2 {
@@ -125,6 +124,8 @@
   top: 25%;
   margin-top: 0%;
   /* Add margin to move the containers down */
+  z-index: 9999;
+
 }
 
 .individual-question,
@@ -172,6 +173,7 @@
   /* right: 35%; */
   
   width: 20vw;
+  z-index: 9999;
 }
 
 @media (max-width: 1000px) {
@@ -328,6 +330,7 @@
   /* Smooth background and press effect */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   /* Subtle shadow for depth */
+  z-index: 9999;
 }
 
 .endGame-button {
@@ -335,7 +338,7 @@
   bottom: 10px;
   right: 4px;
   background-color: #b22020;
-  background: radial-gradient(rgb(187, 41, 15), rgba(145, 80, 145, 0.523));
+  background: radial-gradient(rgb(187, 41, 15), rgb(145, 80, 100));
   /* Light Sea Green for a refreshing look */
   color: #FFF;
   /* White text for contrast */
@@ -373,6 +376,8 @@ bottom: 5%;  /* transform: translateX(-50%); */
   font-family: 'Boogalo';
   /* Change the font family if needed */
   /* Add any other styles to make it look stylish */
+  z-index: 9999;
+
 }
 
 /* FIX THIS PLEASE! */

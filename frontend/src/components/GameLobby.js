@@ -13,6 +13,7 @@ import { faCheck, faTimes, faQuestion, } from "@fortawesome/free-solid-svg-icons
 import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 import gameServices from "../services/gameServices";
+import PolkadotBackground from './PolkadotBackground';
 
 function GameLobby() {
     
@@ -239,12 +240,13 @@ function GameLobby() {
 
     // Don't update the username Array when wheel is spinning
     if (mustSpin === true) {
+      console.log('TOOTOTOOOTOTOTOO')
       return;
     }
 
     console.log('Updating userNameArray', playerList)
     console.log("logged in? ", inAGame)
-
+    
     fetchPlayerImages(token)
 
 
@@ -569,6 +571,7 @@ function GameLobby() {
             {/* <button onClick={handleSpinClick}>SPIN</button> */}
             </div>
           }
+        <PolkadotBackground></PolkadotBackground>
 
         
         </div>
