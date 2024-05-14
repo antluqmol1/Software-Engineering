@@ -20,10 +20,10 @@ import ServerBackend.routing
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ServerBackend.settings')
 
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),  # Django's ASGI application to handle traditional HTTP requests
-    "websocket": AuthMiddlewareStack(
+    "http": get_asgi_application(),  # ASGI application for HTTP requests
+    "websocket": AuthMiddlewareStack( # websocket authentication middleware
         URLRouter(
-            ServerBackend.routing.websocket_urlpatterns  # Your WebSocket URL patterns
+            ServerBackend.routing.websocket_urlpatterns  # websocket url pattern
         )
     ),
 })

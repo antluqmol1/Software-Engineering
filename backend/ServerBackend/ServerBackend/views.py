@@ -3,6 +3,7 @@ import jwt
 import base64
 import logging
 import os
+import re
 from django.core.files.storage import default_storage
 from django.contrib.sites.shortcuts import get_current_site
 from datetime import datetime as dt, timedelta, timezone
@@ -132,11 +133,13 @@ def user_logout(request):
     try:
         logout(request)
         success = True
+        status = 200
     except Exception as e:
         logger.debug(f"Error logging out, error: {e}")
         success = False
+        status = 500
 
-    return JsonResponse({'success': success}, status=200)
+    return JsonResponse({'success': success}, status=status)
 
 
 #|======================================================================================|
@@ -337,6 +340,7 @@ def create_game(request):
                     type=type,
                     description=description, 
                     admin=user,
+                    num_players=1,
                     start_time=dt.date(dt.now()), # CHANGE TO DJANGO TIME
                     game_started=False)
     # save the game record
@@ -351,7 +355,7 @@ def create_game(request):
     player.save()
     logger.info("game created and player added")
 
-    return JsonResponse({'success': True}, status=200)
+    return JsonResponse({'success': True, 'gameId': new_game.game_id}, status=201)
 
 
 @require_http_method(['GET'])
@@ -862,21 +866,43 @@ def select_image(request):
     logger.info(f"{user.username} is updating profile picture")
     data = json.loads(request.body)
     new_profile_pic_url = data.get('newProfilePicUrl')
-    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
-    logger.debug(f'new profile pic url {relative_path}')
 
+    # check if an image URL was provided
     if not new_profile_pic_url:
         logger.error("no image URL provided")
         return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
     
+    # create a relative path
+    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
+    logger.debug(f'new profile pic url {relative_path}')
+
+    
+    # Use regex to check that the image path contains the user_id
+    pattern = r'custom/' + str(user.id) + r'[\._]'
+    logger.debug(f"patter = {pattern}")
+    if not re.match(pattern, relative_path):
+        logger.error("Invalid image URL provided")
+        return JsonResponse({'success': False, 'error': 'Invalid image URL provided'}, status=403)
+
+    # Dont update profile pic if it is the same as the current selected one
+    if user.profile_pic == relative_path:
+        logger.debug("same as current profile picture")
+        return JsonResponse({'success': False, 'error': 'Selected image is already the profile picture'}, status=403)
+    
+    # Check if the file exists
+    if not default_storage.exists(relative_path):
+        logger.error("Image file does not exist")
+        return JsonResponse({'success': False, 'error': 'Image file does not exist'}, status=400)
+
     try: 
         user.profile_pic = relative_path
         user.save()
     except Exception as e:
         logger.debug("error updating profile picture")
         return JsonResponse({'success': False, 'error': 'Could not change profile picture'}, status=500)
-
-    return JsonResponse({'success': True}, status=200)
+    
+    logger.info("profile picture successfully updated")
+    return JsonResponse({'success': True, 'msg': 'Selected new image'}, status=200)
     
 
 @require_http_method(['DELETE'])
@@ -890,17 +916,30 @@ def delete_image(request):
 
     # get the image path
     data = json.loads(request.body)
-    new_profile_pic_url = data.get('imagePath')
+    delete_profile_pic_url = data.get('imagePath')
 
-    # create a relative path
-    relative_path = '/'.join(new_profile_pic_url.split('/media/')[-1].split('/'))
-    logger.debug(f'deleting pic url {relative_path}')
+    logger.debug(f"deleting pic url: {delete_profile_pic_url}")
 
     # Check if an image URL was provided
-    if not new_profile_pic_url:
+    if not delete_profile_pic_url:
         logger.error("no image URL provided")
         return JsonResponse({'success': False, 'error': 'No image URL provided'}, status=400)
     
+    if "presets" in delete_profile_pic_url:
+        logger.debug("cannot delete preset images")
+        return JsonResponse({'success': False, 'error': 'Cannot delete preset image'}, status=403)
+    
+    # create a relative path
+    relative_path = '/'.join(delete_profile_pic_url.split('/media/')[-1].split('/'))
+    logger.debug(f'deleting pic url {relative_path}')
+
+    # Use regex to check that the image path contains the user_id
+    pattern = r'custom/' + str(request.user.id) + r'[\._]'
+    logger.debug(f"patter = {pattern}")
+    if not re.match(pattern, relative_path):
+        logger.error("Invalid image URL provided")
+        return JsonResponse({'success': False, 'error': 'Invalid image URL provided'}, status=403)
+
     # check if attempting to delete current profile pic
     if relative_path == request.user.profile_pic:
         logger.debug("giving client default preset photo")
@@ -910,10 +949,11 @@ def delete_image(request):
     # attempt to delete the image
     if delete_media_file(relative_path):
         logger.info("profile picture deleted")
-        return JsonResponse({'success': True}, status=200)
+        return JsonResponse({'success': True, 'msg': 'Profile picture deleted'}, status=200)
     else:
+        # should never run, default_storage.delete doesn't raise exceptions
         logger.error("failed to deleted photo")
-        return JsonResponse({'success': False, 'error': 'Could not delete profile picture'}, status=500)
+        return JsonResponse({'success': False, 'error': 'Given picture does not exist'}, status=404)
 
 
 '''
@@ -929,7 +969,7 @@ def upload_image(request):
     '''
 
     user = request.user
-    logger.info(f"{user.username} is updating profile picture")
+    logger.info(f"{user.username} is uploading new profile picture")
 
     profile_picture = request.FILES.get('profileImage')
 
@@ -950,11 +990,12 @@ def upload_image(request):
             logger.info("New profile picture stored")
             return JsonResponse({'success': True, 'msg': 'Updated image successfully', 'path': user.profile_pic.path}, status=201)
         except Exception as e:
+            # we should not get here with current implementation
             logger.info(f"could not save picture. error: {e}")
             return JsonResponse({'success': False}, status=500)
     else:
         logger.info("no image provided")
-        return JsonResponse({'error': 'No image file provided'}, status=400)
+        return JsonResponse({'success': False, 'error': 'No image file provided'}, status=400)
 
 
 def delete_media_file(file_path):

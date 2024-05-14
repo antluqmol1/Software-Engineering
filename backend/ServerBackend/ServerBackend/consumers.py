@@ -70,7 +70,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
             logger.info(f"WebSocket connected: {self.channel_name}")
 
-            logger.debug("\nWS: sending message from ws\n")
+            logger.debug("WS: sending connect message to group")
             await self.channel_layer.group_send(
             self.game_group_name, 
             {
@@ -131,7 +131,7 @@ class GameLobby(AsyncWebsocketConsumer):
         else:
             logger.debug("WS: error leaving game!")
 
-        logger.debug("\nWS: sending message from ws\n")
+        logger.debug("WS: sending disconnect message to group")
         # send disconnect message to the group
         await self.channel_layer.group_send(
             self.game_group_name,
@@ -356,7 +356,7 @@ class GameLobby(AsyncWebsocketConsumer):
     async def wheel_stop_message(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
-        logger.debug("\nWS: CEL IS SENDING MESSAGE!\n")
+        logger.debug("CELERY: Sending wheel_stop_message to group")
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
@@ -378,7 +378,7 @@ class GameLobby(AsyncWebsocketConsumer):
             task_history.save()
             return True
         except Exception as e:
-            print(f'WS: Error when updating task history: {e}')
+            logger.error(f'WS: failed to update task history, error: {e}')
             return False
 
 
@@ -453,7 +453,7 @@ class GameLobby(AsyncWebsocketConsumer):
             game_history.save()
             
         except Exception as e:
-            print("WS: Error when updating game history: ", e)
+            logger.error(f"WS: Failed to update game history, error: {e}")
             return False
          
 
