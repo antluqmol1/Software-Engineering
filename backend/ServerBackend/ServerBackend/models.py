@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from datetime import datetime as dt, timedelta, timezone
 from django.utils import timezone
 
 
@@ -135,7 +134,7 @@ class Game(models.Model):
     num_players = models.IntegerField(default=0)
     
     # Start time of the game
-    start_time = models.DateField()
+    start_time = models.DateField(default=timezone.now)
 
     # boolen to check if game is started.
     game_started = models.BooleanField(default=False)
@@ -153,7 +152,7 @@ class PickedTasks(models.Model):
 
     done = models.BooleanField(default=False)
 
-    time = models.TimeField(default=dt.now())
+    time = models.TimeField(default=timezone.now)
 
     # this ensures that the combination of task and game must be unique
     class meta:

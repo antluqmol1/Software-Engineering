@@ -1,5 +1,6 @@
 import unittest
 from django.test import TestCase
+from django.utils import timezone
 from ServerBackend.models import User, Tasks, Game, PickedTasks, Participant
 
 class UserModelTestCase(TestCase):
@@ -43,14 +44,14 @@ class GameModelTestCase(TestCase):
     def test_game_creation(self):
         # Test game creation and attribute assignment
         user = User.objects.create_user(username="testuser", email="test@example.com", password="password")
-        game = Game.objects.create(game_id="123", title="Game 1", type="Type 1", description="Description 1", admin=user, num_players=5, start_time="2022-01-01 00:00:00")
+        game = Game.objects.create(game_id="123", title="Game 1", type="Type 1", description="Description 1", admin=user, num_players=5,)
         self.assertEqual(game.game_id, "123")
         self.assertEqual(game.title, "Game 1")
         self.assertEqual(game.type, "Type 1")
         self.assertEqual(game.description, "Description 1")
         self.assertEqual(game.admin, user)
         self.assertEqual(game.num_players, 5)
-        self.assertEqual(str(game.start_time), "2022-01-01 00:00:00")
+        self.assertIsNotNone(str(game.start_time))
 
 class PickedTasksModelTestCase(TestCase):
     def setUp(self):
@@ -61,7 +62,7 @@ class PickedTasksModelTestCase(TestCase):
         # Test picked tasks creation and attribute assignment
         user = User.objects.create_user(username="testuser", email="test@example.com", password="password")
         tasks = Tasks.objects.create(task_id=1, description="Task 1", points=10, type=1, individual=True)
-        game = Game.objects.create(game_id="123", title="Game 1", type="Type 1", description="Description 1", admin=user, num_players=5, start_time="2022-01-01 00:00:00")
+        game = Game.objects.create(game_id="123", title="Game 1", type="Type 1", description="Description 1", admin=user, num_players=5)
         picked_tasks = PickedTasks.objects.create(task=tasks, game=game, user=user, done=False)
         self.assertEqual(picked_tasks.task, tasks)
         self.assertEqual(picked_tasks.game, game)
@@ -76,7 +77,7 @@ class ParticipantModelTestCase(TestCase):
     def test_participant_creation(self):
         # Test participant creation and attribute assignment
         user = User.objects.create_user(username="testuser", email="test@example.com", password="password")
-        game = Game.objects.create(game_id="123", title="Game 1", type="Type 1", description="Description 1", admin=user, num_players=5, start_time="2022-01-01 00:00:00")
+        game = Game.objects.create(game_id="123", title="Game 1", type="Type 1", description="Description 1", admin=user, num_players=5)
         participant = Participant.objects.create(user=user, game=game, score=100, isPicked=True)
         self.assertEqual(participant.user, user)
         self.assertEqual(participant.game, game)

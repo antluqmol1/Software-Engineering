@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class AuthTestCase(TestCase):
     def setUp(self):
-        logger.info("Setting up test auth...")
+        logger.info("Setting up test auth...\n")
         self.client = Client()
         # Create a user
         self.user = User.objects.create_user(first_name="something",
@@ -18,7 +18,12 @@ class AuthTestCase(TestCase):
                                              password="password123")
         self.login_url = reverse('auth:user_login')
         self.logout_url = reverse('auth:user_logout')
+        self.token_url = reverse('auth:grab_token')
         self.get_profile_url = reverse('user:profile:get_profile')
+
+        # token variables
+        self.token1 = None
+        self.token2 = None
         
     def tearDown(self):
         logger.info("Tearing down test auth...")
@@ -52,7 +57,7 @@ class AuthTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['msg'], 'Login successful')
 
-        # check that token is issued, now that we are logged in
+        # check that JWT is issued, now that we are logged in
         self.assertIsNotNone(response.json()["JWT"])
 
     def test_logout(self):
@@ -82,3 +87,27 @@ class AuthTestCase(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['success'], False)
         self.assertEqual(response.json()['msg'], 'not authenticated')
+
+    def test_csrf_token(self):
+        logger.info("Testing token...")
+
+        # Test the csrf token functionality when not logged in
+        response = self.client.get(self.token_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.json()['csrfToken'])
+        self.token1 = response.json()['csrfToken']
+
+        # login
+        response = self.client.post(self.login_url, 
+                                    data=json.dumps({'username': 'test_user', 'password': 'password123'}),
+                                    content_type='application/json',
+                                    HTTP_X_CSRFTOKEN=self.token1)
+        
+        # Test the csrf token functionality when logged in
+        response = self.client.get(self.token_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.json()['csrfToken'])
+        self.token2 = response.json()['csrfToken']
+
+        # token from when logged in and not logged in should not be the same
+        self.assertNotEqual(self.token1, self.token2)

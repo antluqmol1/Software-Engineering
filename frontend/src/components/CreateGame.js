@@ -58,11 +58,11 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
         }
       )
       .then((response) => {
-        // Success
-        console.log("Game created successfully:", response.data);
         if (response.data['success'] != false) {
+          // Success
+          console.log("Game created successfully:", response.data);
           setInAGame(true)
-          navigate("/game-lobby")
+          navigate("/game-lobby") // navigate to gamelobby
         }
         // var player_list = get_players();
         return;
