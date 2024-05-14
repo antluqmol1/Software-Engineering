@@ -514,7 +514,7 @@ function GameLobby() {
           <div className="game-lobby">
             
             <div className="vote-count">
-              <h3 className="tVotes">Total votes: {totalVotes}</h3>
+              <h3 className="tVotes">Votes: {totalVotes}/{playerList.length - 1}</h3>
           
           {/* Display checkmarks for "Yes" votes */}
           <div>

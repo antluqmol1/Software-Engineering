@@ -1,7 +1,7 @@
 from ServerBackend.models import User, Tasks, Game, PickedTasks, Participant, ParticipantHistory, GameHistory, PickedTasksHistory
 from django.core.files.storage import default_storage
 from channels.routing import get_default_application
-from channels.testing import WebsocketCommunicator
+from channels.testing import WebsocketCommunicator, ChannelsLiveServerTestCase
 from django.test import TestCase, Client
 from django.urls import reverse
 import logging
@@ -13,7 +13,7 @@ import os
 logger = logging.getLogger(__name__)
 
 
-class GameTestCase(TestCase):
+class GameTestCase(ChannelsLiveServerTestCase):
     def setUp(self):
         logger.info("Setting up test game...\n")
         self.client = Client()
@@ -41,8 +41,8 @@ class GameTestCase(TestCase):
         self.join_game_url = reverse('game:join_game')
         self.leave_game_url = reverse('game:leave_game')
         self.get_game_url = reverse('game:get_game')
-        self.get_participants_url = reverse('game:get_participants')
-        self.get_participants_images_url = reverse('game:get_participants_images')
+        self.get_participants_url = reverse('game:get_game_participants')
+        self.get_participants_images_url = reverse('game:get_participants_urls')
         self.current_task_url = reverse('game:current_task')
         self.next_task_url = reverse('game:next_task')
         self.give_points_url = reverse('game:give_points')
@@ -55,7 +55,7 @@ class GameTestCase(TestCase):
         self.user = [self.user1, self.user2]
 
     def tearDown(self):
-        logger.info("Tearing down test game...")
+        logger.info("Tearing down test game...\n\n")
         # Clean up any resources used by the tests
         User.objects.filter(username='test_user').delete()
         User.objects.filter(username='test_user2').delete()
@@ -70,27 +70,16 @@ class GameTestCase(TestCase):
 
     def test_create_game_no_login(self):
         # Test the creation of a game
-        logger.info("Testing create game no login...")
+        logger.info("Testing create game no login...\n")
         
-        # Use helper function to create game
+        # Use helper function to attempt create game
         response = self.create_game(game_id='7HTK24' ,title='test-game-1', game_type=1, description='test description 1')
         self.assertEqual(response.status_code, 401)
         self.assertFalse(response.json()['success'])
         self.assertEqual(response.json()['msg'], 'not authenticated')
-        self.games.append()
 
-        # Join game
-        self.client.post(self.join_game_url,
-                         data=json.dumps({'game_id': self.games[0]}),
-                         content_type='application/json')
-        
-        # Use helper function to create websocket communicator, checks are done inside
-        socket = self.create_websocket_communicator()
-        self.sockets.append(socket)
-
-
-    def test_create_game_login(self):
-        logger.info("Testing create game login...")
+    def test_create_game_login_and_connect(self):
+        logger.info("Testing create game login and connect...\n")
 
         # Login
         self.client.post(self.login_url,
@@ -98,16 +87,16 @@ class GameTestCase(TestCase):
                          content_type='application/json')
 
         # Use helper function to create game
-        response = self.create_game(game_id='7HTK24' ,title='test-game-1', game_type=1, description='test description 1')
+        response = self.create_game(game_id='7htk24' ,title='test-game-1', game_type=1, description='test description 1')
         self.assertEqual(response.status_code, 201)
         self.assertTrue(response.json()['success'])
 
-        # append game_id to list of games
+        # Append game_id to list of games
         self.games.append(response.json()['gameId'])
 
         # Join game
         self.client.post(self.join_game_url,
-                         data=json.dumps({'game_id': self.games[0]}),
+                         data=json.dumps({'gameid': self.games[0]}),
                          content_type='application/json')
         
         # Use helper function to create and connect to websocket, some checks are done inside
@@ -129,15 +118,15 @@ class GameTestCase(TestCase):
         returns:
             response: the response from the server
         '''
-        logger.info("helper function, creating a game...")
+        logger.info("helper function, creating a game...\n")
         # Create a game
         response = self.client.post(self.create_game_url,
-                                    data=json.dumps({'gameid': game_id, 'title': title, 'type': game_type, 'description': description}),
+                                    data=json.dumps({'gameid': game_id, 'title': title, 'id': game_type, 'description': description}),
                                     content_type='application/json')
         return response
 
     # HELPER FUNCTION
-    def create_websocket_communicator(self):
+    async def create_websocket_communicator(self):
         '''
         Creates a WebSocket communicator, connects to it, and returns it.
         Assumes correct conditions for creating a websocket connection, such as being logged in.
@@ -146,7 +135,7 @@ class GameTestCase(TestCase):
         returns:
             websocket_communicator: the WebSocket communicator
         '''
-        logger.info("helper function, creating a websocket communicator...")
+        logger.info("helper function, creating a websocket communicator...\n")
         # Set up WebSocket communicator
         try:
             application = get_default_application()
@@ -155,6 +144,6 @@ class GameTestCase(TestCase):
             self.assertEqual("Error setting up WebSocket communicator", "No errors") # neat little assert to tell if websocket is good
             return None
         websocket_communicator = WebsocketCommunicator(application, '/ws/gamelobby/')
-        connected, _ = self.websocket_communicator.connect()
+        connected, _ = await self.websocket_communicator.connect()
         self.assertTrue(connected) # make sure it connected first successfully
         return websocket_communicator

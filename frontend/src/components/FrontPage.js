@@ -12,7 +12,9 @@ const FrontPage = () => {
   // const [username, setUsername] = useState(null);
   const [activeOption, setActiveOption] = useState(null); // 'join' or 'create'
   const [gameCode, setGameCode] = useState("");
+  const [gameTitle, setGameTitle] = useState("");
   const [invalidGameCode, setInvalidGameCode] = useState("");
+  const [invalidGameTitle, setInvalidGameTitle] = useState("");
   // const [inAGame, setInAGame] = useState(false)
   const navigate = useNavigate(); // Initialize useHistory hook
 
@@ -88,8 +90,13 @@ const FrontPage = () => {
   };
 
   const handleGameCodeChange = (e) => {
-    setGameCode(e.target.value.toUpperCase()); // Game codes are usually uppercase for readability
+    setGameCode(e.target.value); // Game codes are usually uppercase for readability
     console.log(gameCode)
+  };
+
+  const handleGameTitleChange = (e) => {
+    setGameTitle(e.target.value);              // Change title of the game for each new input            
+    console.log(gameTitle)
   };
 
   const goToGame = (e) => {
@@ -129,7 +136,12 @@ const FrontPage = () => {
   
   // Function to handle login button click
   const handleCreateGameSubmit = () => {
-    navigate("/create-game");
+    console.log(gameTitle);
+    if (gameTitle === "") {
+      setInvalidGameTitle("noTitle")
+      return;
+    }
+    navigate("/create-game", {state: gameTitle});
   };
 
   return (
@@ -201,9 +213,20 @@ const FrontPage = () => {
         )}
         {activeOption === "create" && (
           <div className="game-action-container">
+            <input
+              type="text"
+              className="game-code-input"
+              placeholder="Enter title of the game"
+              value={gameTitle}
+              onChange={handleGameTitleChange}
+              maxLength={32}
+            />
             <button className="button" onClick={handleCreateGameSubmit}>
               Start a New Game
             </button>
+            {invalidGameTitle && <p>
+              Give your game a title!
+              </p>}
           </div>
         )}
       </div>

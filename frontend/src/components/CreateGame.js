@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import axios from "axios";
 import "../styles/Profile.css";
-import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
+import { Link, useNavigate, useLocation } from "react-router-dom"; // Import useHistory hook
 import Cookies from "universal-cookie";
 import "../styles/GameModes.css";
 import "../styles/App.css";
@@ -20,6 +20,8 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
   const [partError, setPartError] = useState(null);
   const [gameId, setGameId] = useState(null);
   const navigate = useNavigate();
+  const gameTitle = useLocation().state;
+  console.log("gameTitle: ", gameTitle)
   
   const { inAGame, setInAGame} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
 
@@ -48,7 +50,7 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
     axios
       .post(
         "http://localhost:8000/game/create/",
-        { gameid: gameId, id: id, description: "desc1", title: 'title1'},
+        { gameid: gameId, id: id, description: "desc1", title: gameTitle},
         {
           headers: {
             "X-CSRFToken": token, // Include CSRF token in headers
