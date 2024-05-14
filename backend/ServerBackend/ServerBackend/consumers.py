@@ -414,7 +414,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
         try:
             game_to_delete = Game.objects.get(game_id=game.game_id)
-            logger.debug("\tWS: Fetch successfull, ", game_to_delete.game_id)
+            logger.debug(f"\tWS: Fetch successfull, {game_to_delete.game_id}")
 
         except Exception as e:
             logger.debug(f"\tWS: Fetch failed error: {str(e)}")
@@ -443,7 +443,8 @@ class GameLobby(AsyncWebsocketConsumer):
     def get_participants_list(self, game):
         try:
             participants = Participant.objects.filter(game=game)
-            return participants
+            participants_list = [{'username': p.user.username, 'score': p.score} for p in participants]
+            return participants_list
         except Exception as e:
             logger.error(f"WS: Failed to get participants list, error: {e}")
             return None
