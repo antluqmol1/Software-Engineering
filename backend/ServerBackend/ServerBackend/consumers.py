@@ -368,19 +368,6 @@ class GameLobby(AsyncWebsocketConsumer):
 
     # Database function
     @database_sync_to_async
-    def update_PickedTasksHistory(self, game, task, bool):
-        try:
-            current_task = PickedTasks.objects.get(game=game, task=task)
-            task_history = PickedTasksHistory(task=task, game_id=game.game_id, user=current_task.user.username, time=dt.now(), win=bool)
-            task_history.save()
-            return True
-        except Exception as e:
-            logger.error(f'WS: failed to update task history, error: {e}')
-            return False
-
-
-    # Database function
-    @database_sync_to_async
     def get_participant_game(self, user_id):
         logger.debug("\tWS: get_participant_game")
         try:
