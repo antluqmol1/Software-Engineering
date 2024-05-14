@@ -438,7 +438,8 @@ class GameLobby(AsyncWebsocketConsumer):
             return participants
         except Participant.DoesNotExist:
             return None
-        
+    
+    @database_sync_to_async
     def get_participants_list(self, game):
         try:
             participants = Participant.objects.filter(game=game)
