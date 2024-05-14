@@ -12,6 +12,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBackspace } from "@fortawesome/free-solid-svg-icons";
 import userServices from "../services/userServices";
 import { AuthContext } from '../AuthContext';
+import goldMedal from '../assets/gold.png';
+import silverMedal from '../assets/silver.png';
+import bronzeMedal from '../assets/bronze.png';
 
 
 
@@ -540,45 +543,104 @@ const Profile = () => {
         </div>
       );
     } else if(showGameHistory) {
-      if (!gameHistory) {
-        return (
-          console.log(gameHistory),
-          <Card className="game-history-card">
-            <Card.Body>
-              <Card.Title>Game History</Card.Title>
-              <Card.Text>No games found.</Card.Text>
-            </Card.Body>
-          </Card>
-        );
-      }
-      else{
         return (
           <Card className="game-history-card">
             <Card.Body>
-              <Card.Title>Game History</Card.Title>
-              {gameHistory.map((game, index) => (
-                <Card.Text 
-                  key={index} 
-                  className="game-item"
-                  onClick={() => {
-                    handleToggleGameDetails(game.game_id);
-                  }}
-                >
-                  <strong>Title:</strong> {game.title}
-                  <strong>Start Time:</strong> {game.start_time}<br/>
-                </Card.Text>
-              ))}
+              <Card.Title className="game-history-title">Game History:</Card.Title>
+              <div className="game-history-grid">
+                {(!gameHistory || gameHistory.length === 0) ? (
+                  <div className="no-games-found">No games found.</div>
+                ) : (
+                  gameHistory.map((game, index) => (
+                    <div 
+                      key={index} 
+                      className={`game-item ${index % 2 === 0 ? 'purple-background' : 'white-background'}`}
+                      onClick={() => {
+                        handleToggleGameDetails(game.game_id);
+                      }}
+                    >
+                      <div className="game-title">{game.title}</div>
+                      <div className="game-date">{game.start_time}</div>
+                    </div>
+                ))
+              )}
+              </div>
             </Card.Body>
           </Card>
         );   
-      }
-    }
-    else if(showGameDetails) {
-      console.log("Game details: ", gameDetails);
+    } else if(showGameDetails) {
+      // Sort the scoreboard by score in descending order
       console.log("Game tasks: ", gameTasks);
-      console.log("Scoreboard: ", scoreboard);
-    }   
-    else {
+      const sortedScoreboard = [...scoreboard].sort((a, b) => b.score - a.score);
+      return (
+        <div className="game-details-container">
+          <Card className="game-details-card">
+            <Card.Body>
+              <Card.Title className="game-details-title">{gameDetails.title}</Card.Title>
+              <div className="game-details-content">
+                <div className="details-layout">
+                  {/* Scoreboard */}
+                  <div className="scoreboard">
+                    <h3>Scoreboard</h3>
+                    <ul>
+                      {sortedScoreboard.map((score, index) => (
+                        <li key={index} className={`score-item ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}`}>
+                          <div className="score-content">
+                            {index === 0 && (
+                              <div className="top-rank">
+                                <img src={goldMedal} alt="Gold Medal" className="medal" />
+                                <span className="username">{score.username}</span>
+                              </div>
+                            )}
+                            {index === 1 && (
+                              <div className="top-rank">
+                                <img src={silverMedal} alt="Silver Medal" className="medal" />
+                                <span className="username">{score.username}</span>
+                              </div>
+                            )}
+                            {index === 2 && (
+                              <div className="top-rank">
+                                <img src={bronzeMedal} alt="Bronze Medal" className="medal" />
+                                <span className="username">{score.username}</span>
+                              </div>
+                            )}
+                            {index > 2 && (
+                              <div className="rank">
+                                {index + 1}th: <span className="username">{score.username}</span>
+                              </div>
+                            )}
+                            <div className="score-value">({score.score} ps)</div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {/* Game Tasks */}
+                  <div className="game-tasks-container">
+                    <h3>Game Tasks</h3>
+                    <div className="game-tasks">
+                      <ul>
+                        {gameTasks.map((task, index) => (
+                          <li key={index} className="game-task">
+                            <div><strong>Description:</strong> {task.description}</div>
+                            <div><strong>Points:</strong> {task.points}</div>
+                            <div><strong>Picked Player:</strong> {task.pickedPlayer}</div>
+                            <div><strong>Won?</strong> {task.win ? "Yes" : "No"}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card.Body>
+          </Card>
+        </div>
+      );
+      // console.log("Game details: ", gameDetails);
+      
+      // console.log("Scoreboard: ", scoreboard);
+    } else {
       return (
         <Card className="profile-card">
           <Card.Body>
