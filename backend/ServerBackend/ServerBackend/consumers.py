@@ -400,7 +400,7 @@ class GameLobby(AsyncWebsocketConsumer):
         try:
             player = Participant.objects.get(user=self.user_id)
             
-            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id)
+            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
             participantHist.save()
 
             player.delete()
@@ -422,7 +422,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
             gameWinner = None
             for participant in participants:
-                participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id)
+                participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id, score=participant.score)
                 participantHist.save()
                 if gameWinner is None or participant.score > gameWinner.score:
                     gameWinner = participant

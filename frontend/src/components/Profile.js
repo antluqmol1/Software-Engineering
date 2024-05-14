@@ -574,45 +574,9 @@ const Profile = () => {
       }
     }
     else if(showGameDetails) {
-      return (
-        <Card className="game-details-card">
-          <Card.Body>
-            <Card.Title>{gameDetails.title}</Card.Title>
-            <div className="tasks">
-              <Card.Text>
-                <strong>Tasks:</strong>
-                <ul>
-                  {gameTasks.map((task, index) => (
-                    <li key={index}>{task}</li>
-                  ))}
-                </ul>
-              </Card.Text>
-            </div>
-            <div className="scoreboard">
-              <Card.Text>
-                <strong>Scoreboard:</strong>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Username</th>
-                      <th>Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scoreboard.map((entry, index) => (
-                      <tr key={index}>
-                        <td>{entry.username}</td>
-                        <td>{entry.score}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </Card.Text>
-            </div>
-          </Card.Body>
-        </Card>
-      );
-      
+      console.log("Game details: ", gameDetails);
+      console.log("Game tasks: ", gameTasks);
+      console.log("Scoreboard: ", scoreboard);
     }   
     else {
       return (
