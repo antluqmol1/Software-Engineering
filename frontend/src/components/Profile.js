@@ -428,6 +428,7 @@ const Profile = () => {
       setShowGallery(false);
       setShowChangePassword(false);
 
+
       const response = await axios.post(
         "http://localhost:8000/user/profile/game-details/",
         {
@@ -441,9 +442,9 @@ const Profile = () => {
           },
         }
       )
+
       
       if (response.data.success) {
-        console.log(response.data);
         setGameDetails(response.data.game_details);
         setGameTasks(response.data.tasks);
         setScoreboard(response.data.scoreboard);
@@ -539,33 +540,79 @@ const Profile = () => {
         </div>
       );
     } else if(showGameHistory) {
-      return (
-        <Card className="game-history-card">
-          <Card.Body>
-            <Card.Title>Game History</Card.Title>
-            {gameHistory.map((game, index) => (
-              <Card.Text 
-                key={index} 
-                className="game-item"
-                onClick={() => {
-                  handleToggleGameDetails(game.game_id);
-                }}
-              >
-                <strong>Title:</strong> {game.title}
-                <strong>Start Time:</strong> {game.start_time}<br/>
-              </Card.Text>
-            ))}
-          </Card.Body>
-        </Card>
-      );   
+      if (!gameHistory) {
+        return (
+          console.log(gameHistory),
+          <Card className="game-history-card">
+            <Card.Body>
+              <Card.Title>Game History</Card.Title>
+              <Card.Text>No games found.</Card.Text>
+            </Card.Body>
+          </Card>
+        );
+      }
+      else{
+        return (
+          <Card className="game-history-card">
+            <Card.Body>
+              <Card.Title>Game History</Card.Title>
+              {gameHistory.map((game, index) => (
+                <Card.Text 
+                  key={index} 
+                  className="game-item"
+                  onClick={() => {
+                    handleToggleGameDetails(game.game_id);
+                  }}
+                >
+                  <strong>Title:</strong> {game.title}
+                  <strong>Start Time:</strong> {game.start_time}<br/>
+                </Card.Text>
+              ))}
+            </Card.Body>
+          </Card>
+        );   
+      }
     }
     else if(showGameDetails) {
       return (
-        console.log(gameDetails),
-        console.log(gameTasks),
-        console.log(scoreboard),
-        {/*Implement a scetion of tasks that are scrollable and a scoreboard next to it(with title on top)*/}
+        <Card className="game-details-card">
+          <Card.Body>
+            <Card.Title>{gameDetails.title}</Card.Title>
+            <div className="tasks">
+              <Card.Text>
+                <strong>Tasks:</strong>
+                <ul>
+                  {gameTasks.map((task, index) => (
+                    <li key={index}>{task}</li>
+                  ))}
+                </ul>
+              </Card.Text>
+            </div>
+            <div className="scoreboard">
+              <Card.Text>
+                <strong>Scoreboard:</strong>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Username</th>
+                      <th>Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scoreboard.map((entry, index) => (
+                      <tr key={index}>
+                        <td>{entry.username}</td>
+                        <td>{entry.score}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card.Text>
+            </div>
+          </Card.Body>
+        </Card>
       );
+      
     }   
     else {
       return (

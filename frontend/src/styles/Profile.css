@@ -685,3 +685,15 @@ html {
     font-size: 0.8em;
   }
   
+
+  .game-details-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .game-details-card .tasks,
+  .game-details-card .scoreboard {
+    flex: 1;
+  }
+  

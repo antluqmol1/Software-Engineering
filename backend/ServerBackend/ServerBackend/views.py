@@ -335,6 +335,7 @@ def create_game(request):
     # create game in the database
     new_game = Game(game_id = gameId,
                     type=type,
+                    title=title,
                     description=description, 
                     admin=user,
                     start_time=dt.date(dt.now()), # CHANGE TO DJANGO TIME
@@ -757,7 +758,20 @@ def get_profile(request):
         'username': user.username,
         'email': user.email,
     }
-    return JsonResponse({'success': True, 'user_data': user_data}, status=200)
+
+    gamesPlayed = ParticipantHistory.objects.filter(user=user)
+    gameHist = GameHistory.objects.filter(game_id__in=gamesPlayed.values_list('game_id', flat=True))
+
+    gameList = []
+    for game in gameHist:
+        gameDict = {
+            'game_id': game.game_id,
+            'title': game.title,
+            'start_time': game.start_time,
+        }
+        gameList.append(gameDict)
+
+    return JsonResponse({'success': True, 'user_data': user_data, 'game_history': gameList}, status=200)
 
 
 @require_http_method(['POST'])

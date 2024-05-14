@@ -218,7 +218,7 @@ class GameHistory(models.Model):
 
 class PickedTasksHistory(models.Model):
 
-    game_id = models.CharField(max_length=255, null=False, default=None, primary_key=True)
+    game_id = models.CharField(max_length=255, null=False, default=None)
 
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
 
