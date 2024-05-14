@@ -1,17 +1,23 @@
-import React from "react";
+import React, {useEffect} from "react";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
+import "../styles/Leaderboard.css";
 
 import { useState } from "react";
 
 
 export function Leaderboard({
-  playerList
+  playerList,
+  endgame
 }) 
 
 
-
 {
+  useEffect(() => {
+    //Sort the leaderboard
+    playerList = playerList.sort((a, b) => b.score - a.score);
+  }, [playerList]);
+
   const [showLeaderBoard, setShowLeaderBoard] = useState(true);
 
   const handleLeaderBoardShow = () => {
@@ -28,12 +34,15 @@ export function Leaderboard({
   };
 
 
-  return <div className="leaderboard-container">
-        <button className='showhide-button' onClick={handleLeaderBoardShow}> 
+  return <div className={endgame ? "leaderboard-container-end" : "leaderboard-container"}>
+
+    { !endgame && playerList &&
+      <button className='showhide-button' onClick={handleLeaderBoardShow}> 
           {showLeaderBoard ? 'b' : 'z'}
         </button>
+    }
 
-        {showLeaderBoard && <div className="leaderboard">
+        {playerList && showLeaderBoard && <div className="leaderboard">
           <div>
             <h2 className="leaderboard-h">Leaderboard</h2>
             <div className="card-body p-0">

@@ -54,6 +54,13 @@ function GameLobby() {
     const wheelAudio = new Audio(SpinSound); //Audio effect for wheel
     const [pickedPlayer, setPickedPlayer] = useState(null); //who will recieve the next task
     
+    //Playlist debug
+    useEffect(() => {
+      //Sort the leaderboard
+      console.log("EINOIGNONEOINEOGINEOGINOGEINOEGINOGEINOIENOIEGNOIENOIENGOIENIO")
+      console.log("Player list: ", playerList)
+      console.log("EINOIGNONEOINEOGINEOGINOGEINOEGINOGEINOIENOIEGNOIENOIENGOIENIO")
+    }, [playerList]);
     
     //function to Delete game
     const handleDelete = () => {  
@@ -68,7 +75,7 @@ function GameLobby() {
 
       webSocketRef.current.close(4020, 'Admin ended game');
       setInAGame(false)
-      navigate("/end-game")
+      navigate("/end-game", { state: { playerList } })
       
     };
 
@@ -78,7 +85,7 @@ function GameLobby() {
       console.log("Leaving game...")
       webSocketRef.current.close(1000, 'Player left the game');
       setInAGame(false)
-      navigate("/end-game")
+      navigate("/")
       
     };
 
@@ -294,7 +301,8 @@ function GameLobby() {
         webSocketRef.current.onmessage = (event) => {
             // Handle incoming messages
             const data = JSON.parse(event.data);
-            console.log('Message from ws ', data.message, 'msg_type ', data.msg_type);            
+            console.log('Message from ws ', data.message, 'msg_type ', data.msg_type);
+            console.log(playerList)          
 
             // Websocket response handler
             switch (data.msg_type) {
@@ -347,8 +355,6 @@ function GameLobby() {
                     setNextTask(false)
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
                     setPlayerList(data.message['participants']);
-                    const sortedPlayerList = data.message.participants.sort((a, b) => b.score - a.score);
-                    setPlayerList(sortedPlayerList);
                     wheelAudio.play()
                     break;
                 
@@ -442,6 +448,8 @@ function GameLobby() {
                     console.log("game end message recieved from WS")
 
                     console.log("GAME HAS ENDED")
+                    console.log(playerList)
+                    console.log("GAME HAS DAAAAATA: ", data)
                     setInAGame(false)
                     navigate("/end-game");
 
@@ -449,6 +457,7 @@ function GameLobby() {
 
                 //When the wheel has stopped spinning and everyone recieves the task
                 case 'wheel_stopped':
+                  console.log('WHEEEL STOPPED PLAYERLIST', playerList)
                   console.log("wheel_stopped message");
                   if (!waitingForSpin) {
                     setWaitingForSpin(false);
@@ -533,7 +542,7 @@ function GameLobby() {
       </div>
 
 
-<Leaderboard playerList={playerList}/>
+<Leaderboard endgame={false} playerList={playerList}/>
 
 {spunWheel &&
 <QuestionContainer   waitingForSpin={waitingForSpin} pickedPlayer={pickedPlayer} taskPoints={taskPoints} taskText={taskText} username={username} voteTask={voteTask} taskId={taskId}  />
