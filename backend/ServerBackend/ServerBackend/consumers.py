@@ -95,36 +95,6 @@ class GameLobby(AsyncWebsocketConsumer):
         user = await self.get_user()
         game = await self.get_participant_game(self.user_id)
 
-        # try:
-        #     logger.debug("WS: fetching user")
-        #     logger.debug("WS: fetching game")
-        #     logger.debug("WS: gameid is ", game.game_id)
-        #     game_admin = await self.get_game_admin(game)
-
-        #     logger.debug(f"WS: comparing {game_admin} and {user}")
-        #     if game_admin == user:
-        #         logger.debug("WS: player is admin!")
-        #         admin = True
-        #     else:
-        #         logger.debug("WS: player is a user")
-        # except Exception as e:
-        #     logger.debug("WS: Error: ", e)
-        #     logger.debug("WS: no username/game, not even connected")
-        #     return
-
-        # # If disconnected player is admin, we need to end the game
-        # # Potentially check the code, so that in case it was unintentional 
-        # # disconnect, we can pass admin to another player
-
-        # if admin:
-        #     logger.debug("WS: Adming ending game")
-        #     game_ended = await self.end_game(game)
-        #     if game_ended:
-        #         logger.debug("WS: game deleted!")
-        #     else:
-        #         logger.debug("WS: error deleting game!")
-        #         return
-        # else:
         left_game = await self.leave_game(game) 
         if left_game:
             logger.debug("WS: left game!")
@@ -279,16 +249,20 @@ class GameLobby(AsyncWebsocketConsumer):
 
             case 'game_end':
                 logger.debug("WS: game_end")
-                response = {
-                    'game_end': True
-                }
+                
                 game = await self.get_participant_game(self.user_id)
+                player_list = await self.get_participants_list(game)
                 end_game = await self.end_game(game)
 
                 if end_game:
                     logger.debug("WS: game ended")
                 else:
                     logger.debug("WS: failed to end game")
+
+                response = {
+                    'game_end': True,
+                    'player_list': player_list,
+                }
 
                 logger.debug("WS: sending game_end message to other members")
                 await self.channel_layer.group_send(
@@ -463,6 +437,14 @@ class GameLobby(AsyncWebsocketConsumer):
             participants = Participant.objects.filter(game=game).count()
             return participants
         except Participant.DoesNotExist:
+            return None
+        
+    def get_participants_list(self, game):
+        try:
+            participants = Participant.objects.filter(game=game)
+            return participants
+        except Exception as e:
+            logger.error(f"WS: Failed to get participants list, error: {e}")
             return None
     
     # Database function

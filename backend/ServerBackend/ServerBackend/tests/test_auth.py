@@ -26,7 +26,7 @@ class AuthTestCase(TestCase):
         self.token2 = None
         
     def tearDown(self):
-        logger.info("Tearing down test auth...")
+        logger.info("Tearing down test auth...\n\n")
         # Clean up any resources used by the tests
         User.objects.filter(username="test_user").delete()
         
@@ -34,14 +34,14 @@ class AuthTestCase(TestCase):
         # Test the login functionality
         logger.info("Testing login...")
         # Attempt to login with wrong password
-        logger.info("Testing with wrong password...")
+        logger.info("\nTesting with wrong password...")
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': 'test_user', 'password': 'wrong_password'}),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['error'], 'Invalid credentials')
 
-        logger.info("Testing with missing fields...")
+        logger.info("\nTesting with missing fields...")
         # login with missing fields
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': None, 'password': None}),
@@ -49,7 +49,7 @@ class AuthTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['error'], 'Missing username or password')
 
-        logger.info("Testing with correct info...")
+        logger.info("\nTesting with correct info...")
         # Login with proper password
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': 'test_user', 'password': 'password123'}),
@@ -65,6 +65,7 @@ class AuthTestCase(TestCase):
         # Test the logout functionality
         # Login with proper password
         # Might still be logged in, might remove this
+        logger.info("\nLogging in...")
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': 'test_user', 'password': 'password123'}),
                                     content_type='application/json')
@@ -72,17 +73,20 @@ class AuthTestCase(TestCase):
         self.assertEqual(response.json()['msg'], 'Login successful')
 
         # Logout
+        logger.info("\nLogging out...")
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['success'], True)
 
         # Logout when not logged in
+        logger.info("\nLogging out when not logged in...")
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['success'], False)
         self.assertEqual(response.json()['msg'], 'not authenticated')
         
         # Attempt to access a protected resource after logout
+        logger.info("\nAccessing protected resource after logout...")
         response = self.client.get(self.get_profile_url)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['success'], False)
@@ -92,18 +96,21 @@ class AuthTestCase(TestCase):
         logger.info("Testing token...")
 
         # Test the csrf token functionality when not logged in
+        logger.info("\nTesting token when not logged in...")
         response = self.client.get(self.token_url)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.json()['csrfToken'])
         self.token1 = response.json()['csrfToken']
 
         # login
-        response = self.client.post(self.login_url, 
+        logger.info("\nLogging in...")
+        response = self.client.post(self.login_url,
                                     data=json.dumps({'username': 'test_user', 'password': 'password123'}),
                                     content_type='application/json',
                                     HTTP_X_CSRFTOKEN=self.token1)
         
         # Test the csrf token functionality when logged in
+        logger.info("\nTesting token when logged in...")
         response = self.client.get(self.token_url)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.json()['csrfToken'])

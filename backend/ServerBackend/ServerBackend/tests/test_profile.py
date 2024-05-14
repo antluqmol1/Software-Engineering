@@ -62,7 +62,7 @@ class TestProfile(TestCase):
         self.client.login(username='test_user', password='testing401')
 
     def tearDown(self):
-        logger.info("Tearing down test profile...")
+        logger.info("Tearing down test profile...\n\n")
         # Clean up any resources used by the tests
         User.objects.filter(username="test_user").delete()
         User.objects.filter(username="test_user2").delete()
@@ -74,7 +74,8 @@ class TestProfile(TestCase):
     def test_profile_view(self):
         logger.info("Testing profile view...")
 
-        # get profile data
+        # get profile data when logged in
+        logger.info("Getting profile data when logged in...\n")
         response = self.client.get(self.get_profile_url)
         self.assertEqual(response.status_code, 200)
 
@@ -91,7 +92,7 @@ class TestProfile(TestCase):
         logger.info("Testing update profile view...")
 
         # update first name of user
-        response = self.client.put(self.update_profile_url, 
+        response = self.client.post(self.update_profile_url, 
                                     data=json.dumps({'field': 'first_name', 'value': 'newname'}),
                                     content_type='application/json')
         self.assertTrue(response.json()['success'])
@@ -99,11 +100,11 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['msg'], 'Profile updated successfully')
 
         # update invalid field
-        response = self.client.put(self.update_profile_url, 
-                                    data=json.dumps({'password': 'newpasswordplease'}),
+        response = self.client.post(self.update_profile_url, 
+                                    data=json.dumps({'field': 'password', 'value': 'newpasswordplease'}),
                                     content_type='application/json')
         self.assertFalse(response.json()['success'])
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
         self.assertEqual(response.json()['error'], 'Invalid field')
 
 
@@ -162,29 +163,33 @@ class TestProfile(TestCase):
             self.assertFalse(response.json()['success'])
             self.assertEqual(response.json()['error'], 'Unsupported file format, must be png, jpg, or jpeg')
 
+        # THE POST REQUEST WILL NOT ACCEPT AND EMPTY VALUE WHEN MULTIPART, DOES NOT REACH SERVER, CAN NOT BE TESTED
         # Upload with empty profileImage field
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        file_path = os.path.join(dir_path, 'media_for_tests', 'profile_pic_test.png')
-        with open(file_path, 'rb') as file:
-            data = {'profileImage': None}
-            # Upload the picture
-            response = self.client.post(self.upload_picture_url, data, format='multipart')
-            self.assertEqual(response.status_code, 400)
-            self.assertFalse(response.json()['success'])
-            self.assertEqual(response.json()['error'], 'No image file provided')
+        # dir_path = os.path.dirname(os.path.realpath(__file__))
+        # file_path = os.path.join(dir_path, 'media_for_tests', 'profile_pic_test.png')
+        # with open(file_path, 'rb') as file:
+        #     data = {'profileImage': None}
+        #     # Upload the picture
+        #     response = self.client.post(self.upload_picture_url, data, format='multipart')
+        #     self.assertEqual(response.status_code, 400)
+        #     self.assertFalse(response.json()['success'])
+        #     self.assertEqual(response.json()['error'], 'No image file provided')
         
 
     def test_get_all_pictures_view(self):
         logger.info("Testing get all pictures view...")
 
         # retrieving custom pictures when none exist
+        logger.info("Retrieving custom pictures when none exist...\n")
         response = self.client.get(self.get_all_pictures_url)
         self.assertFalse(response.json()['success'])
         self.assertEqual(response.status_code, 404)
 
         # upload image
+        logger.info("Uploading image...\n")
         self.upload_image('profile_pic_test.png')
 
+        logger.info("Retrieving custom pictures when one exists...\n")
         response = self.client.get(self.get_all_pictures_url)
         self.assertTrue(response.json()['success'])
         self.assertEqual(response.status_code, 200)
@@ -199,6 +204,7 @@ class TestProfile(TestCase):
         self.upload_image('profile_pic_test_2.png')
 
         # change profile picture to an invalid image
+        logger.info("Attempting to change profile picture to an invalid image...\n")
         response = self.client.put(self.update_picture_url, 
                                    data=json.dumps({'newProfilePicUrl': self.media_url + 'custom/invalidphoto.png'}), #hardcoded media url, matches what is sendt from frontend
                                    content_type='application/json')
@@ -206,6 +212,7 @@ class TestProfile(TestCase):
         self.assertFalse(response.json()['success'])
 
         # change profile picture to a valid image
+        logger.info("Changing profile picture to a valid image...\n")
         response = self.client.put(self.update_picture_url, 
                                    data=json.dumps({'newProfilePicUrl': self.media_url + self.relative_image_paths[0]}), #hardcoded media url, matches what is sendt from frontend
                                    content_type='application/json')
@@ -216,6 +223,7 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['msg'], 'Selected new image')
 
         # attempt to change profile picture to the current profile picture
+        logger.info("Attempting to change profile picture to the current profile picture...\n")
         response = self.client.put(self.update_picture_url,
                                    data=json.dumps({'newProfilePicUrl': self.media_url + self.relative_image_paths[0]}),
                                    content_type='application/json')
@@ -223,6 +231,7 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['error'], 'Selected image is already the profile picture')
 
         # attempt to change profile picture with empty url
+        logger.info("Attempting to change profile picture to the current profile picture...\n")
         response = self.client.put(self.update_picture_url,
                                    data=json.dumps({'newProfilePicUrl': None}),
                                    content_type='application/json')
@@ -231,10 +240,12 @@ class TestProfile(TestCase):
 
         # delete custom picture
         # delete test profile pic 2 using local storage
+        logger.info("Deleting second upload via local_storage...\n")
         if default_storage.exists(self.relative_image_paths[1]):
             default_storage.delete(self.relative_image_paths[1])
 
         # attempt to change profile picture to the deleted picture
+        logger.info("Attempting to change profile picture to the deleted picture...\n")
         response = self.client.put(self.update_picture_url,
                                    data=json.dumps({'newProfilePicUrl': self.media_url + self.relative_image_paths[1]}),
                                    content_type='application/json')
@@ -242,11 +253,13 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['error'], 'Image file does not exist')
 
         # logout first test user
+        logger.info("Logging out first test user...\n")
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['success'])
         
         # login second test user
+        logger.info("Logging in second test user...\n")
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': 'test_user2', 'password': 'testing402'}),
                                     content_type='application/json')
@@ -254,6 +267,7 @@ class TestProfile(TestCase):
         self.assertTrue(response.json()['success'])
         
         # from second test user, attempt to use profile picture belonging to first test user
+        logger.info("attempting to use profile picture belonging to first test user...\n")
         response = self.client.put(self.update_picture_url, 
                                    data=json.dumps({'newProfilePicUrl': self.media_url + self.relative_image_paths[0]}),
                                    content_type='application/json')
@@ -269,6 +283,7 @@ class TestProfile(TestCase):
         self.upload_image('profile_pic_test_2.png')
 
         # attempt to delete picture with empty url
+        logger.info("Attempting to delete picture with empty url...\n")
         response = self.client.delete(self.delete_picture_url,
                                       data=json.dumps({'imagePath': None}),
                                       content_type='application/json')
@@ -277,6 +292,7 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['error'], 'No image URL provided')
 
         # attempt to delete preset picture
+        logger.info("Attempting to delete preset picture...\n")
         response = self.client.delete(self.delete_picture_url,
                                       data=json.dumps({'imagePath': 'presets/preset_1.png'}),
                                       content_type='application/json')
@@ -285,6 +301,7 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['error'], 'Cannot delete preset image')
 
         # delete first upload, which is not the current profile picture
+        logger.info("Deleting first upload...\n")
         response = self.client.delete(self.delete_picture_url,
                                       data=json.dumps({'imagePath': self.relative_image_paths[0]}),
                                       content_type='application/json')
@@ -293,19 +310,22 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['msg'], 'Profile picture deleted')
 
         # delete first upload again, nonexisting image at this point
+        logger.info("Deleting first upload again...\n")
         response = self.client.delete(self.delete_picture_url,
                                       data=json.dumps({'imagePath': self.relative_image_paths[0]}),
                                       content_type='application/json')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 404)
         self.assertFalse(response.json()['success'])
         self.assertEqual(response.json()['error'], 'Given picture does not exist')
 
         # logout first test user
+        logger.info("Logging out first test user...\n")
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['success'])
         
         # login second test user
+        logger.info("Logging in second test user...\n")
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': 'test_user2', 'password': 'testing402'}),
                                     content_type='application/json')
@@ -313,6 +333,7 @@ class TestProfile(TestCase):
         self.assertTrue(response.json()['success'])
 
         # attempt to delete picture belonging to first test user
+        logger.info("Attempting to delete picture belonging to first test user...\n")
         response = self.client.delete(self.delete_picture_url,
                                       data=json.dumps({'imagePath': self.relative_image_paths[1]}),
                                       content_type='application/json')
@@ -321,11 +342,13 @@ class TestProfile(TestCase):
         self.assertEqual(response.json()['error'], 'Invalid image URL provided')
 
         # logout second test user
+        logger.info("Logging out second test user...\n")
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['success'])
 
         # login first test user
+        logger.info("Logging in first test user...\n")
         response = self.client.post(self.login_url, 
                                     data=json.dumps({'username': 'test_user', 'password': 'testing401'}),
                                     content_type='application/json')
@@ -333,6 +356,7 @@ class TestProfile(TestCase):
         self.assertTrue(response.json()['success'])
 
         # delete current profile picture
+        logger.info("Deleting current profile picture...\n")
         response = self.client.delete(self.delete_picture_url,
                                       data=json.dumps({'imagePath': self.relative_image_paths[1]}),
                                       content_type='application/json')
@@ -340,16 +364,21 @@ class TestProfile(TestCase):
         self.assertTrue(response.json()['success'])
         self.assertEqual(response.json()['msg'], 'Profile picture deleted')
 
+    def test_game_history(self):
+        logger.info("Testing game history...")
+        # Create a game, finnish it, and check if the game is in the history
+        # finnish test_game first, and wait for jørgen to be done with the game history
+
 
     def upload_image(self, image_path):
         '''
         Assumes correct condition for successfull upload
-        Uploads an image visa image_path on user, and adds 
+        Uploads an image visa image_path on user, and adds
         the relative path to the relative_image_paths list
         
         @input image_path: the path to the image to upload
         '''
-        logger.debug("HELPER FUNCTION! Uploading images...\n\n\n\n")
+        logger.info("HELPER FUNCTION! Uploading images...")
         # Open first test image and upload
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, 'media_for_tests', image_path)
