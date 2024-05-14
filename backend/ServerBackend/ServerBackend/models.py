@@ -211,18 +211,13 @@ class GameHistory(models.Model):
 
     title = models.CharField(max_length=255)
 
-    description = models.TextField()
-
-    winner = models.CharField(max_length=30)
-
     start_time = models.DateField()
   
-    end_time = models.DateField()
 
 
 class PickedTasksHistory(models.Model):
 
-    game_id = models.CharField(max_length=255, null=False, default=None, primary_key=True)
+    game_id = models.CharField(max_length=255, null=False, default=None)
 
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
 
@@ -242,6 +237,8 @@ class ParticipantHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
     game_id = models.CharField(max_length=255, null=False, default=None)
+
+    score = models.IntegerField(default=0)
 
     # this ensures that the combination of task and game must be unique
     class meta:

@@ -338,6 +338,7 @@ def create_game(request):
     # create game in the database
     new_game = Game(game_id = gameId,
                     type=type,
+                    title=title,
                     description=description, 
                     admin=user,
                     num_players=1,
@@ -761,23 +762,74 @@ def get_profile(request):
         'username': user.username,
         'email': user.email,
     }
-    return JsonResponse({'success': True, 'user_data': user_data}, status=200)
+
+    gamesPlayed = ParticipantHistory.objects.filter(user=user)
+    gameHist = GameHistory.objects.filter(game_id__in=gamesPlayed.values_list('game_id', flat=True))
+
+    gameList = []
+    for game in gameHist:
+        gameDict = {
+            'game_id': game.game_id,
+            'title': game.title,
+            'start_time': game.start_time,
+        }
+        gameList.append(gameDict)
+
+    return JsonResponse({'success': True, 'user_data': user_data, 'game_history': gameList}, status=200)
 
 
-@require_http_method(['PUT'])
+@require_http_method(['POST'])
+@require_authentication
+def game_details(request):
+
+    data = json.loads(request.body)
+    
+    game_id = data.get('game_id')
+
+    
+    game = GameHistory.objects.get(game_id=game_id)
+    gameDetails = {
+        'title': game.title,
+    }
+
+    tasks = PickedTasksHistory.objects.filter(game_id=game_id)
+    tasklist = []
+    for task in tasks:
+        taskDetails = Tasks.objects.get(task_id=task.task_id)
+        tasklist.append({
+            'description': taskDetails.description,
+            'points': taskDetails.points,
+            'pickedPlayer': task.username,
+            'win': task.win,
+            'time': task.time,
+        })
+
+    participants = ParticipantHistory.objects.filter(game_id=game_id)
+    scoreboard = []
+    for participant in participants:
+        scoreboard.append({
+            'username': participant.user.username,
+            'score': participant.score,
+        })
+
+
+    return JsonResponse({'game_details': gameDetails, 'tasks': tasklist, 'scoreboard': scoreboard, 'success': True}, status=200)
+
+
+@require_http_method(['POST'])
 @require_authentication
 def update_profile(request):
     '''
     Updates the profile of the user
     '''
-    logger.info(f"{request.user.username} is updating profile")
+    print("updating profile")
 
     user = request.user
 
     data = json.loads(request.body)
 
     field = data.get('field')
-    logger.debug(f'field: {field}')
+    print(f'field: {field}')
     new_value = data.get('value')
     logger.debug(f'field: {new_value}')
 
@@ -790,8 +842,93 @@ def update_profile(request):
 
     # save it to the database
     user.save()
-    logger.info("profile updated")
-    return JsonResponse({'success': True, 'msg': 'Profile updated successfully'}, status=200)
+    return JsonResponse({'success': True})
+
+
+
+'''
+Updates the users profile picture
+Recieves a DataForm form
+'''
+@require_http_method(['POST'])
+@require_authentication
+def upload_image_base64(request):
+    '''
+    Updates the profile picture of the user based on the image provided
+    '''
+    print("upload_image_base64")
+
+    user = request.user
+
+    profile_picture = request.FILES.get('profileImage')
+
+    if profile_picture:
+        print("picture is valid")
+
+        extension = profile_picture.name.split('.')[-1].lower()
+        if extension not in ['png', 'jpg', 'jpeg']:
+            return JsonResponse({'success': False, 'error': 'Unsupported file format, must be png, jpg, or jpeg'}, status=400)
+        
+        # Save new image
+        try:
+            user.profile_pic.save(f"{user.id}.{extension}", profile_picture)
+            user.save()
+            print("New profile picture stored")
+            return JsonResponse({'success': True}, status=201)
+        except Exception as e:
+            # Handle exceptions
+            print("could not save picture. error: ", e)
+            return JsonResponse({'success': False}, status=500)
+    else:
+        print("no image provided")
+        return JsonResponse({'error': 'No image file provided'}, status=400)
+
+
+@require_http_method(['GET'])
+@require_authentication
+def get_image_urls(request):
+    '''
+    Gets the profile picture of all users in the game
+    returns:
+    @uris : list
+    '''
+    print("get_all_images_participants")
+    user = request.user
+
+    user_id_list = get_user_ids_from_usernames(user)
+
+    username_list = get_usernames_in_game(user)
+
+    url_list = get_profile_picture_on_users(user_id_list)
+
+    uri_list = []
+    for file_path in url_list:
+        # Find the index of 'custom' or 'preset' and slice the path from that point
+        if 'custom' in file_path:
+            index = file_path.find('custom')
+            uri_list.append(file_path[index:])
+        elif 'preset' in file_path:
+            index = file_path.find('preset')
+            uri_list.append(file_path[index:])
+
+    # current site and protocol
+    current_site = get_current_site(request)
+    protocol = 'https' if request.is_secure() else 'http'
+
+    user_files_urls = [
+        f"{protocol}://{current_site.domain}{default_storage.url(file)}"
+        for file in uri_list
+    ]
+
+    uri_dict = {}
+    for i in range(len(user_files_urls)):
+        uri_dict[username_list[i]] = user_files_urls[i]
+
+    logger.info(f'returning uris: {uri_dict}')
+    print(f'\n\n\n\n\nreturning uris: {uri_dict}\n\n\n\n\n')
+
+    return JsonResponse({"success": True, 'uris': uri_dict}, status=200)
+
 
 @require_http_method(['GET'])
 @require_authentication

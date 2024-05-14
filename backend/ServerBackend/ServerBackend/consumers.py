@@ -206,19 +206,16 @@ class GameLobby(AsyncWebsocketConsumer):
                 # Check if the overwhelming majority has voted, and end game if one-sided.
                 if ((participants - 1)/2 - skipVotes) < yesVotes or (yesVotes == noVotes) & yesVotes != 0:  
                     # Removes responses for specific task, in specific game.
-                    await self.next_task_preperation(game, task)                                # Player wins
+                    await self.next_task_preperation(game, task, True)                                # Player wins
                     # Gives player points.
                     response = await self.give_player_points(game, task)
-                    # Add Task to history table.
-                    await self.update_PickedTasksHistory(game, task, True)
+
 
 
                 elif ((participants - 1)/2 - skipVotes) < noVotes:                            
                     # Removes responses for specific task, in specific game.                    # Player loses
-                    await self.next_task_preperation(game, task)
+                    await self.next_task_preperation(game, task, False)
                     response = {'winner': False}
-                    # Add Task to history table.    
-                    await self.update_PickedTasksHistory(game, task, False)
 
 
                 else:                                                                   # Vote continues
@@ -417,7 +414,7 @@ class GameLobby(AsyncWebsocketConsumer):
         try:
             player = Participant.objects.get(user=self.user_id)
             
-            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id)
+            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
             participantHist.save()
 
             player.delete()
@@ -439,17 +436,14 @@ class GameLobby(AsyncWebsocketConsumer):
 
             gameWinner = None
             for participant in participants:
-                participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id)
+                participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id, score=participant.score)
                 participantHist.save()
                 if gameWinner is None or participant.score > gameWinner.score:
                     gameWinner = participant
 
             game_history = GameHistory(game_id=game.game_id, 
                                     title=game.title, 
-                                    description=game.description,
-                                    winner=gameWinner.user.username, 
-                                    start_time=game.start_time, 
-                                    end_time=dt.date(dt.now()))
+                                    start_time=game.start_time)
             game_history.save()
             
         except Exception as e:
@@ -486,7 +480,7 @@ class GameLobby(AsyncWebsocketConsumer):
     
     # Database function
     @database_sync_to_async
-    def next_task_preperation(self, game, task):
+    def next_task_preperation(self, game, task, bool):
         try:
             # Clears responses for specific task/game in Response.
             respones = Response.objects.filter(game=game, task=task)
@@ -495,8 +489,13 @@ class GameLobby(AsyncWebsocketConsumer):
             current_task = PickedTasks.objects.get(game=game, task=task)
             current_task.done = True
             current_task.save()
-        except:
-            return None
+            # Add picked task to task history table.
+            task_history = PickedTasksHistory(task=task, game_id=game.game_id, username=current_task.user.username, time=dt.now(), win=bool)
+            task_history.save()
+    
+        except Exception as e:
+            print("\tWS: Next task preperation failed error: ", str(e))
+            return False
 
 
     # Database function
