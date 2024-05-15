@@ -40,7 +40,7 @@ function GameLobby() {
     const navigate = useNavigate();
     
     //context variables
-    const { loading, username, inAGame, setInAGame, userIsLoggedIn, csrfToke } = useContext(AuthContext);
+    const { loading, username, inAGame, setInAGame, userIsLoggedIn, csrfToken } = useContext(AuthContext);
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);

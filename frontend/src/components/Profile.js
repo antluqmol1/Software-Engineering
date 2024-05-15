@@ -251,6 +251,8 @@ const Profile = () => {
             console.log("Image deleted successfully");
             // Remove the image from the gallery state
             setGallery(prev => prev.filter(img => img !== imagePath));
+
+
         } else {
             console.error("Failed to delete the image:", response.data.error);
         }
