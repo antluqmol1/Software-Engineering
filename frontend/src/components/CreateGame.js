@@ -1,7 +1,6 @@
 // Profile.js
 
 import React, { useState, useEffect, useCallback, useContext } from "react";
-import axios from "axios";
 import "../styles/Profile.css";
 import { Link, useNavigate, useLocation } from "react-router-dom"; // Import useHistory hook
 import Cookies from "universal-cookie";
@@ -11,6 +10,7 @@ import bluemargharita from "../assets/bluemargharita.jpg";
 import familynight from "../assets/familynight.png";
 import woods from "../assets/woods.jpg";
 import { AuthContext } from '../AuthContext';
+import gameServices from "../services/gameServices";
 
 
 const useCreateGame = ( mode, trigger, setTrigger) => {
@@ -21,75 +21,44 @@ const useCreateGame = ( mode, trigger, setTrigger) => {
   const [gameId, setGameId] = useState(null);
   const navigate = useNavigate();
   const gameTitle = useLocation().state;
-  console.log("gameTitle: ", gameTitle)
   
   const { inAGame, setInAGame} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
-
-  console.log("Lobby and Request");
-
-  console.log(mode.id);
 
   const generateGameId = useCallback(() => {
     // Generate a random alphanumeric string of length 6
     const gameId = Math.random().toString(36).substring(2, 8);
 
-    console.log("setting game id", gameId);
     setGameId(gameId)
 
     return gameId;
   }, []);
 
-  function createGameBackend(id) {
+  async function createGameBackend(id) {
     const gameId = generateGameId();
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
   
-    console.log("inside create game")
+    try {
+      const response = await gameServices.createGame(gameId, id, "desc1", gameTitle, token)
   
-    // Make a POST request to localhost:8000/create-game with the game ID
-    axios
-      .post(
-        "http://localhost:8000/game/create/",
-        { gameid: gameId, id: id, description: "desc1", title: gameTitle},
-        {
-          headers: {
-            "X-CSRFToken": token, // Include CSRF token in headers
-          },
-        }
-      )
-      .then((response) => {
-        if (response.data['success'] != false) {
-          // Success
-          console.log("Game created successfully:", response.data);
-          setInAGame(true)
-          navigate("/game-lobby") // navigate to gamelobby
-        }
-        // var player_list = get_players();
-        return;
-      })
-      .catch((error) => {
-        // Error
-        setGameError(error)
-        console.error("Error creating game:", error);
-      });
+      if (response.data['success'] !== false) {
+        // Success
+        setInAGame(true);
+        navigate("/game-lobby"); // Navigate to game lobby
+      }
+    } catch (error) {
+      // Error
+      setGameError(error);
+      console.error("Error creating game:", error);
+    }
   }
+  
 
-  console.log("above using effect")
   // Create the game
   useEffect(() => {
     if (trigger) {
-      console.log("inside use effect - creating game");
       createGameBackend(mode.id);
-
-      if (!gameError) {
-        console.log("navigating")
-        // navigate("/game-lobby")
-      }
-
-      console.log("players: ". playerslist)
-      // Reset trigger to avoid repeated calls
-      setTrigger(false); // You need to provide setTrigger function to this hook
-      // navigate("/game-lobby");
+      setTrigger(false); 
     }
   }, [mode, trigger, setTrigger]); // Include setTrigger in the dependency array
 

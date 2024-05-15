@@ -26,6 +26,12 @@ const createUser = async (
   );
 };
 
+const getUsername = async () => {
+  return axios.get(`${config.API_BASE_URL}/user/get-username/`, {
+              withCredentials: true,
+            });
+}
+
 const getProfile = async () => {
   return axios.get(`${config.API_BASE_URL}/user/profile/get`, {
     withCredentials: true,
@@ -73,17 +79,51 @@ const deletePicture = async (imagePath, token) => {
         });
 }
 
-
-const uploadPicture = async () => {
-
+const uploadPicture = async (formData, token) => {
+  return axios.post(
+    `${config.API_BASE_URL}/user/profile/upload-picture/`,
+    formData,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "X-CSRFToken": token,
+      },
+    }
+  );
 }
 
-const getAllPictures = async () => {
+const getAllPictures = async (token) => {
+  return axios.get(
+    `${config.API_BASE_URL}/user/profile/get-all-pictures/`,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": token,
+      },
+    }
+  );
+}
 
+const getGameDetails = async (gameID, token) => {
+  return axios.post(
+    `${config.API_BASE_URL}/user/profile/game-details/`,
+    {
+      game_id: gameID,
+    },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": token,
+      },
+    }
+  );
 }
 
 
 export default {
-    createUser, getProfile, getPictureBase64, updateProfile, updatePicture, 
-    deletePicture, uploadPicture, getAllPictures,
+    createUser, getUsername, getProfile, getPictureBase64, updateProfile, 
+    updatePicture, deletePicture, uploadPicture, getAllPictures, getGameDetails
   };

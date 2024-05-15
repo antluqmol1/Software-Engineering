@@ -1,7 +1,5 @@
 import React, {useState, useEffect} from 'react';
-
 import { useNavigate, useLocation } from 'react-router-dom';
-
 import "../styles/EndGameScreen.css";
 import userServices from "../services/userServices";
 import { Leaderboard } from './Leaderboard';
@@ -24,8 +22,6 @@ const EndGameScreen = () => {
   },[])
   
   useEffect(() => {
-    
-    console.log('YEYEYYEYEYYEYEYYEY ', gameHistory)
     
   },[gameHistory])
   

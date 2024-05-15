@@ -16,7 +16,6 @@ export function Leaderboard({
   useEffect(() => {
     //Sort the leaderboard
     playerList = playerList.sort((a, b) => b.score - a.score);
-    console.log("PLAYER LIST ", playerList);
   }, [playerList]);
 
   const [showLeaderBoard, setShowLeaderBoard] = useState(true);
@@ -31,7 +30,6 @@ export function Leaderboard({
     {
       setShowLeaderBoard(true);
     }
-    console.log(showLeaderBoard)
   };
 
 

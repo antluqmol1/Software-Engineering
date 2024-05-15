@@ -1,5 +1,4 @@
 import React, { useState , useContext} from 'react';
-import axios from 'axios';
 import "../styles/CreateUser.css"; // Make sure your CSS matches the layout and style in the image
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { AuthContext } from '../AuthContext';
@@ -67,19 +66,14 @@ const CreateUser = () => {
     try {
       const response = await userServices.createUser(first_name, last_name, username, email, password, csrfToken);
 
-      console.log('User created successfully', response.data);
-
       if (response.data.success == true) {
 
         try{
           const loginResponse = await authServices.login(username, password, csrfToken);
-          console.log("login complete?")
           if (loginResponse.data.success == true) {
-            console.log("navigating to profile page")
             setUserIsLoggedIn(true);
             navigate("/profile")
           }
-          console.log("after navigate") 
         }
         catch (error){
           console.error("login failed", error)

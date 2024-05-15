@@ -1,7 +1,6 @@
 // Profile.js
 
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
 import Cookies from "universal-cookie";
 import { Card, CardBody, CardTitle } from "react-bootstrap";
 import "../styles/Profile.css";
@@ -71,8 +70,6 @@ const Profile = () => {
   const cookies = new Cookies();
   const token = cookies.get("csrftoken");
 
-  console.log("getting profile");
-
   // NOT WORKING, FIX
   useEffect (() => {
 
@@ -84,56 +81,54 @@ const Profile = () => {
 
   }, [loading, userIsLoggedIn]); 
 
+  // Fetch user data when the component mounts
+  const fetchUserData = async () => {
+    try {
+
+      // Fetch profile data
+      const response = await userServices.getProfile();
+
+      // handle response
+      if (response.status == 200) {
+        setUserData(response.data.user_data);
+        setGameHistory(response.data.game_history);
+      } else {
+        console.error("failed to fetch user data/game history, response: ", response)
+      }
+
+    } catch (error) {
+      console.error("There was an error!", error);
+
+      // Check if the error is due to unauthorized access
+      if (error.response.status === 401) {
+        // setError("Please log in to view your profile.");
+      } else {
+        // setError("An unexpected error occurred. Please try again later.");
+      }
+    }
+  };
+
+  const fetchProfilePicture = async () => {
+    try {
+
+      // Fetch pictures
+      const response = await userServices.getPictureBase64();
+
+      // handle response
+      if (response.status == 200) {
+        const base64Image = response.data.image;
+        setProfilePic(`data:image/png;base64,${base64Image}`);
+      } else {
+        console.error("failed to fetch pictures, response: ", response)
+      }
+
+    } catch (error) {
+      console.error("There was an error!", error);
+    }
+  };
+
   // Fetch user data when component mounts
   useEffect(() => {
-
-    // Fetch user data when the component mounts
-    const fetchUserData = async () => {
-      try {
-
-        // Fetch profile data
-        const response = await userServices.getProfile();
-
-        // handle response
-        if (response.status == 200) {
-          setUserData(response.data.user_data);
-          setGameHistory(response.data.game_history);
-        } else {
-          console.error("failed to fetch user data/game history, response: ", response)
-        }
-
-      } catch (error) {
-        console.error("There was an error!", error);
-
-        // Check if the error is due to unauthorized access
-        if (error.response.status === 401) {
-          // setError("Please log in to view your profile.");
-        } else {
-          // setError("An unexpected error occurred. Please try again later.");
-        }
-      }
-    };
-
-    const fetchProfilePicture = async () => {
-      try {
-
-        // Fetch pictures
-        const response = await userServices.getPictureBase64();
-
-        // handle response
-        if (response.status == 200) {
-          const base64Image = response.data.image;
-          console.log("Received image data:", base64Image);
-          setProfilePic(`data:image/png;base64,${base64Image}`);
-        } else {
-          console.error("failed to fetch pictures, response: ", response)
-        }
-
-      } catch (error) {
-        console.error("There was an error!", error);
-      }
-    };
-
     fetchUserData();
     fetchProfilePicture();
   }, []);
@@ -157,8 +152,6 @@ const Profile = () => {
     const updatedValue = userData[field];
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
-    console.log(field);
-    console.log(updatedValue);
 
     try {
       const response = await userServices.updateProfile(field, updatedValue, token);
@@ -192,12 +185,9 @@ const Profile = () => {
   };
 
   const handleSelectProfilePic = async (imagePath) => {
-    console.log("Selected image to set as profile:", imagePath);
     try {
         const response = await userServices.updatePicture(imagePath, token);
         if (response.data.success) {
-            console.log("Profile picture updated successfully!");
-            // Optionally, refresh the displayed profile picture in the UI
             setProfilePic(imagePath);
         } else {
             console.error("Failed to update profile picture:", response.data.error);
@@ -209,18 +199,16 @@ const Profile = () => {
 
   // Deletes profile pictures from the backend
   const handleDeleteImage = async (imagePath) => {
-    console.log("Deleting image:", imagePath);
     try {
         // Assume imagePath contains the necessary identifier for deletion
         const response = await userServices.deletePicture(imagePath, token);
 
         if (response.data.success) {
-            console.log("Image deleted successfully");
             // Remove the image from the gallery state
             setGallery(prev => prev.filter(img => img !== imagePath));
             if (response.data.deletedCurrent) {
               // Send a GET request to fetch the updated profile picture
-              fetchProfilePicture()
+              fetchProfilePicture();
             }
 
         } else {
@@ -234,40 +222,18 @@ const Profile = () => {
   // Handles the file upload action
   const handleUpload = async () => {
     if (setProfilePic) {
-      console.log("Uploading picture!");
       const formData = new FormData();
-      console.log("filedata to upload: ", profilePicFile);
       // Append selected file to form data
       formData.append("profileImage", profilePicFile); // 'profileImage' is the key expected by the backend
 
       try {
         // Send POST request to the server to upload the profile image
-        const response = await axios.post(
-          "http://localhost:8000/user/profile/upload-picture/",
-          formData,
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "multipart/form-data",
-              "X-CSRFToken": token,
-            },
-          }
-        );
+        const response = await userServices.uploadPicture(formData, token);
 
         try {
-          const response = await axios.get(
-            "http://localhost:8000/user/profile/get-all-pictures/",
-            {
-              withCredentials: true,
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": token,
-              },
-            }
-          );
+          const response = await userServices.getAllPictures(token);
+          
           if (response.data.success) {
-            console.log("fetch gallery OK");
-            console.log(response.data.files);
             setGallery(response.data.files);
             setShowGallery(true);
           } else {
@@ -276,10 +242,6 @@ const Profile = () => {
         } catch (error) {
           console.error("Error fetching images", error);
         }
-
-        // Log the server response after successful upload
-        console.log(response.data);
-
         // Additional logic to update the profile picture can be added here
       } catch (error) {
         // Log any error during the upload process
@@ -300,19 +262,8 @@ const Profile = () => {
     }
 
     try {
-      const response = await axios.get(
-        "http://localhost:8000/user/profile/get-all-pictures/",
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": token,
-          },
-        }
-      );
+      const response = await userServices.getAllPictures(token);
       if (response.data.success) {
-        console.log("fetch gallery OK");
-        console.log(response.data.files);
         setGallery(response.data.files);
         setShowGallery(true);
       } else {
@@ -336,29 +287,6 @@ const Profile = () => {
       setShowGameHistory(false);
       setShowGameDetails(false);
     }
-
-    // try {
-    //   // Example of an API call that you might want to perform
-    //   const response = await axios.get(
-    //     "http://localhost:8000/profile/validate-session/",
-    //     {
-    //       withCredentials: true,
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         "X-CSRFToken": token,
-    //       },
-    //     }
-    //   );
-
-    //   // Handle the API response based on your backend logic
-    //   if (response.data.success) {
-    //     console.log("Session validation successful:", response.data);
-    //   } else {
-    //     console.error("Session validation failed:", response.data.error);
-    //   }
-    // } catch (error) {
-    //   console.error("Error during session validation:", error);
-    // }
   };
 
   // Function to toggle the visibility of the game history
@@ -391,19 +319,7 @@ const Profile = () => {
       setShowChangePassword(false);
 
 
-      const response = await axios.post(
-        "http://localhost:8000/user/profile/game-details/",
-        {
-          game_id: gameID,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": token,
-          },
-        }
-      )
+      const response = await userServices.getGameDetails(gameID, token);
 
       
       if (response.data.success) {
@@ -529,7 +445,6 @@ const Profile = () => {
         );   
     } else if(showGameDetails) {
       // Sort the scoreboard by score in descending order
-      console.log("Game tasks: ", gameTasks);
       const sortedScoreboard = [...scoreboard].sort((a, b) => b.score - a.score);
       return (
         <div className="game-details-container">
@@ -596,9 +511,6 @@ const Profile = () => {
           </Card>
         </div>
       );
-      // console.log("Game details: ", gameDetails);
-      
-      // console.log("Scoreboard: ", scoreboard);
     } else {
       return (
         <Card className="profile-card">
