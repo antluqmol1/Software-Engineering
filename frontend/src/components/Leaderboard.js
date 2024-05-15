@@ -1,17 +1,24 @@
-import React from "react";
+import React, {useEffect} from "react";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
+import "../styles/Leaderboard.css";
 
 import { useState } from "react";
 
 
 export function Leaderboard({
-  playerList
+  playerList,
+  endgame
 }) 
 
 
-
 {
+  useEffect(() => {
+    //Sort the leaderboard
+    playerList = playerList.sort((a, b) => b.score - a.score);
+    console.log("PLAYER LIST ", playerList);
+  }, [playerList]);
+
   const [showLeaderBoard, setShowLeaderBoard] = useState(true);
 
   const handleLeaderBoardShow = () => {
@@ -28,13 +35,16 @@ export function Leaderboard({
   };
 
 
-  return <div className="leaderboard-container">
-        <button className='showhide-button' onClick={handleLeaderBoardShow}> 
+  return <div className={endgame ? "leaderboard-container-end" : "leaderboard-container"}>
+
+    { !endgame && playerList &&
+      <button className='showhide-button' onClick={handleLeaderBoardShow}> 
           {showLeaderBoard ? 'b' : 'z'}
         </button>
+    }
 
-        {showLeaderBoard && <div className="leaderboard">
-          <div>
+        {playerList && showLeaderBoard && <div className="leaderboard">
+          <div className="leaderboard-body">
             <h2 className="leaderboard-h">Leaderboard</h2>
             <div className="card-body p-0">
               <div className="list-group list-group-flush">
@@ -46,10 +56,7 @@ export function Leaderboard({
             }
                 {playerList.map((player, index) => <div className="leaderboard-item" key={index}>
                     <span className="me-2">{player.username}</span>
-                    <span className="badge bg-secondary ms-auto me-3" style={{
-                position: 'absolute',
-                right: '0%'
-              }}>
+                    <span className="score">
                       {player.score}
                     </span>
                   </div>)}
