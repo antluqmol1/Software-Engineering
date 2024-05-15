@@ -349,7 +349,6 @@ function GameLobby() {
                     setGameStarted(data.message['gameStarted']);
                     setNextTask(false)
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
-                    // setPlayerList(data.message['participants']);
                     wheelAudio.play()
                     break;
                 

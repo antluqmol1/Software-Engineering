@@ -20,7 +20,6 @@ const FrontPage = () => {
 
   // const userIsLoggedIn = useCheckUserLoggedIn();
   const { username, setUsername, userIsLoggedIn, inAGame, setInAGame, loading} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
-  console.log("userIsLoggedIn: ", userIsLoggedIn)
   useEffect(() => {
     if (!userIsLoggedIn && !loading) {
       // If not logged in, redirect to the login page
@@ -95,7 +94,7 @@ const FrontPage = () => {
   };
 
   const handleGameTitleChange = (e) => {
-    setGameTitle(e.target.value);              // Change title of the game for each new input            
+    setGameTitle(e.target.value); // Change title of the game for each new input            
     console.log(gameTitle)
   };
 
@@ -156,8 +155,8 @@ const FrontPage = () => {
         ) : (
           <p>Please login or create an account</p>
         )}
-        {userIsLoggedIn ? (
-          inAGame ? (
+          {inAGame ? (
+            //If user is already in an active game
             <div>
               <p>You are currently in a game, don't leave them hanging!</p>
               {/* Button to go to the game page */}
@@ -166,6 +165,7 @@ const FrontPage = () => {
               </button>
             </div>
           ) :
+          //If a user is logged in and not in an active game
           <div className="buttons-container">
             <button
               className={`button ${activeOption === "join" ? "active" : ""}`}
@@ -180,19 +180,7 @@ const FrontPage = () => {
               Create Game
             </button>
           </div>
-        ) : (
-          <div className="buttons-container">
-            <button
-              className={`button ${activeOption === "join" ? "active" : ""}`}
-              onClick={() => toggleActiveOption("join")}
-            >
-              Join Game
-            </button>
-            <button className="SignUp-button" onClick={handleSignUpClick}>
-              Create Game
-            </button>
-          </div>
-        )}
+          }
         {activeOption === "join" && (
           <div className="game-action-container">
             <input
