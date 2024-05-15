@@ -109,6 +109,9 @@ class Tasks(models.Model):
     # Whether or not a task is individual
     individual = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.description
+
 
 '''
 Store information about each game, including the start time, end time, and the admin/user who initiated the game.
@@ -142,6 +145,9 @@ class Game(models.Model):
     # tells us wether the weel is spinning
     wheel_spinning = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.game_id
+
 class PickedTasks(models.Model):
     
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
@@ -154,10 +160,15 @@ class PickedTasks(models.Model):
 
     time = models.TimeField(default=timezone.now)
 
+
+    def __str__(self):
+        return self.task.description
+
     # this ensures that the combination of task and game must be unique
     class meta:
         unique_together = ('task', 'game', 'user')
 
+    
 
 '''
 Keep track of users participating in a game, including their scores.
@@ -175,6 +186,9 @@ class Participant(models.Model):
 
     # Boolean indicating whether the user has been picked once during a round
     isPicked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.username
 
 
 # '''
@@ -199,6 +213,10 @@ class Response(models.Model):
     
     # Marks the vote as yes or no (true or false), (null for skip?)
     vote = models.BooleanField(default=False, null=True)
+
+
+    def __str__(self):
+        return self.user.username
     
     # this ensures that the combination of task and game must be unique
     class meta:
