@@ -309,7 +309,10 @@ html {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Refine shadow to make it prominent */
     background: #FFFFFF;
     border-radius: 16px; /* Smoothen the corners */
-    overflow: hidden; /* Remove scrollbars */
+    overflow: scroll; /* Remove scrollbars */
+    height: 70vh;
+    z-index: 9999;
+
   }
 
 /* Adjust the .profile-container to fit within the new flexbox layout */

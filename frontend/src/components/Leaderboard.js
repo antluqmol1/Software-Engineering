@@ -45,7 +45,7 @@ export function Leaderboard({
 
         {playerList && showLeaderBoard && <div className="leaderboard">
           <div className="leaderboard-body">
-            <h2 className="leaderboard-h">Leaderboard</h2>
+            <h2 className="leaderboard-h">{endgame ? 'Final scores' : 'Leaderboard'}</h2>
             <div className="card-body p-0">
               <div className="list-group list-group-flush">
                 {

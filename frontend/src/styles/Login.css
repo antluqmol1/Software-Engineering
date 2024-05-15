@@ -8,6 +8,8 @@
   /* height: 100vh;
   background: linear-gradient(to right, #800080, #4B0082); */
   color: #ffffff;
+  z-index: 9999;
+
 }
 
 .login-form-container {
@@ -25,6 +27,7 @@
   /* More pronounced shadow */
   margin: 10px;
   margin-top: 8vw;
+  z-index: 9999;
   /* Add spacing around the form */
 }
 

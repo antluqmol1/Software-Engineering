@@ -3,6 +3,9 @@
     top: 15%;
     left: 2%;
     /* right: 35%; */
+    border-radius: .25rem;
+    background-color: #ffffff;
+
     
     width: 20vw;
     z-index: 9999;
@@ -11,6 +14,9 @@
     top: 15%;
     left: 2%;
     /* right: 35%; */
+    background-color: #ffffffd1;
+    border-radius: .25rem;
+
     align-items: center;
     width: 50vw;
     z-index: 9999;
@@ -27,7 +33,6 @@
   .leaderboard {
     display: flex;
     align-items:flex-start;
-    background-color: #ffffff;
     /* A cleaner background color */
     padding: 10px;
     border-radius: .25rem;
