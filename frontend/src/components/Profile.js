@@ -251,6 +251,11 @@ const Profile = () => {
             console.log("Image deleted successfully");
             // Remove the image from the gallery state
             setGallery(prev => prev.filter(img => img !== imagePath));
+            if (response.data.deletedCurrent) {
+              // Send a GET request to fetch the updated profile picture
+              fetchProfilePicture()
+            }
+
         } else {
             console.error("Failed to delete the image:", response.data.error);
         }
