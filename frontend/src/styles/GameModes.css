@@ -29,6 +29,8 @@
     /* Adds margin to the top and bottom, centering horizontally */
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
     /* Deeper shadow for a pop effect */
+
+    z-index: 9999;
 }
 
 .gamemodes-header {
