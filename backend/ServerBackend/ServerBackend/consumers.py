@@ -374,8 +374,19 @@ class GameLobby(AsyncWebsocketConsumer):
         logger.debug("\tWS: leave_game")
         try:
             player = Participant.objects.get(user=self.user_id)
+
+            exists = ParticipantHistory.objects.filter(user=player.user, game_id=player.game.game_id).exists()
+
+            if exists:
+                logger.debug("\tWS: player already left before, updating score")
+                # get the record and update the score
+                participantHist = ParticipantHistory.objects.get(user=player.user, game_id=player.game.game_id)
+                participantHist.score = player.score
+            else:
+                logger.debug("\tWS: player has not left before, creating new record")
+                # create a new record
+                participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
             
-            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
             participantHist.save()
 
             player.delete()
@@ -622,6 +633,7 @@ class GameLobby(AsyncWebsocketConsumer):
     DESC: gets the current connecting clients username
     Returns: String
     '''
+    # not used, consider removing
     @database_sync_to_async
     def get_username(self):
         try:
@@ -631,20 +643,12 @@ class GameLobby(AsyncWebsocketConsumer):
         except User.DoesNotExist:
             return None
         
-    def get_participant(self):
-
-        try:
-            return True
-        except: 
-            return False
-        pass
-        
-        
     '''
     DATABASE FUNCTION
     DESC: gets the user corresponding to the input username
     Returns: User model object
     '''
+    # not used, consider removing
     @database_sync_to_async
     def get_user_from_username(self, username):
         try:

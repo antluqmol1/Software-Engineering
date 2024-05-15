@@ -81,6 +81,13 @@ def grab_token(request):
     '''
     # Ensure a CSRF token is set in the user's session
     # must be generated again if the user logs in
+
+    # DEBUG
+    if request.user.is_authenticated:
+        logger.debug(f"{request.user.username} is grabbing token")
+    else:
+        logger.debug("user is not authenticated, generating token")
+
     csrf_token = get_token(request)
     logger.debug(f"{request.user.username} assigned token: {csrf_token}")
     return JsonResponse({'csrfToken': csrf_token}, status=200)
@@ -135,6 +142,7 @@ def user_logout(request):
         success = True
         status = 200
     except Exception as e:
+        # should never end up here
         logger.debug(f"Error logging out, error: {e}")
         success = False
         status = 500
@@ -217,17 +225,17 @@ def put_admin(request):
         new_user.full_clean()
         new_user.save()
 
-        return JsonResponse({'message': 'User created successfully', 'user_id': new_user.id}, status=200)
+        return JsonResponse({'success':True, 'message': 'User created successfully', 'user_id': new_user.id}, status=200)
     
     except json.JSONDecodeError:
         # JSON data could not be parsed
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'success':True, 'error': 'Invalid JSON'}, status=400)
     except ValidationError as e:
         # Invalid data
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'success':True, 'error': str(e)}, status=400)
     except Exception as e:
         # Any other errors
-        return JsonResponse({'error': 'An error occurred'}, status=500)
+        return JsonResponse({'success':True, 'error': 'An error occurred'}, status=500)
 
 
 @require_http_method(['POST'])
@@ -235,7 +243,10 @@ def create_user(request):
     # Creates a new user
     logger.debug("put_user")
     try:
+        logger.debug("checkpoint 1")
         data = json.loads(request.body)
+
+        logger.debug("checkpoint 2")
 
         first_name = data.get('first_name')
         last_name = data.get('last_name')
@@ -243,43 +254,49 @@ def create_user(request):
         email = data.get('email')
         password = data.get('password')
 
-        # Validate the information
-        if not (first_name and last_name and username and email and password):
-            return JsonResponse({'error': 'Missing fields'}, status=400)
+        logger.debug("checkpoint 3")
+
+        # # Validate the information
+        # if not (first_name and last_name and username and email and password):
+        #     return JsonResponse({'error': 'Missing fields'}, status=400)
         
 
         # Check if the username or email is already in use
         existing_user = User.objects.filter(username=username).exists()
         existing_email = User.objects.filter(email=email).exists()
-
+        logger.debug("checkpoint 4")
         #
         # FIX RETURNS, PERHAPS WE SHOULD NOT SEND BACK THE USERNAME AND/OR EMAIL
         #
         if existing_user and existing_email:
             return JsonResponse({'success': False, 'error': 'Both username and email are already in use'}, status=409)
         elif existing_user:
-            return JsonResponse({'success': False, 'error': f'Username "{existing_user.username}" is already in use'}, status=409)
+            return JsonResponse({'success': False, 'error': f'Username "{username}" is already in use'}, status=409)
         elif existing_email:
-            return JsonResponse({'success': False, 'error': f'Email "{existing_email.email}" is already in use'}, status=409)
-
+            return JsonResponse({'success': False, 'error': f'Email "{email}" is already in use'}, status=409)
+        logger.debug("checkpoint 5")
         new_user = User(first_name=first_name, last_name=last_name, username=username, email=email, password=password)
-
+        logger.debug("checkpoint 6")
         # Set the password
         new_user.set_password(password)
 
         new_user.full_clean()  # Validate the information
         new_user.save()
+        logger.debug("checkpoint 7")
 
-        return JsonResponse({'success': True, 'message': 'User created successfully', 'user_id': new_user.id}, status=200)
+        return JsonResponse({'success': True, 'message': 'User created successfully', 'user_id': new_user.id}, status=201)
 
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         # JSON data could not be parsed
+        logger.debug(f"An error occurred, failed to decode json, error: {e}")
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except ValidationError as e:
         # Invalid data
+        logger.debug(f"An error occurred, invalid data, error {e}")
         return JsonResponse({'error': str(e)}, status=400)
     except Exception as e:
         # Any other errors
+        logger.debug(f"An error occurred, error: {e}")
         return JsonResponse({'error': 'An error occurred'}, status=500)
 
 
@@ -435,6 +452,8 @@ def join_game(request):
     gameId = data.get('gameid').lower()
     logger.debug(f'{user.username} is attempting to join game {gameId}')
 
+    score = 0
+
     # should return a unique game
     try:
         game = Game.objects.get(game_id = gameId)
@@ -445,9 +464,15 @@ def join_game(request):
         logger.warning("game not found")
         return JsonResponse({'success': False, 'msg': 'invalid game code'}, status=404)
     
+    try: 
+        parthist = ParticipantHistory.objects.get(user=user, game_id=gameId)
+        score = parthist.score
+    except:
+        logger.debug("no participant history found, moving on")
+    
     player = Participant(game = game,
                             user = user,
-                            score = 0)
+                            score = score)
     
     player.save()
     logger.debug("joined game")
@@ -480,9 +505,31 @@ def leave_game(request):
     try:
         logger.debug("attempting to retrieve game")
         game = Game.objects.get(game_id=player.game.game_id)
+
+        # check if exisiting participant history exists
+        exists = ParticipantHistory.objects.filter(user=player.user, game_id=player.game.game_id).exists()
+
+        if exists:
+            logger.debug("player already left before, updating score")
+            # get the record and update the score
+            participantHist = ParticipantHistory.objects.get(user=player.user, game_id=player.game.game_id)
+            participantHist.score = player.score
+        else:
+            logger.debug("player has not left before, creating record")
+            # create a new record
+            participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
+
+        participantHist.save()        
+
+        player.delete()
+        game.num_players -= 1
+        game.save()
     except Game.DoesNotExist:
         logger.warning("game not found")
         return JsonResponse({'success': False, 'msg': 'game not found'}, status=404)
+    except Exception as e:
+        logger.warning(f"error leaving game, error: {e}")
+        return JsonResponse({'success': False, 'msg': 'error leaving game'}, status=500)
     logger.debug(f'old game num_players: {game.num_players}')
     game.num_players -= 1
     logger.debug(f'new game num_players: {game.num_players}')

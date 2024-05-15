@@ -118,3 +118,22 @@ class AuthTestCase(TestCase):
 
         # token from when logged in and not logged in should not be the same
         self.assertNotEqual(self.token1, self.token2)
+
+    def test_allowed_methods(self):
+        # Test the allowed methods
+        logger.info("Testing allowed methods...")
+
+        # Login
+        response = self.client.post(self.login_url, 
+                                    data=json.dumps({'username': 'test_user', 'password': 'password123'}),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['msg'], 'Login successful')
+
+        # test login view with put instead of post
+        response = self.client.put(self.login_url, 
+                                    data=json.dumps({'username': 'test_user', 'password': 'wrong_password'}),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(response.json()['success'], 'Invalid credentials')
+        self.assertEqual(response.json()['msg'], 'invalid method, expected [\'POST\'], got PUT') # weird format in msg, due to sending list instead of item.

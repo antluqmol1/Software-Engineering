@@ -40,7 +40,7 @@ function GameLobby() {
     const navigate = useNavigate();
     
     //context variables
-    const { loading, username, inAGame, setInAGame, userIsLoggedIn } = useContext(AuthContext);
+    const { loading, username, inAGame, setInAGame, userIsLoggedIn, csrfToke } = useContext(AuthContext);
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
@@ -84,18 +84,13 @@ function GameLobby() {
 
 
   // Function to fetch the list of participants from the server
-  const fetchPlayerList = () => {
-    axios.get("http://localhost:8000/game/get-participants/", {
-        headers: {
-          "X-CSRFToken": token, // Include CSRF token in headers
-        },
-      })
-      .then((response) => {
-        setPlayerList(response.data.participants);
-      })
-      .catch((error) => {
-        console.error("Error fetching player list:", error);
-      });
+  const fetchPlayerList = async () => {
+    const response = await gameServices.getParticipants(token);
+    if (response.status === 200) {
+      setPlayerList(response.data.participants);
+    } else {
+      console.error("Error fetching participants:", response);
+    }
   };
 
   const fetchPlayerImages = async() => {
