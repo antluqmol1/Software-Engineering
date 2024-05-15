@@ -42,13 +42,13 @@ const EndGameScreen = () => {
 
   return (
     <div className="game-over-container">
+      <h1>GAME OVER</h1>
       <div>
         {gameHistory && Array.isArray(gameHistory) && (
           <Leaderboard endgame={true} playerList={gameHistory} />
         )}
-        <h1>GAME <br/>OVER</h1>
-        <button className="button-play-again" onClick={handleNavigate}>PLAY AGAIN?</button>
       </div>
+      <button className="button-play-again" onClick={handleNavigate}>PLAY AGAIN?</button>
     </div>
   );
 };

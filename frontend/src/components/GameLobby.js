@@ -448,10 +448,13 @@ function GameLobby() {
                     console.log("game end message recieved from WS")
 
                     console.log("GAME HAS ENDED")
-                    console.log(playerList)
-                    console.log("GAME HAS DAAAAATA: ", data)
+        
+                    const players = data.message['player_list']
+
                     setInAGame(false)
-                    navigate("/end-game");
+
+                    navigate("/end-game", { state: { playerList: data.message['player_list'] } });
+
 
                   break;
 

@@ -16,6 +16,7 @@ export function Leaderboard({
   useEffect(() => {
     //Sort the leaderboard
     playerList = playerList.sort((a, b) => b.score - a.score);
+    console.log("PLAYER LIST ", playerList);
   }, [playerList]);
 
   const [showLeaderBoard, setShowLeaderBoard] = useState(true);
@@ -43,7 +44,7 @@ export function Leaderboard({
     }
 
         {playerList && showLeaderBoard && <div className="leaderboard">
-          <div>
+          <div className="leaderboard-body">
             <h2 className="leaderboard-h">Leaderboard</h2>
             <div className="card-body p-0">
               <div className="list-group list-group-flush">
@@ -55,10 +56,7 @@ export function Leaderboard({
             }
                 {playerList.map((player, index) => <div className="leaderboard-item" key={index}>
                     <span className="me-2">{player.username}</span>
-                    <span className="badge bg-secondary ms-auto me-3" style={{
-                position: 'absolute',
-                right: '0%'
-              }}>
+                    <span className="score">
                       {player.score}
                     </span>
                   </div>)}
