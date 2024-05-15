@@ -454,14 +454,21 @@ def join_game(request):
 
     score = 0
 
+    games = Game.objects.all()
+    for game in games:
+        logger.debug(f'game id: {game.game_id}')
+
+    if games == None:
+        logger.debug("no games found")
+
     # should return a unique game
     try:
         game = Game.objects.get(game_id = gameId)
         game.num_players += 1
         game.save()
         logger.debug("game found, incrementing num_players")
-    except:
-        logger.warning("game not found")
+    except Game.DoesNotExist as e:
+        logger.warning(f"game not found, error {e}")
         return JsonResponse({'success': False, 'msg': 'invalid game code'}, status=404)
     
     try: 
@@ -492,8 +499,8 @@ def leave_game(request):
 
     # attempt to retrieve the player
     try:
-        logger.info(f'player {player.user.username} leaving game with id: {player.game.game_id}')
         player = Participant.objects.get(user=user)
+        logger.info(f'player {player.user.username} leaving game with id: {player.game.game_id}')
     except Participant.DoesNotExist:
         logger.warning("player not found")
         return JsonResponse({'success': False, 'msg': 'not in a game'}, status=404)
@@ -519,25 +526,23 @@ def leave_game(request):
             # create a new record
             participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
 
-        participantHist.save()        
+        participantHist.save()    
+        logger.debug("participant history saved")    
 
         player.delete()
+        logger.info("player deleted from participants")
+        logger.debug(f'old game num_players: {game.num_players}')
         game.num_players -= 1
+        logger.debug(f'new game num_players: {game.num_players}')
         game.save()
+        logger.debug("saved game to database")
+
     except Game.DoesNotExist:
         logger.warning("game not found")
         return JsonResponse({'success': False, 'msg': 'game not found'}, status=404)
     except Exception as e:
         logger.warning(f"error leaving game, error: {e}")
         return JsonResponse({'success': False, 'msg': 'error leaving game'}, status=500)
-    logger.debug(f'old game num_players: {game.num_players}')
-    game.num_players -= 1
-    logger.debug(f'new game num_players: {game.num_players}')
-    game.save()
-    logger.debug("saved game to database")
-
-    player.delete()
-    logger.info("player deleted from participants")
 
     return JsonResponse({'success': True}, status=200)
 
@@ -590,6 +595,10 @@ def clean_up_game(game_id):
         return False
 
 
+
+
+#### REMOVE THIS
+#### DO IT IN WEBSOCKET INSTEAD
 @require_http_method(['GET'])
 @require_authentication
 def next_task(request):
@@ -690,6 +699,8 @@ def current_task(request):
     return JsonResponse({'success': False, 'msg': 'no current task'}, status=404)
     
 
+#### REMOVE, USE WEBSOCKET INSTEAD
+#### NO NEED TO HAVE IT HERE; WONT MAKE WITHOUT WEBSOCKET EITHER WAY
 @require_http_method(['GET'])
 @require_authentication
 def give_points(request):
@@ -1136,11 +1147,14 @@ def delete_image(request):
         logger.debug("giving client default preset photo")
         request.user.profile_pic = 'presets/preset_1.png'
         request.user.save()
+        deleted_current = True
+    else:
+        deleted_current = False
     
     # attempt to delete the image
     if delete_media_file(relative_path):
         logger.info("profile picture deleted")
-        return JsonResponse({'success': True, 'msg': 'Profile picture deleted'}, status=200)
+        return JsonResponse({'success': True, 'msg': 'Profile picture deleted', 'deletedCurrent': deleted_current}, status=200)
     else:
         # should never run, default_storage.delete doesn't raise exceptions
         logger.error("failed to deleted photo")
