@@ -602,24 +602,6 @@ html {
     text-align: right; /* Align text to the right */
   }
   
-  
-  
-
-
-/* Responsive adjustments */
-/*@media (max-width: 768px) {
-    .profile-container {
-        max-width: 90%;
-    }
-
-    .profile-card,
-    .profile-photo-upload-section {
-        width: 0;
-    }
-}*/
-
-
-  
   .error-message {
     text-align: center;
     font-size: 30px; /* Adjust size as needed */

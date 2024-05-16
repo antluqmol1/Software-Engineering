@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
       // initialize auth context, sets the loading status and csrfToken
       const initializeAuth = async () => {
         setLoading(true);
-        console.log("authContext: calling csrfService")
         const token = await csrfService.getCsrfToken();
         setCsrfToken(token);
         checkLoginStatus();
@@ -25,17 +24,14 @@ export const AuthProvider = ({ children }) => {
       const checkLoginStatus = async () => {
 
         try {
-          console.log("auth: checking if logged in")
           const response = await axios.get('http://localhost:8000/auth/get-status/', { withCredentials: true });
           
           // 204 response is no content, meaning not logged in
           if (response.status === 204) {
-            console.log("auth: no content")
             setUserIsLoggedIn(false);
             setLoading(false)
             return;
           }
-          console.log("auth: response: ", response.data)
           setUserIsLoggedIn(response.data.loggedIn);
           setUsername(response.data.username);
           setInAGame(response.data.inAGame);

@@ -39,13 +39,13 @@ const FrontPage = () => {
           }
         }
 
-        // Attempt to fetch the game if not in a game
-        try {
-          const response = await gameServices.getGame(token);
-          setInAGame(response.data.success === true);
-        } catch (error) {
-          console.error("There was an error!", error);
-        }
+        // // Attempt to fetch the game if not in a game
+        // try {
+        //   const response = await gameServices.getGame(token);      // Concurrency issue, need to fix
+        //   setInAGame(response.data.success === true);
+        // } catch (error) {
+        //   console.error("There was an error!", error);
+        // }
       }
     };
 
@@ -119,8 +119,8 @@ const FrontPage = () => {
         ) : (
           <p>Please login or create an account</p>
         )}
-        {userIsLoggedIn ? (
-          inAGame ? (
+          {inAGame ? (
+            //If user is already in an active game
             <div>
               <p>You are currently in a game, don't leave them hanging!</p>
               {/* Button to go to the game page */}
@@ -129,21 +129,7 @@ const FrontPage = () => {
               </button>
             </div>
           ) :
-            <div className="buttons-container">
-              <button
-                className={`button ${activeOption === "join" ? "active" : ""}`}
-                onClick={() => toggleActiveOption("join")}
-              >
-                Join Game
-              </button>
-              <button
-                className={`button ${activeOption === "create" ? "active" : ""}`}
-                onClick={() => toggleActiveOption("create")}
-              >
-                Create Game
-              </button>
-            </div>
-        ) : (
+          //If a user is logged in and not in an active game
           <div className="buttons-container">
             <button
               className={`button ${activeOption === "join" ? "active" : ""}`}
@@ -151,11 +137,14 @@ const FrontPage = () => {
             >
               Join Game
             </button>
-            <button className="SignUp-button" onClick={handleSignUpClick}>
+            <button
+              className={`button ${activeOption === "create" ? "active" : ""}`}
+              onClick={() => toggleActiveOption("create")}
+            >
               Create Game
             </button>
           </div>
-        )}
+          }
         {activeOption === "join" && (
           <div className="game-action-container">
             <input
