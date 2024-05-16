@@ -1104,9 +1104,6 @@ def delete_image(request):
         deleted_current = True
     else:
         deleted_current = False
-        deleted_current = True
-    else:
-        deleted_current = False
     
     # attempt to delete the image
     if delete_media_file(relative_path):
