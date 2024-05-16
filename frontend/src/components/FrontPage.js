@@ -171,7 +171,7 @@ const FrontPage = () => {
               placeholder="Enter title of the game"
               value={gameTitle}
               onChange={handleGameTitleChange}
-              maxLength={32}
+              maxLength={16}
             />
             <button className="button" onClick={handleCreateGameSubmit}>
               Start a New Game

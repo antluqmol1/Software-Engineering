@@ -17,6 +17,7 @@ from django.forms.models import model_to_dict
 
 import jwt
 import json
+import sys # for tests, celery dispatcher is messing up the async tests
 
 import logging
 
@@ -179,6 +180,7 @@ class GameLobby(AsyncWebsocketConsumer):
                     await self.next_task_preperation(game, task, True)                                # Player wins
                     # Gives player points.
                     response = await self.give_player_points(game, task)
+                    logger.info("WS: Player won, new task...")
 
 
 
@@ -186,6 +188,8 @@ class GameLobby(AsyncWebsocketConsumer):
                     # Removes responses for specific task, in specific game.                    # Player loses
                     await self.next_task_preperation(game, task, False)
                     response = {'winner': False}
+                    logger.info("WS: Player lost, new task...")
+
 
 
                 else:                                                                   # Vote continues
@@ -201,6 +205,7 @@ class GameLobby(AsyncWebsocketConsumer):
                         }
 
                     logger.debug(f'WS: Vote response: {response}')
+                    logger.info("WS: More votes needed to determine win/loss...")
 
                     await self.channel_layer.group_send(
                     self.game_group_name, 
@@ -211,16 +216,6 @@ class GameLobby(AsyncWebsocketConsumer):
                     }
                     )
                     return          # Return here if vote continues
-                
-
-                # WE NEED SOMETHING LIKE THIS SO THAT WE SEND A PARTICIPANT_DATA TO UPDATE THE PLAYER
-                # LIST IN THE FRONTEND, OR WE SEND THE PLAYER WHO WON/GOT POINTS, AND WE CAN **ADD**
-                # TO THE PLAYER LIST, LESS HASSLE FOR THE WEBSOCKET, MIGHT NOT EVEN HAVE TO DO A 
-                # DATABASE QUERY
-                # participants_in_same_game = Participant.objects.filter(game=game)
-                # participant_data = [{'username': p.user.username, 'score': p.score} 
-                #                     for p in participants_in_same_game]
-
 
                 # Next task will be fetched from the frontend.
                 await self.channel_layer.group_send(
@@ -235,7 +230,23 @@ class GameLobby(AsyncWebsocketConsumer):
             case 'new_task':
 
                 game = await self.get_participant_game(self.user_id)
+
+                if not game:
+                    logger.error("WS: game most likely alredy ended")
+                    await self.send(text_data=json.dumps({'message': "Game not found", 'msg_type': "error"}))
+                    return
+
+                admin = await self.get_game_admin(game)
+
+                logger.debug(f'WS: {self.user_id} vs {admin}')
+
+                if self.user_id != admin:
+                    logger.error("WS: not admin")
+                    await self.send(text_data=json.dumps({'message': "Admin function only", 'msg_type': "error"}))
+                    return
+
                 response = await self.next_task(game)
+                
                 update_spin = await self.start_wheel_spin(game.game_id)
 
                 await self.channel_layer.group_send(
@@ -251,6 +262,14 @@ class GameLobby(AsyncWebsocketConsumer):
                 logger.debug("WS: game_end")
                 
                 game = await self.get_participant_game(self.user_id)
+
+                admin = await self.get_game_admin(game)
+                if self.user_id != admin:
+                    logger.error("WS: not admin")
+                    await self.send(text_data=json.dumps({'message': "Admin function only", 'msg_type': "error"}))
+                    return
+
+
                 player_list = await self.get_participants_list(game)
                 end_game = await self.end_game(game)
 
@@ -363,7 +382,7 @@ class GameLobby(AsyncWebsocketConsumer):
     def get_game_admin(self, game):
         logger.debug("\tWS: get_game_admin")
         try:
-            return game.admin
+            return game.admin.id
         except Exception as e:
             logger.debug(f"failed to get game admin, error {str(e)}")
             
@@ -402,6 +421,7 @@ class GameLobby(AsyncWebsocketConsumer):
     @database_sync_to_async
     def end_game(self, game):
         logger.debug("\tWS: end_game")
+        logger.debug("\tWS: are we runnging this function?")
 
         try:
             participants = Participant.objects.filter(game=game)
@@ -506,7 +526,8 @@ class GameLobby(AsyncWebsocketConsumer):
 
             # Schedule the Celery task to change wheel_spinning value after 12 seconds
             try:
-                end_wheel_spin.apply_async((game_id,), countdown=12)
+                if 'test' not in sys.argv: # can't have dispatcher when testing
+                    end_wheel_spin.apply_async((game_id,), countdown=12)
             except Exception as e:
                 logger.debug(str(e))
             logger.debug("WS: successfully called celery")
@@ -527,64 +548,73 @@ class GameLobby(AsyncWebsocketConsumer):
             task_count = Tasks.objects.filter(type=game.type).count()
             if task_count == 0:
                 logger.warning("WS: no task found for this game type")
-                return 0
+                return {'error': 'No tasks found for this game type'}
         except Exception as e:
             logger.error(f'Error when querying tasks: {e}')
             return None
 
-        logger.debug("above logger")
         logger.info(f"WS: Retrieved task count, task_count = {task_count}")
 
-        # Check if task is available
-        for _ in range(task_count):
+        # # Check if task is available
+        # for _ in range(task_count):
 
-            try:
-                random_task = Tasks.objects.filter(type = game.type).order_by('?').first()
-                # check if this task is already picked
-                taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
-            except:
-                logger.error("WS: Error when querying tasks")
-                return None
+        # get tasks that are aleady picked
+        already_picked_tasks = PickedTasks.objects.filter(game=game).values_list('task__task_id', flat=True)
+        print("PRINTING ALL",already_picked_tasks)
+        logger.debug(f'WS: already picked tasks: {already_picked_tasks}')
 
-            # if not, we save it to PickedTasks, and return the question
-            if not taskExist:
+        # query for a random task that is not already picked
+        random_task = Tasks.objects.filter(type = game.type).exclude(task_id__in=already_picked_tasks).order_by('?').first()
+
+        # logger.debug(f'WS: random task: {random_task}')
+
+        # check if we recieved a task, or if none was available
+        taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
+
+        # if not, we save it to PickedTasks, and return the question
+        if random_task:
+            logger.debug(f'Retrieved a task: {random_task.description}')
+            random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+
+            if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
+                try:
+                    participants = Participant.objects.filter(game=game)
+                    for p in participants:
+                        p.isPicked = False
+                        p.save()
+                except Exception as e:
+                    logger.error(f"WS: Error when refreshing players: {e}")
+                    return None
+
                 random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
 
-                if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
-                    try:
-                        participants = Participant.objects.filter(game=game)
-                        for p in participants:
-                            p.isPicked = False
-                            p.save()
-                    except Exception as e:
-                        logger.error(f"WS: Error when refreshing players: {e}")
-                        return None
+            random_player.isPicked = True
+            random_player.save()
 
-                    random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
+            picked_task = PickedTasks(task=random_task, game=game, user=random_player.user, time=dt.now())
+            picked_task.save()
 
-                random_player.isPicked = True
-                random_player.save()
+            game.game_started = True
+            game.save()
 
-                picked_task = PickedTasks(task=random_task, game=game, user=random_player.user, time=dt.now())
-                picked_task.save()
+            participants_in_same_game = Participant.objects.filter(game=game)
+            participant_data = [{'username': p.user.username, 'score': p.score} 
+                                for p in participants_in_same_game]
 
-                game.game_started = True
-                game.save()
+            response = {
+                'taskId': random_task.task_id,
+                'taskText': random_task.description,
+                'taskPoints': random_task.points,
+                'pickedPlayer': random_player.user.username,
+                'gameStarted': game.game_started,
+                'participants': participant_data,
+            }
 
-                participants_in_same_game = Participant.objects.filter(game=game)
-                participant_data = [{'username': p.user.username, 'score': p.score} 
-                                    for p in participants_in_same_game]
+            return response
+            
 
-                response = {
-                    'taskId': random_task.task_id,
-                    'taskText': random_task.description,
-                    'taskPoints': random_task.points,
-                    'pickedPlayer': random_player.user.username,
-                    'gameStarted': game.game_started,
-                    'participants': participant_data,
-                }
-
-                return response
+        logger.debug("WS: No more tasks available")
+        return {'error': 'game end'}
 
     
     '''
@@ -625,37 +655,6 @@ class GameLobby(AsyncWebsocketConsumer):
             return player
         except User.DoesNotExist:
             logger.debug("\tWS: User does not exist")
-            return None
-        
-
-    '''
-    DATABASE FUNCTION 
-    DESC: gets the current connecting clients username
-    Returns: String
-    '''
-    # not used, consider removing
-    @database_sync_to_async
-    def get_username(self):
-        try:
-            player = User.objects.get(id=self.user_id)
-
-            return player.username
-        except User.DoesNotExist:
-            return None
-        
-    '''
-    DATABASE FUNCTION
-    DESC: gets the user corresponding to the input username
-    Returns: User model object
-    '''
-    # not used, consider removing
-    @database_sync_to_async
-    def get_user_from_username(self, username):
-        try:
-            player = User.objects.get(username=username)
-
-            return player
-        except User.DoesNotExist:
             return None
         
     '''
@@ -749,14 +748,14 @@ def validate_jwt(token):
     try:
         # Decode the token
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        # Optionally, you could return the payload if needed
+        # Return the payload
         logger.debug(f'WS: payload')
         return payload
     except ExpiredSignatureError:
-        # Handle expired token, e.g., return False or raise an error
+        # Handle expired token
         logger.debug("WS: expired token")
         return False
     except InvalidTokenError:
-        # Handle invalid token, e.g., return False or raise an error
+        # Handle invalid token
         logger.debug("WS: invalid token")
         return False

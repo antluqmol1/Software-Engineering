@@ -8,7 +8,7 @@ import defaultProfilePic from "../assets/woods.jpg";
 import { Button } from "react-bootstrap";
 import { Navigate, useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBackspace } from "@fortawesome/free-solid-svg-icons";
+import { faBackspace, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import userServices from "../services/userServices";
 import { AuthContext } from '../AuthContext';
 import goldMedal from '../assets/gold.png';
@@ -499,7 +499,7 @@ const Profile = () => {
                             <div><strong>Description:</strong> {task.description}</div>
                             <div><strong>Points:</strong> {task.points}</div>
                             <div><strong>Picked Player:</strong> {task.pickedPlayer}</div>
-                            <div><strong>Won?</strong> {task.win ? "Yes" : "No"}</div>
+                            <div><strong>Completed:</strong> {task.win ? <FontAwesomeIcon icon={faCheck} style={{ color: 'green' }} /> : <FontAwesomeIcon icon={faTimes} style={{ color: 'red' }} />}</div>
                           </li>
                         ))}
                       </ul>

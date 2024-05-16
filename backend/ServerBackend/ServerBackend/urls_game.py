@@ -10,6 +10,4 @@ urlpatterns = [
     path('get-participants/', views.get_game_participants, name='get_game_participants'),
     path('get-participants-images/', views.get_image_urls, name='get_participants_urls'),
     path('current-task/', views.current_task, name='current_task'),
-    path('next-task/', views.next_task, name='next_task'),
-    path('give-points/', views.give_points, name='give_points'),
 ]
