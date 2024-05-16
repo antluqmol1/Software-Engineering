@@ -39,13 +39,13 @@ const FrontPage = () => {
           }
         }
 
-        // Attempt to fetch the game if not in a game
-        try {
-          const response = await gameServices.getGame(token);
-          setInAGame(response.data.success === true);
-        } catch (error) {
-          console.error("There was an error!", error);
-        }
+        // // Attempt to fetch the game if not in a game
+        // try {
+        //   const response = await gameServices.getGame(token);      // Concurrency issue, need to fix
+        //   setInAGame(response.data.success === true);
+        // } catch (error) {
+        //   console.error("There was an error!", error);
+        // }
       }
     };
 
