@@ -141,9 +141,6 @@ button.signup-button:hover {
     margin-bottom: 0.5rem;
 }
 
-/* .information-container .icon { */
-/* You will need to add background images for icons here */
-/*}*/
 
 /* Add media queries for responsiveness */
 @media (max-width: 1024px) {

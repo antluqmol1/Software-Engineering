@@ -288,7 +288,6 @@ bottom: 5%;  /* transform: translateX(-50%); */
 
 }
 
-/* FIX THIS PLEASE! */
 .Username {
   position: fixed;
   top: 50px;
@@ -297,10 +296,7 @@ bottom: 5%;  /* transform: translateX(-50%); */
   font-size: large;
   text-align: center;
   color: #ffffff;
-  /* Change the color to your preference */
   font-family: Arial, sans-serif;
-  /* Change the font family if needed */
-  /* Add any other styles to make it look stylish */
 }
 
 .group-question .yes-button {
@@ -310,13 +306,6 @@ bottom: 5%;  /* transform: translateX(-50%); */
 .group-question .no-button {
   background-color: red; /* Set the background color to red */
 }
-
-/* .questions-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px; 
-  margin-top: 30vh; 
-} */
 
 .group-question {
   position: relative;
