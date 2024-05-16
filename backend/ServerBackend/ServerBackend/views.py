@@ -898,14 +898,14 @@ def update_profile(request):
 
     if field not in ['first_name', 'last_name', 'username']:
         logger.error("invalid field")
-        return JsonResponse({'success': False, 'error': 'Invalid field'}, status=400)
+        return JsonResponse({'success': False, 'error': 'Invalid field'}, status=405)
     
     # set attributes of the user
     setattr(user, field, new_value)
 
     # save it to the database
     user.save()
-    return JsonResponse({'success': True})
+    return JsonResponse({'success': True, 'msg': 'Profile updated successfully'}, status=200)
 
 
 
