@@ -362,16 +362,9 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def get_participant_game(self, user_id):
-        logger.debug("\tWS: get_participant_game")
         try:
-            logger.debug("\tWS: querying database")
             part = Participant.objects.get(user_id=user_id)
-            logger.debug("\tWS: query complete")
             game = part.game
-            logger.debug("\tWS: returning game")
-            # game_dict = model_to_dict(game)
-            # logger.debug("\tWS: admin: ", game.admin)
-            # logger.debug("\tWS: returning game: ", game_dict)
 
             return game
         except Participant.DoesNotExist:
@@ -380,29 +373,25 @@ class GameLobby(AsyncWebsocketConsumer):
     
     @database_sync_to_async
     def get_game_admin(self, game):
-        logger.debug("\tWS: get_game_admin")
         try:
             return game.admin.id
-        except Exception as e:
-            logger.debug(f"failed to get game admin, error {str(e)}")
+        except Exception as e: # Should NEVER happen
+            logger.error(f"failed to get game admin, error {str(e)}")
             
         
     # Database function
     @database_sync_to_async
     def leave_game(self, game):
-        logger.debug("\tWS: leave_game")
         try:
             player = Participant.objects.get(user=self.user_id)
 
             exists = ParticipantHistory.objects.filter(user=player.user, game_id=player.game.game_id).exists()
 
             if exists:
-                logger.debug("\tWS: player already left before, updating score")
                 # get the record and update the score
                 participantHist = ParticipantHistory.objects.get(user=player.user, game_id=player.game.game_id)
                 participantHist.score = player.score
             else:
-                logger.debug("\tWS: player has not left before, creating new record")
                 # create a new record
                 participantHist = ParticipantHistory(user=player.user, game_id=player.game.game_id, score=player.score)
             
@@ -411,17 +400,15 @@ class GameLobby(AsyncWebsocketConsumer):
             player.delete()
             game.num_players -= 1
             game.save()
-            logger.debug("\tWS: successfully left the game")
+            logger.debug("WS: successfully left the game")
             return True
         except Exception as e:
-            logger.debug(f"\tWS: failed to leave the game, error: {e}")
+            logger.debug(f"WS: failed to leave the game, error: {e}")
             return False
     
     # Database function
     @database_sync_to_async
     def end_game(self, game):
-        logger.debug("\tWS: end_game")
-        logger.debug("\tWS: are we runnging this function?")
 
         try:
             participants = Participant.objects.filter(game=game)
@@ -445,7 +432,6 @@ class GameLobby(AsyncWebsocketConsumer):
 
         try:
             game_to_delete = Game.objects.get(game_id=game.game_id)
-            logger.debug(f"\tWS: Fetch successfull, {game_to_delete.game_id}")
 
         except Exception as e:
             logger.debug(f"\tWS: Fetch failed error: {str(e)}")
@@ -453,7 +439,6 @@ class GameLobby(AsyncWebsocketConsumer):
 
         try:
             game_to_delete.delete()
-            logger.debug("\tWS: Delete successfull")
             return True
         except Exception as e:
             logger.debug(f"\tWS: Delete failed error: {str(e)}")
@@ -553,15 +538,12 @@ class GameLobby(AsyncWebsocketConsumer):
             logger.error(f'Error when querying tasks: {e}')
             return None
 
-        logger.info(f"WS: Retrieved task count, task_count = {task_count}")
 
         # # Check if task is available
         # for _ in range(task_count):
 
         # get tasks that are aleady picked
         already_picked_tasks = PickedTasks.objects.filter(game=game).values_list('task__task_id', flat=True)
-        print("PRINTING ALL",already_picked_tasks)
-        logger.debug(f'WS: already picked tasks: {already_picked_tasks}')
 
         # query for a random task that is not already picked
         random_task = Tasks.objects.filter(type = game.type).exclude(task_id__in=already_picked_tasks).order_by('?').first()
@@ -573,7 +555,6 @@ class GameLobby(AsyncWebsocketConsumer):
 
         # if not, we save it to PickedTasks, and return the question
         if random_task:
-            logger.debug(f'Retrieved a task: {random_task.description}')
             random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
 
             if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
@@ -613,7 +594,7 @@ class GameLobby(AsyncWebsocketConsumer):
             return response
             
 
-        logger.debug("WS: No more tasks available")
+        logger.warning("WS: No more tasks available")
         return {'error': 'game end'}
 
     
@@ -651,10 +632,9 @@ class GameLobby(AsyncWebsocketConsumer):
         logger.debug("\tWS: get_user")
         try:
             player = User.objects.get(id=self.user_id)
-            logger.debug(f"\tWS: Returning player: {player.username}")
             return player
         except User.DoesNotExist:
-            logger.debug("\tWS: User does not exist")
+            logger.error("WS: User does not exist")
             return None
         
     '''

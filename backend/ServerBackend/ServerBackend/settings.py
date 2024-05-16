@@ -246,7 +246,7 @@ LOGGING = {
         },
         'ServerBackend': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',  # Keep application logs at DEBUG level
+            'level': 'INFO',  # Keep application logs at DEBUG level
             'propagate': False,
         },
     },
