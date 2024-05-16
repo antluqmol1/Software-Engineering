@@ -103,8 +103,8 @@ function GameLobby() {
         option: username,
         image: uri.includes('custom') ? { uri: uri } : null
       }
-      
     ));
+
     setWheelData(newData)
   }
 
@@ -229,11 +229,12 @@ function GameLobby() {
       return;
     }
 
+    else {
+      fetchPlayerImages(token)
+    }
+
     console.log('Updating userNameArray', playerList)
     console.log("logged in? ", inAGame)
-    
-    fetchPlayerImages(token)
-
 
   }, [playerList]);
 
@@ -330,9 +331,6 @@ function GameLobby() {
                     setExesLine2([])
                     setQuestionLine3([])
                     setTotalVotes(0)
-                    
-                    console.log("HEEEEEELLLOLOLOLOLOLOLO Picked from done: ", data.message['pickedPlayer']);
-                    console.log("prev task user: ", data.message['username'], " new score ", data.message['score']);
                     
                     if (data.message['winner'] === true) {
                       console.log("player has won, playerlist with new score")
@@ -434,7 +432,6 @@ function GameLobby() {
                   }
                 break;
             }
-        
         };
         
         webSocketRef.current.onclose = () => {
