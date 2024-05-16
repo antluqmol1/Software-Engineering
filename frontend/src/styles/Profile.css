@@ -302,6 +302,7 @@ html {
     flex-direction: row; /* Horizontal layout */
     width: 90%;
     max-width: 1200px; /* Maximum width for the entire layout */
+    max-height: 550px;
     padding: 20px; /* Provide consistent padding around */
     box-sizing: border-box;
     margin-top: 20px;
@@ -747,15 +748,19 @@ html {
   }
   
   .game-details-container {
-    margin: 20px;
+    display: flex;
+    flex-direction: row; /* Horizontal layout */
+    overflow: hidden; /* Remove scrollbars */
   }
   
   .card.game-details-card {
-    padding: 20px;
-    border-radius: 10px;
-    background-color: white;
-    box-shadow: none;
-    border: none;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden; 
+  }
+
+  .card.game-details-card body {
+    padding: 0px;
   }
   
   .game-details-title {
@@ -784,7 +789,6 @@ html {
   
   .game-tasks-container, .scoreboard {
     flex: 1;
-    margin-top: 20px;
   }
 
   .scoreboard ul {
@@ -804,6 +808,13 @@ html {
     margin: 10px 0;
     padding: 5px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .game-tasks-container ul {
+    padding: 0;
+    margin: 0;
+    max-height: 350px;
+    overflow-y: auto;
   }
   
   .game-task {
@@ -869,4 +880,3 @@ html {
     overflow-y: auto; /* Enable vertical scrolling */
     margin-right: 0; /* Reset margin for better alignment */
   }
-  

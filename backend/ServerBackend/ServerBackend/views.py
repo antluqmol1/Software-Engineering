@@ -12,18 +12,23 @@ from .tasks import end_wheel_spin
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count
 from django.conf import settings
 from functools import wraps
+from django_ratelimit.decorators import ratelimit
 
 
 # Logger
 logger = logging.getLogger(__name__)
 
+
+# Function to prevent DOS attacks
+def rate_limit_exceeded():
+    return HttpResponseForbidden('Rate limit exceeded, try again later.')
 
 # wrapper for required method, or methods should we allow more
 def require_http_method(request_method_list):
@@ -322,13 +327,6 @@ def create_game(request):
     description = data.get('description')
     logger.info(f"player {user.username} is creating a game with id: {gameId}")
     logger.debug(f'gameId: {gameId}, type: {type}, title: {title}, description: {description}')
-
-
-    if not (gameId and type and title and description):
-        return JsonResponse({'success': False, 'error': 'missing fields'}, status=400)
-
-    if Game.objects.filter(game_id=gameId).exists():
-        return JsonResponse({'success': False, 'error': 'game id already in use'}, status=409)
 
     potential_participant = Participant.objects.filter(user=user).exists()
     
@@ -842,14 +840,14 @@ def update_profile(request):
 
     if field not in ['first_name', 'last_name', 'username']:
         logger.error("invalid field")
-        return JsonResponse({'success': False, 'error': 'Invalid field'}, status=405)
+        return JsonResponse({'success': False, 'error': 'Invalid field'}, status=400)
     
     # set attributes of the user
     setattr(user, field, new_value)
 
     # save it to the database
     user.save()
-    return JsonResponse({'success': True, 'msg': 'Profile updated successfully'}, status=200)
+    return JsonResponse({'success': True})
 
 
 
