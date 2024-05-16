@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 # from ServerBackend.management.commands import populate_tasks
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -65,6 +66,7 @@ SESSION_SAVE_EVERY_REQUEST = False
 ALLOWED_HOSTS = [
     "localhost",
 ]
+print(f'allowed hosts {ALLOWED_HOSTS}\n')
 
 # Application definition
 INSTALLED_APPS = [
@@ -125,8 +127,22 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'TEST': {
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        },
     }
 }
+
+# Test uses an in-memory database by default, which does not work with websocket testing
+# These lines change the database to a file-based one
+# if 'test' in sys.argv:
+#     print("Using test database on disk")
+#     DATABASES['default']['NAME'] = BASE_DIR / 'test_db.sqlite3'
+# else:
+#     print("Using default database, no test")
+
+# print("DATABASES Configured for Tests:", DATABASES)
+
 
 
 # Tells the channels package which backend to use (?)

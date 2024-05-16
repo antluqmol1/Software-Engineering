@@ -2,7 +2,6 @@ import { QuestionContainer } from './QuestionContainer';
 import { Leaderboard } from './Leaderboard';
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
-import axios from "axios";
 import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
@@ -40,7 +39,7 @@ function GameLobby() {
     const navigate = useNavigate();
     
     //context variables
-    const { loading, username, inAGame, setInAGame, userIsLoggedIn } = useContext(AuthContext);
+    const { loading, username, inAGame, setInAGame, userIsLoggedIn, csrfToken } = useContext(AuthContext);
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
     const webSocketRef = useRef(null);
@@ -54,12 +53,13 @@ function GameLobby() {
     const wheelAudio = new Audio(SpinSound); //Audio effect for wheel
     const [pickedPlayer, setPickedPlayer] = useState(null); //who will recieve the next task
     
+    //Playlist debug
+    useEffect(() => {
+      //Sort the leaderboard
+    }, [playerList]);
     
     //function to Delete game
     const handleDelete = () => {  
-      
-      console.log("Ending/Deleting game...")
-      
       if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
           type: 'game_end',
@@ -68,39 +68,31 @@ function GameLobby() {
 
       webSocketRef.current.close(4020, 'Admin ended game');
       setInAGame(false)
-      navigate("/end-game")
+      navigate("/end-game", { state: { playerList } })
       
     };
 
     // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
-
-      console.log("Leaving game...")
       webSocketRef.current.close(1000, 'Player left the game');
       setInAGame(false)
-      navigate("/end-game")
+      navigate("/")
       
     };
 
 
   // Function to fetch the list of participants from the server
-  const fetchPlayerList = () => {
-    axios.get("http://localhost:8000/game/get-participants/", {
-        headers: {
-          "X-CSRFToken": token, // Include CSRF token in headers
-        },
-      })
-      .then((response) => {
-        setPlayerList(response.data.participants);
-      })
-      .catch((error) => {
-        console.error("Error fetching player list:", error);
-      });
+  const fetchPlayerList = async () => {
+    const response = await gameServices.getParticipants(token);
+    if (response.status === 200) {
+      setPlayerList(response.data.participants);
+    } else {
+      console.error("Error fetching participants:", response);
+    }
   };
 
   const fetchPlayerImages = async() => {
 
-    console.log("attempting to fetch profile picture urls");
     //Fetch list from backend
     const response = await gameServices.getProfilePictures();
     
@@ -117,84 +109,65 @@ function GameLobby() {
   }
 
   //Function to fetch game
-  const fetchGame = () => {
-
-      axios.get("http://localhost:8000/game/get/",
-          {
-              headers: {
-                  "X-CSRFToken": token, // Include CSRF token in headers
-              },
-          })
-          .then(response => {
-
-              console.log("is spinning = ", response.data["isSpinning"])
-              if (response.data["isSpinning"]) {
-                console.log("waitingForSpin now set true")
-                setWaitingForSpin(true);
-              } else {
-                console.log("waitingForSpin NOT SET!")
-              }
-
-              setAdmin(response.data["isAdmin"]);
-              setGameID(response.data["gameId"]);
-              setGameStarted(response.data["gameStarted"]);
-              
-              const taskData = response.data["activeTask"]
-              if (!response.data["activeTask"]) {
-                console.log("no active task")
-                setSpunWheel(false)
-                setNextTask(true)
-                console.log(response.data["activeTask"])
-              } else {
-                console.log("no active task")
-                setSpunWheel(true)
-                setTaskText(taskData.description)
-                setTaskPoints(taskData.points)
-                setPickedPlayer(taskData.pickedPlayer)
-                setTaskId(taskData.taskId)
-              }
-              console.log("fetch game response: ", response.data)
-              console.log("isAdmin: ", response.data["isAdmin"])
-              console.log("activeTask: ", response.data["activeTask"])
-              // setUsername(response.data['username']);
-          })
-          .catch(error => {
-              console.error("Error fetching game ID:", error);
-          });
-
-          // Condition to fetch the current task if the game is started
-            // Im confused, why do we fetch current task if the game is NOT started???
-          if (gameStarted) {
-            axios.get("http://localhost:8000/game/current-task/",
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            })
-            .then(response => {
-                setTaskText(response.data.description)
-                setTaskPoints(response.data.points)
-                setPickedPlayer(response.data.pickedPlayer)
-                setTaskId(response.data.taskId)
-                return response.data;
-            })
-            .catch(error => {
-                console.error("Error fetching task:", error);
-            });
-          }
-
-    };
-
-
-    const voteTask = (vote, taskId) => {
-      if (webSocketRef.current) {
-          webSocketRef.current.send(JSON.stringify({
-              type: 'task_vote',
-              taskId: taskId,
-              taskVote: vote
-          }));
-        };
+  const fetchGame = async () => {
+    try {
+      const gameResponse = await gameServices.getGame(token);
+      if (gameResponse.data["isSpinning"]) {
+        setWaitingForSpin(true);
+      } else {
+        console.log("waitingForSpin NOT SET!");
       }
+  
+      setAdmin(gameResponse.data["isAdmin"]);
+      setGameID(gameResponse.data["gameId"]);
+      setGameStarted(gameResponse.data["gameStarted"]);
+  
+      const taskData = gameResponse.data["activeTask"];
+      if (!gameResponse.data["activeTask"]) {
+        console.log("no active task");
+        setSpunWheel(false);
+        setNextTask(true);
+        console.log(gameResponse.data["activeTask"]);
+      } else {
+        console.log("active task found");
+        setSpunWheel(true);
+        setTaskText(taskData.description);
+        setTaskPoints(taskData.points);
+        setPickedPlayer(taskData.pickedPlayer);
+        setTaskId(taskData.taskId);
+      }
+      console.log("fetch game response: ", gameResponse.data);
+      console.log("isAdmin: ", gameResponse.data["isAdmin"]);
+      console.log("activeTask: ", gameResponse.data["activeTask"]);
+    } catch (error) {
+      console.error("Error fetching game ID:", error);
+    }
+  
+    // Condition to fetch the current task if the game is started
+    if (gameStarted) {
+      try {
+        const taskResponse = await gameServices(token);
+  
+        setTaskText(taskResponse.data.description);
+        setTaskPoints(taskResponse.data.points);
+        setPickedPlayer(taskResponse.data.pickedPlayer);
+        setTaskId(taskResponse.data.taskId);
+        return taskResponse.data;
+      } catch (error) {
+        console.error("Error fetching task:", error);
+      }
+    }
+  };
+
+  const voteTask = (vote, taskId) => {
+    if (webSocketRef.current) {
+      webSocketRef.current.send(JSON.stringify({
+        type: 'task_vote',
+        taskId: taskId,
+        taskVote: vote
+      }));
+    };
+  }
   
   const startGame = () => {
 
@@ -294,7 +267,8 @@ function GameLobby() {
         webSocketRef.current.onmessage = (event) => {
             // Handle incoming messages
             const data = JSON.parse(event.data);
-            console.log('Message from ws ', data.message, 'msg_type ', data.msg_type);            
+            console.log('Message from ws ', data.message, 'msg_type ', data.msg_type);
+            console.log(playerList)          
 
             // Websocket response handler
             switch (data.msg_type) {
@@ -347,8 +321,6 @@ function GameLobby() {
                     setNextTask(false)
                     handleSpinClick(data.message['pickedPlayer'], data.message['participants']);
                     setPlayerList(data.message['participants']);
-                    const sortedPlayerList = data.message.participants.sort((a, b) => b.score - a.score);
-                    setPlayerList(sortedPlayerList);
                     wheelAudio.play()
                     break;
                 
@@ -442,13 +414,19 @@ function GameLobby() {
                     console.log("game end message recieved from WS")
 
                     console.log("GAME HAS ENDED")
+        
+                    const players = data.message['player_list']
+
                     setInAGame(false)
-                    navigate("/end-game");
+
+                    navigate("/end-game", { state: { playerList: data.message['player_list'] } });
+
 
                   break;
 
                 //When the wheel has stopped spinning and everyone recieves the task
                 case 'wheel_stopped':
+                  console.log('WHEEEL STOPPED PLAYERLIST', playerList)
                   console.log("wheel_stopped message");
                   if (!waitingForSpin) {
                     setWaitingForSpin(false);
@@ -533,7 +511,7 @@ function GameLobby() {
       </div>
 
 
-<Leaderboard playerList={playerList}/>
+<Leaderboard endgame={false} playerList={playerList}/>
 
 {spunWheel &&
 <QuestionContainer   waitingForSpin={waitingForSpin} pickedPlayer={pickedPlayer} taskPoints={taskPoints} taskText={taskText} username={username} voteTask={voteTask} taskId={taskId}  />

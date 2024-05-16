@@ -1,39 +1,38 @@
 // Import React, useState, useEffect, axios, and useNavigate
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 import '../styles/App.css';
 import { useCheckUserLoggedIn } from '../utils/authUtils'; // Import checkUserLoggedIn from authUtils
+import axios from 'axios';
+import config from '../config';
 
 const HomePage = () => {
   const [message, setMessage] = useState('');
   // const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
-
   // Check if the user is logged in
-  
   const userIsLoggedIn = useCheckUserLoggedIn();
 
-  console.log(userIsLoggedIn)
-  console.log("jesdadsda")
-
   useEffect(() => {
-
-    if (userIsLoggedIn === false) {
-      // If not logged in, redirect to the login page
-      navigate('/login');
-    } else if (userIsLoggedIn) {
-      // If logged in, fetch data or perform any necessary actions
-      axios.get('http://localhost:8000/')
-        .then(response => {
+    const fetchData = async () => {
+      if (userIsLoggedIn === false) {
+        // If not logged in, redirect to the login page
+        navigate('/login');
+      } else if (userIsLoggedIn) {
+        // If logged in, fetch data or perform any necessary actions
+        try {
+          const response = await axios.get(`${config.API_BASE_URL}/`);
           setMessage(response.data.message);
-        })
-        .catch(error => {
+        } catch (error) {
           console.error('There was an error!', error);
-        });
-    }
+        }
+      }
+    };
+  
+    fetchData();
   }, [userIsLoggedIn, navigate]);
+  
 
   // Function to handle login button click
   const handleLoginClick = () => {
