@@ -51,7 +51,7 @@
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     /* Subtle text shadow for depth */
 
-    font-size: calc(5vw + 3vh); /* Adjust the formula as needed */   
+    font-size: calc(5vw + 3vh);
 
     text-shadow: 
     -1px -1px 0 #ffffff,  
@@ -64,14 +64,8 @@
 
 .gamemodes-header h2 {
     color: #b28dcb;
-    /* Gold: captures the essence of the golden hour */
-    font-size: calc(2vw + 2vh); /* Adjust the formula as needed */   
-    /* Size that complements the main title */
-    /* margin-bottom: 1.4rem; */
-    /* More space before the cards start */
-    /* White underline for contrast */
+    font-size: calc(2vw + 2vh);
     display: inline-block;
-    /* Allows text-decoration to fit content width */
 }
 
 /* The grid is set to ensure cards are well-spaced and aesthetically pleasing */
