@@ -4,7 +4,7 @@
     left: 2%;
     /* right: 35%; */
     border-radius: .25rem;
-    background-color: #ffffff;
+    /* background-color: #ffffff; */
 
     
     width: 20vw;
@@ -40,6 +40,8 @@
     box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.15);
     /* Bootstrap style shadow */
     /* Adjust the left position */
+    background-color: #ffffff;
+
     top: 10%;
     /* Align it vertically in the middle */
     z-index: 10;

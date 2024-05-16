@@ -194,40 +194,6 @@ class GameTestCase(ChannelsLiveServerTestCase):
         # Fetch a token before login
         player1_index = await self.login_fetch_tokens(self.user1.username, 'testing401')
 
-        # logger.debug(f"Token_list: {self.token_list}")
-
-        # Login using HttpCommunicator
-        # login_communicator = HttpCommunicator(
-        #     application=get_default_application(),
-        #     method="POST",
-        #     path=self.login_url,
-        #     body=json.dumps({'username': 'test_user', 'password': 'testing401'}).encode('utf-8'),
-        #     headers=[(b"content-type", b"application/json"),
-        #              (b"cookie", f"csrftoken={self.token_list[0]}".encode()),
-        #              (b"X-CSRFToken", self.token_list[0].encode())],
-        # )
-        # response = await self.communicator_request("POST", self.login_url, {'username': self.user1.username, 'password': 'testing401'}, token_index=0)
-        # response = await login_communicator.get_response()
-        # self.assertEqual(response['status'], 200)
-
-        # get index of sessionid in cookies (we already get JWT and csrftoken, though both are also present)
-        # cookies = [item[1].decode() for item in response['headers'] if item[0] == b"Set-Cookie"]
-        # sessionid_index = next((index for index, cookie in enumerate(cookies) if "sessionid" in cookie), None)
-
-        # # get the sessionid, this was a pain in the ass
-        # sessionid = cookies[sessionid_index].split(';')[0].split('=')[1]
-        # self.sessionid_list.append(sessionid)
-        # logger.debug(f"sessionids: {self.sessionid_list}")
-        
-        # parse response data to extract JWT from login response
-        # response_data = self.parse_json_response(response)
-        # logger.debug(f"Login response parsed: {response_data}")
-        # logger.debug(f"Login response: {response}")
-
-        # # Check that the JWT token is present
-        # self.jwt_token_list.append(response_data['JWT'])
-        # self.assertTrue(self.jwt_token_list)
-
         # store sessionid list
         temp_sessionid_list = self.sessionid_list
         self.sessionid_list = ["31289jfduhjsvsnvhjvbfh"] # set session id list to contain random garbage
