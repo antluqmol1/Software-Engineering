@@ -1,12 +1,13 @@
 // Import the CSS file for styling
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
 import "../styles/Home.css";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom"; // Import useHistory hook
 import { useCheckUserLoggedIn } from "../utils/authUtils"; // Import checkUserLoggedIn from authUtils
 import { AuthContext } from '../AuthContext';
 import PolkadotBackground from "./PolkadotBackground";
+import gameServices from "../services/gameServices";
+import userServices from "../services/userServices";
 
 const FrontPage = () => {
   // const [username, setUsername] = useState(null);
@@ -19,62 +20,37 @@ const FrontPage = () => {
   const navigate = useNavigate(); // Initialize useHistory hook
 
   // const userIsLoggedIn = useCheckUserLoggedIn();
-  const { username, setUsername, userIsLoggedIn, inAGame, setInAGame, loading} = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
-  console.log("userIsLoggedIn: ", userIsLoggedIn)
+  const { username, setUsername, userIsLoggedIn, inAGame, setInAGame, loading } = useContext(AuthContext); //removed inAGame, setInAGame, does not work...
+
   useEffect(() => {
-    if (!userIsLoggedIn && !loading) {
-      // If not logged in, redirect to the login page
-      console.log("Not logged in");
-      navigate("/login");
-    } else if (userIsLoggedIn) {
-      // If logged in, fetch data or perform any necessary actions
-      /* 
-      When we can, lets change it from /profile to a /getusername
-      */
-      console.log("Already logged in");
-      // if username is not set, for some reason, grab it
-      if (!username) {
-        axios
-          .get("http://localhost:8000/user/get-username/", {
-            withCredentials: true,
-          })
-          .then((response) => {
-            console.log(response.data)
+    const cookies = new Cookies();
+    const token = cookies.get("csrftoken");
+    const checkLoginStatus = async () => {
+      if (!userIsLoggedIn && !loading) {
+        // If not logged in, redirect to the login page
+        navigate("/login");
+      } else if (userIsLoggedIn) {
+        if (!username) {
+          try {
+            const response = await userServices.getUsername;
             setUsername(response.data.username);
-            console.log("username: ", username)
-          })
-          .catch((error) => {
+          } catch (error) {
             console.error("There was an error!", error);
-          });        
-      }
-      
-      // attempt to fetch the game, if not in a game
-      // Should only happen if person that has just 
-      // logged in is already in a game.
-      axios
-        .get("http://localhost:8000/game/get/", {
-          withCredentials: true,
-        })
-        .then((response) => {
-          // set some values
-          console.log("result from get-game")
-          console.log(response.data)
-          console.log('response.data.success', response.data.success)
-          if (response.data.success === true) {
-            setInAGame(true)
-            console.log("setting true")
           }
-          else {
-            setInAGame(false)
-            console.log("setting false")
-          }
-          console.log("inAGame: ", inAGame)
-        })
-        .catch((error) => {
+        }
+
+        // Attempt to fetch the game if not in a game
+        try {
+          const response = await gameServices.getGame(token);
+          setInAGame(response.data.success === true);
+        } catch (error) {
           console.error("There was an error!", error);
-        })
-    }
-  }, [userIsLoggedIn, navigate]);
+        }
+      }
+    };
+
+    checkLoginStatus();
+  }, [userIsLoggedIn, navigate, username, setUsername, setInAGame, loading, inAGame]);
 
   // Function to handle login button click
   const handleLoginClick = () => {
@@ -91,66 +67,53 @@ const FrontPage = () => {
 
   const handleGameCodeChange = (e) => {
     setGameCode(e.target.value); // Game codes are usually uppercase for readability
-    console.log(gameCode)
   };
 
   const handleGameTitleChange = (e) => {
-    setGameTitle(e.target.value);              // Change title of the game for each new input            
-    console.log(gameTitle)
+    setGameTitle(e.target.value); // Change title of the game for each new input
   };
 
   const goToGame = (e) => {
-    console.log("Joining game")
-    navigate("/game-lobby")
-  }
+    navigate("/game-lobby");
+  };
 
   // Function to handle login button click
-  const handleJoinGameSubmit = () => {
+  const handleJoinGameSubmit = async () => {
     const cookies = new Cookies();
     const token = cookies.get("csrftoken");
-    
+
     // if (gameCode.length < 5) {
     //   // Assuming game codes are 5 characters long
     //   alert("Please enter a valid game code."); // Replace with a nicer notification or UI feedback
     //   return;
     // }
 
-    axios
-        .post("http://localhost:8000/game/join/", 
-        {  gameid: gameCode }, 
-      {
-        headers: {
-          "X-CSRFToken": token, // Include CSRF token in headers
-        },
-      })
-        .then((response) => {
-          console.log(response.data)
-          setInAGame(true)
-          navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
-        })
-        .catch((error) => {
-          console.error("There was an error!", error);
-          setInvalidGameCode("invalidGameCode")
-        });
+    try {
+      const response = await gameServices.joinGame(gameCode, token);
+      setInAGame(true);
+      navigate("/game-lobby"); // Navigate to the route where GameLobby component is rendered
+    } catch (error) {
+      console.error("There was an error!", error);
+      setInvalidGameCode("invalidGameCode");
+    }
   };
-  
+
   // Function to handle login button click
   const handleCreateGameSubmit = () => {
-    console.log(gameTitle);
     if (gameTitle === "") {
-      setInvalidGameTitle("noTitle")
+      setInvalidGameTitle("noTitle");
       return;
     }
-    navigate("/create-game", {state: gameTitle});
+    navigate("/create-game", { state: gameTitle });
   };
 
   return (
     <div className="home-container">
-    <div className = 'wave wave1'></div>
-    <div className = 'wave wave2'></div>
-    <div className = 'wave wave3'></div>
-    <div className="home-content">
-      <h1 className='font-style-h'>Funchase</h1>
+      <div className='wave wave1'></div>
+      <div className='wave wave2'></div>
+      <div className='wave wave3'></div>
+      <div className="home-content">
+        <h1 className='font-style-h'>Funchase</h1>
         {userIsLoggedIn ? (
           <p>Welcome back {username ? username : "loading..."}</p>
         ) : (
@@ -166,20 +129,20 @@ const FrontPage = () => {
               </button>
             </div>
           ) :
-          <div className="buttons-container">
-            <button
-              className={`button ${activeOption === "join" ? "active" : ""}`}
-              onClick={() => toggleActiveOption("join")}
-            >
-              Join Game
-            </button>
-            <button
-              className={`button ${activeOption === "create" ? "active" : ""}`}
-              onClick={() => toggleActiveOption("create")}
-            >
-              Create Game
-            </button>
-          </div>
+            <div className="buttons-container">
+              <button
+                className={`button ${activeOption === "join" ? "active" : ""}`}
+                onClick={() => toggleActiveOption("join")}
+              >
+                Join Game
+              </button>
+              <button
+                className={`button ${activeOption === "create" ? "active" : ""}`}
+                onClick={() => toggleActiveOption("create")}
+              >
+                Create Game
+              </button>
+            </div>
         ) : (
           <div className="buttons-container">
             <button
@@ -208,7 +171,7 @@ const FrontPage = () => {
             </button>
             {invalidGameCode && <p>
               Invalid game code, try again
-              </p>}
+            </p>}
           </div>
         )}
         {activeOption === "create" && (
@@ -219,20 +182,19 @@ const FrontPage = () => {
               placeholder="Enter title of the game"
               value={gameTitle}
               onChange={handleGameTitleChange}
-              maxLength={32}
+              maxLength={16}
             />
             <button className="button" onClick={handleCreateGameSubmit}>
               Start a New Game
             </button>
             {invalidGameTitle && <p>
               Give your game a title!
-              </p>}
+            </p>}
           </div>
         )}
       </div>
     </div>
   );
-
 };
 
 export default FrontPage;

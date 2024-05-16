@@ -2,7 +2,6 @@ import { QuestionContainer } from './QuestionContainer';
 import { Leaderboard } from './Leaderboard';
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useHistory hook
-import axios from "axios";
 import Cookies from "universal-cookie";
 import "../styles/GameLobby.css";
 import "../styles/App.css";
@@ -57,16 +56,10 @@ function GameLobby() {
     //Playlist debug
     useEffect(() => {
       //Sort the leaderboard
-      console.log("EINOIGNONEOINEOGINEOGINOGEINOEGINOGEINOIENOIEGNOIENOIENGOIENIO")
-      console.log("Player list: ", playerList)
-      console.log("EINOIGNONEOINEOGINEOGINOGEINOEGINOGEINOIENOIEGNOIENOIENGOIENIO")
     }, [playerList]);
     
     //function to Delete game
     const handleDelete = () => {  
-      
-      console.log("Ending/Deleting game...")
-      
       if (webSocketRef.current) {
         webSocketRef.current.send(JSON.stringify({
           type: 'game_end',
@@ -81,8 +74,6 @@ function GameLobby() {
 
     // Request to backend for leaving game(removing player from DB).
     const handleLeave = () => {
-
-      console.log("Leaving game...")
       webSocketRef.current.close(1000, 'Player left the game');
       setInAGame(false)
       navigate("/")
@@ -102,7 +93,6 @@ function GameLobby() {
 
   const fetchPlayerImages = async() => {
 
-    console.log("attempting to fetch profile picture urls");
     //Fetch list from backend
     const response = await gameServices.getProfilePictures();
     
@@ -119,84 +109,65 @@ function GameLobby() {
   }
 
   //Function to fetch game
-  const fetchGame = () => {
-
-      axios.get("http://localhost:8000/game/get/",
-          {
-              headers: {
-                  "X-CSRFToken": token, // Include CSRF token in headers
-              },
-          })
-          .then(response => {
-
-              console.log("is spinning = ", response.data["isSpinning"])
-              if (response.data["isSpinning"]) {
-                console.log("waitingForSpin now set true")
-                setWaitingForSpin(true);
-              } else {
-                console.log("waitingForSpin NOT SET!")
-              }
-
-              setAdmin(response.data["isAdmin"]);
-              setGameID(response.data["gameId"]);
-              setGameStarted(response.data["gameStarted"]);
-              
-              const taskData = response.data["activeTask"]
-              if (!response.data["activeTask"]) {
-                console.log("no active task")
-                setSpunWheel(false)
-                setNextTask(true)
-                console.log(response.data["activeTask"])
-              } else {
-                console.log("no active task")
-                setSpunWheel(true)
-                setTaskText(taskData.description)
-                setTaskPoints(taskData.points)
-                setPickedPlayer(taskData.pickedPlayer)
-                setTaskId(taskData.taskId)
-              }
-              console.log("fetch game response: ", response.data)
-              console.log("isAdmin: ", response.data["isAdmin"])
-              console.log("activeTask: ", response.data["activeTask"])
-              // setUsername(response.data['username']);
-          })
-          .catch(error => {
-              console.error("Error fetching game ID:", error);
-          });
-
-          // Condition to fetch the current task if the game is started
-            // Im confused, why do we fetch current task if the game is NOT started???
-          if (gameStarted) {
-            axios.get("http://localhost:8000/game/current-task/",
-            {
-                headers: {
-                    "X-CSRFToken": token, // Include CSRF token in headers
-                },
-            })
-            .then(response => {
-                setTaskText(response.data.description)
-                setTaskPoints(response.data.points)
-                setPickedPlayer(response.data.pickedPlayer)
-                setTaskId(response.data.taskId)
-                return response.data;
-            })
-            .catch(error => {
-                console.error("Error fetching task:", error);
-            });
-          }
-
-    };
-
-
-    const voteTask = (vote, taskId) => {
-      if (webSocketRef.current) {
-          webSocketRef.current.send(JSON.stringify({
-              type: 'task_vote',
-              taskId: taskId,
-              taskVote: vote
-          }));
-        };
+  const fetchGame = async () => {
+    try {
+      const gameResponse = await gameServices.getGame(token);
+      if (gameResponse.data["isSpinning"]) {
+        setWaitingForSpin(true);
+      } else {
+        console.log("waitingForSpin NOT SET!");
       }
+  
+      setAdmin(gameResponse.data["isAdmin"]);
+      setGameID(gameResponse.data["gameId"]);
+      setGameStarted(gameResponse.data["gameStarted"]);
+  
+      const taskData = gameResponse.data["activeTask"];
+      if (!gameResponse.data["activeTask"]) {
+        console.log("no active task");
+        setSpunWheel(false);
+        setNextTask(true);
+        console.log(gameResponse.data["activeTask"]);
+      } else {
+        console.log("active task found");
+        setSpunWheel(true);
+        setTaskText(taskData.description);
+        setTaskPoints(taskData.points);
+        setPickedPlayer(taskData.pickedPlayer);
+        setTaskId(taskData.taskId);
+      }
+      console.log("fetch game response: ", gameResponse.data);
+      console.log("isAdmin: ", gameResponse.data["isAdmin"]);
+      console.log("activeTask: ", gameResponse.data["activeTask"]);
+    } catch (error) {
+      console.error("Error fetching game ID:", error);
+    }
+  
+    // Condition to fetch the current task if the game is started
+    if (gameStarted) {
+      try {
+        const taskResponse = await gameServices(token);
+  
+        setTaskText(taskResponse.data.description);
+        setTaskPoints(taskResponse.data.points);
+        setPickedPlayer(taskResponse.data.pickedPlayer);
+        setTaskId(taskResponse.data.taskId);
+        return taskResponse.data;
+      } catch (error) {
+        console.error("Error fetching task:", error);
+      }
+    }
+  };
+
+  const voteTask = (vote, taskId) => {
+    if (webSocketRef.current) {
+      webSocketRef.current.send(JSON.stringify({
+        type: 'task_vote',
+        taskId: taskId,
+        taskVote: vote
+      }));
+    };
+  }
   
   const startGame = () => {
 

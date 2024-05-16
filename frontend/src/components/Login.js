@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
 import "../styles/Login.css"; // Make sure your CSS matches the layout and style in the image
 import { useNavigate } from 'react-router-dom'; // Import useHistory hook
 import { AuthContext } from '../AuthContext';
@@ -35,9 +34,6 @@ const Login = () => {
       
       // 200 is successful
       if (response.status === 200) {
-        console.log("Login successful", response.data);
-        console.log("JWT: ", response.data['JWT']);
-
         // Ask for new csrf token if logged in, old one is not suitable anymore
         const newCsrfToken = await csrfServices.getCsrfToken();
         if (newCsrfToken !== null) {
@@ -49,7 +45,6 @@ const Login = () => {
         setUserIsLoggedIn(true);
         navigate('/');
       } else {
-        console.log("Login failed with status: ", response.status)
         setError("Login failed. Please check your credentials."); // Set error message
       }
     } catch (error) {
