@@ -17,6 +17,7 @@ from django.forms.models import model_to_dict
 
 import jwt
 import json
+import sys # for tests, celery dispatcher is messing up the async tests
 
 import logging
 
@@ -245,6 +246,7 @@ class GameLobby(AsyncWebsocketConsumer):
                     return
 
                 response = await self.next_task(game)
+                
                 update_spin = await self.start_wheel_spin(game.game_id)
 
                 await self.channel_layer.group_send(
@@ -524,7 +526,8 @@ class GameLobby(AsyncWebsocketConsumer):
 
             # Schedule the Celery task to change wheel_spinning value after 12 seconds
             try:
-                end_wheel_spin.apply_async((game_id,), countdown=12)
+                if 'test' not in sys.argv: # can't have dispatcher when testing
+                    end_wheel_spin.apply_async((game_id,), countdown=12)
             except Exception as e:
                 logger.debug(str(e))
             logger.debug("WS: successfully called celery")
@@ -653,37 +656,6 @@ class GameLobby(AsyncWebsocketConsumer):
         except User.DoesNotExist:
             logger.debug("\tWS: User does not exist")
             return None
-        
-
-    # '''
-    # DATABASE FUNCTION 
-    # DESC: gets the current connecting clients username
-    # Returns: String
-    # '''
-    # # not used, consider removing
-    # @database_sync_to_async
-    # def get_username(self):
-    #     try:
-    #         player = User.objects.get(id=self.user_id)
-
-    #         return player.username
-    #     except User.DoesNotExist:
-    #         return None
-        
-    # '''
-    # DATABASE FUNCTION
-    # DESC: gets the user corresponding to the input username
-    # Returns: User model object
-    # '''
-    # # not used, consider removing
-    # @database_sync_to_async
-    # def get_user_from_username(self, username):
-    #     try:
-    #         player = User.objects.get(username=username)
-
-    #         return player
-    #     except User.DoesNotExist:
-    #         return None
         
     '''
     DATABASE FUNCTION

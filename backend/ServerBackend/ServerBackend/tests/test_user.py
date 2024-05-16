@@ -22,7 +22,6 @@ class UserTestCase(TestCase):
         self.logout_url = reverse('auth:user_logout')
         self.get_status_url = reverse('auth:get_login_status')
         self.create_user_url = reverse('user:put_user')
-        self.create_admin_url = reverse('user:put_admin')
         self.get_username_url = reverse('user:get_user')
 
         # token variables

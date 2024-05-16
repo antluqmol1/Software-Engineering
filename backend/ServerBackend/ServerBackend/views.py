@@ -198,45 +198,6 @@ def get_status(request): # RENAME!
         return JsonResponse({'success': False, 'msg': 'not logged in'}, status=204)
         
 
-@require_http_method(['POST'])
-@require_authentication
-def put_admin(request):
-    try:
-        data = json.loads(request.body)
-
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-
-
-        # Validate the information
-        if not (first_name and last_name and email and password):
-            return JsonResponse({'error': 'Missing fields'}, status=400)
-
-        # Create a new user instance but don't save it yet
-        new_user = User(first_name=first_name, last_name=last_name, username=username, email=email)
-
-        # Set the password
-        new_user.set_password(password)
-
-        # Validate and save the user
-        new_user.full_clean()
-        new_user.save()
-
-        return JsonResponse({'success':True, 'message': 'User created successfully', 'user_id': new_user.id}, status=200)
-    
-    except json.JSONDecodeError:
-        # JSON data could not be parsed
-        return JsonResponse({'success':True, 'error': 'Invalid JSON'}, status=400)
-    except ValidationError as e:
-        # Invalid data
-        return JsonResponse({'success':True, 'error': str(e)}, status=400)
-    except Exception as e:
-        # Any other errors
-        return JsonResponse({'success':True, 'error': 'An error occurred'}, status=500)
-
 
 @require_http_method(['POST'])
 def create_user(request):
@@ -352,10 +313,11 @@ def create_game(request):
     # check if player is already in a game
     # REVISE THIS, WE NEED TO FIGURE OUT WHAT WE WANT TO DO IF A PLAYER IS ALREADY IN A GAME AND THEY MAKE THIS REQUEST
     if potential_participant:
-        potential_participant = Participant.objects.filter(user=user)
+        potential_participant = Participant.objects.get(user=user)
+        game_id = potential_participant.game.game_id
         logger.debug(f"{user.username} is already in a game, deleting player record")
-        Participant.objects.filter(user=user).delete()
-        return JsonResponse({'success': False, 'error': 'already in a game'}, status=409)
+        # Participant.objects.filter(user=user).delete()
+        return JsonResponse({'success': False, 'error': 'already in a game', 'gameId': game_id}, status=409)
     else:
         logger.debug("not in a game")
 
@@ -563,13 +525,18 @@ def delete_game(request):
         admin = part.game.admin
         logger.debug(f'is this a player ID?: {admin}')
 
-        if user == admin:
+        if user.id == admin.id:
             logger.debug("player is an admin, deleting game")
             game_id = part.game.game_id
-            success = clean_up_game(game_id=game_id)
-            return JsonResponse({'success': success}, status=200)
+            success, status = clean_up_game(game_id=game_id)
+            if success:
+                status = 200
+            else:
+                status = 500
+
+            return JsonResponse({'success': success}, status=status)
         else:
-            return JsonResponse({'success': False, 'msg': 'user is not admin of game'}, staus=403)
+            return JsonResponse({'success': False, 'msg': 'user is not admin of game'}, status=403)
     else:
         logger.debug("not in a game, fail")
         return JsonResponse({'success': False}, status=404)
@@ -578,94 +545,39 @@ def delete_game(request):
 def clean_up_game(game_id):
 
     try:
+        game = Game.objects.get(game_id=game_id)
+        participants = Participant.objects.filter(game=game)
+
+        gameWinner = None
+        for participant in participants:
+            participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id, score=participant.score)
+            participantHist.save()
+            if gameWinner is None or participant.score > gameWinner.score:
+                gameWinner = participant
+
+        game_history = GameHistory(game_id=game.game_id, 
+                                title=game.title, 
+                                start_time=game.start_time)
+        game_history.save()
+    except Exception as e:
+        logger.error(f"error saving game history, error: {e}")
+        return False, 500
+
+    try:
         games_to_delete = Game.objects.filter(game_id=game_id)
-        players_to_delete = Participant.objects.filter(game_id=game_id)
-        logger.debug("retrieved game and players")
+        logger.debug("retrieved game to delete")
     except:
         logger.debug("failed to retrieve game and participant")
-        return False
+        return False, 500
 
     try:
         games_to_delete.delete()
-        players_to_delete.delete()
         logger.debug("deleted game and participants")
-        return True
+        return True, 200
     except:
         logger.debug("failed to delete game and players")
-        return False
+        return False, 500
 
-
-
-
-#### REMOVE THIS
-#### DO IT IN WEBSOCKET INSTEAD
-@require_http_method(['GET'])
-@require_authentication
-def next_task(request):
-    '''
-    Returns the next task of the game type the player is currently in.
-    Loops through the PickedTasks table until it finds a unique task for
-    the current game.
-    Returns:
-    @description : string
-    @points : int
-    '''
-    user = request.user
-
-    # get the participant, game, and extract type
-    part = Participant.objects.get(user=user)
-    game = part.game
-    type = game.type
-
-    # task_user = None
-
-    # # Snakk med jørgen: han har gjort en del akkurat her.
-    # # Burde jobbe mer med Sockets, og samkjøre med jørgen når det lar sæ gjøres
-
-    # for _ in range(game.num_players):
-    #     task_user = Participant.objects.filter(game=game).order_by('?').first
-    #     # here we need to find a random player. 
-    #     # is_picked = PickedTasks
-
-    task_count = Tasks.objects.filter(type=type).count()
-
-    # Check if task is available
-    for _ in range(task_count):
-        # get a random task, and total tasks
-        # this might not actually work 100, we can't be sure that the random 
-        # will not choose the same "picked" task multiple times, and we thus
-        # we might end report no avaiable task when that is not the case
-        random_task = Tasks.objects.filter(type = type).order_by('?').first()
-        
-        # check if this task is already picked
-        taskExist = PickedTasks.objects.filter(task=random_task, game=game).exists()
-
-        # if not, we save it to PickedTasks, and return the question
-        if not taskExist:
-
-            random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
-
-            if not random_player:           # if no player was picked, then we refresh the wheel and pick a player.
-                participants = Participant.objects.filter(game=game)
-                for p in participants:
-                    p.isPicked = False
-                    p.save()
-                random_player = Participant.objects.filter(game=game, isPicked=False).order_by('?').first()
-
-            random_player.isPicked = True
-            random_player.save()
-
-            picked_task = PickedTasks(task=random_task, game=game, user=random_player.user)
-            picked_task.save()
-
-            game.game_started = True
-            game.save()
-            logger.debug(f'response: description: random_task.description, points: random_task.points, pickedPlayer: random_player.user.username, taskId: random_task.task_id')
-            return JsonResponse({'success': True, 'description': random_task.description, 'points': random_task.points, 'pickedPlayer': random_player.user.username, 'taskId': random_task.task_id}, 200)
-                
-
-    # arrive here if all tasks have been checked, or no tasks available        
-    return JsonResponse({'success': False, 'msg': 'no tasks'}, status=404)
 
 
 @require_http_method(['GET'])
@@ -697,34 +609,6 @@ def current_task(request):
     
     logger.info("no current task")
     return JsonResponse({'success': False, 'msg': 'no current task'}, status=404)
-    
-
-#### REMOVE, USE WEBSOCKET INSTEAD
-#### NO NEED TO HAVE IT HERE; WONT MAKE WITHOUT WEBSOCKET EITHER WAY
-@require_http_method(['GET'])
-@require_authentication
-def give_points(request):
-    logger.warning("give_points should not be used, use websocket instead")
-
-    data = json.loads(request.body)
-    points = data.get('points')
-    username = data.get('username')
-
-    logger.info(f"giving {points} points to {username}")
-
-    # get the participant record for the user receiving the points
-    try:
-        player = Participant.objects.get(user=User.objects.get(username=username))
-    except Participant.DoesNotExist:
-        logger.warning(f"{username} is not in a game")
-        return JsonResponse({'success': False, 'msg': 'player not found'}, status=404)
-
-    # update the score
-    player.score += points
-    player.save()
-
-    logger.info(f"points given to {player.user.username}")
-    return JsonResponse({'success': True}, status=200)
 
 
 @require_http_method(['GET'])
