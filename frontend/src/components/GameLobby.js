@@ -13,6 +13,7 @@ import { Wheel } from 'react-custom-roulette'
 import SpinSound from '../assets/Sounds/SpinWheel.wav'; // Import your sound file
 import gameServices from "../services/gameServices";
 import PolkadotBackground from './PolkadotBackground';
+import config from '../config';
 
 function GameLobby() {
     
@@ -257,7 +258,7 @@ function GameLobby() {
         // Setup WebSocket connection
         const wsScheme = window.location.protocol === "https:" ? "wss:" : "ws:";
         console.log("token being sent:", token)
-        webSocketRef.current = new WebSocket(`${wsScheme}//localhost:8000/ws/gamelobby/`);
+        webSocketRef.current = new WebSocket(`${wsScheme}${config.WS_BASE_URL}/ws/gamelobby/`);
         
         webSocketRef.current.onopen = (event) => {
             console.log('WebSocket Connected');
