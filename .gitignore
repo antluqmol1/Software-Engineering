@@ -5,6 +5,8 @@
 **node_modules
 **__pycache__
 **.coverage
+**.log
+**htmlcov
 
 # frontend ignores
 frontend/src/.DS_Store

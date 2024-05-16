@@ -428,16 +428,10 @@ class GameLobby(AsyncWebsocketConsumer):
 
             gameWinner = None
             for participant in participants:
-                existing_participantHist = ParticipantHistory.objects.filter(user=participant.user, game_id=participant.game.game_id).first()
-                if existing_participantHist:
-                    existing_participantHist.score = participant.score
-                    existing_participantHist.save()
-
-                else:
-                    participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id, score=participant.score)
-                    participantHist.save()
-                    if gameWinner is None or participant.score > gameWinner.score:
-                        gameWinner = participant
+                participantHist = ParticipantHistory(user=participant.user, game_id=participant.game.game_id, score=participant.score)
+                participantHist.save()
+                if gameWinner is None or participant.score > gameWinner.score:
+                    gameWinner = participant
 
             game_history = GameHistory(game_id=game.game_id, 
                                     title=game.title, 
