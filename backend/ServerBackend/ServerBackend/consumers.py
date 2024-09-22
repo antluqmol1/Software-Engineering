@@ -37,7 +37,6 @@ We use http cookies that contain JWT, given upon login, to validate connections
 class GameLobby(AsyncWebsocketConsumer):
 
     async def connect(self):
-        logger.debug("WS: gamelobby, connecting...")
         # add to a group? or is the group the participant/game
         token = self.scope['cookies'].get('auth_token')
 
@@ -48,19 +47,14 @@ class GameLobby(AsyncWebsocketConsumer):
 
             # get the user id from the token payload
             self.user_id = payload.get('user_id')
-            logger.debug(f'WS: user connecting is {self.user_id}')
 
             # query the database for the game via participant
             game = await self.get_participant_game(user_id=self.user_id)
-            logger.debug(f'WS: Game_id: {game.game_id}')
-            logger.debug(f'WS: num_players: {game.num_players}')
 
             # set the name of the group, all people in same group has the same name
             self.game_group_name = f'game_{game.game_id}'
-            logger.debug(f'WS: joined channel group {self.game_group_name}')
 
             # Add this channel to a group based on game_id
-            logger.debug(f'WS: Joining group')
             await self.channel_layer.group_add(
                 self.game_group_name,
                 self.channel_name
@@ -69,9 +63,6 @@ class GameLobby(AsyncWebsocketConsumer):
             # extracting participant list
             participant_data = await self.get_new_player()
 
-            logger.info(f"WebSocket connected: {self.channel_name}")
-
-            logger.debug("WS: sending connect message to group")
             await self.channel_layer.group_send(
             self.game_group_name, 
             {
@@ -81,12 +72,10 @@ class GameLobby(AsyncWebsocketConsumer):
             }
             )
         else:
-            logger.info(f'Websocket attempted connection: refused')
+            logger.warning(f'Websocket attempted connection: refused')
             await self.close(reason="Not logged in", code=4001)
 
     async def disconnect(self, close_code):
-        logger.debug(f"WS: connection closed: {close_code}")
-        logger.info(f"WebSocket disconnected: {self.channel_name} with code {close_code}")
 
         if close_code in no_end_game_codes:
             return
@@ -98,11 +87,10 @@ class GameLobby(AsyncWebsocketConsumer):
 
         left_game = await self.leave_game(game) 
         if left_game:
-            logger.debug("WS: left game!")
+            logger.info("WS: left game!")
         else:
-            logger.debug("WS: error leaving game!")
+            logger.warning("WS: error leaving game!")
 
-        logger.debug("WS: sending disconnect message to group")
         # send disconnect message to the group
         await self.channel_layer.group_send(
             self.game_group_name,
@@ -129,16 +117,11 @@ class GameLobby(AsyncWebsocketConsumer):
             self.game_group_name,
             self.channel_name
         )
-        logger.debug(f"WS: {user.username} was removed from {self.game_group_name}")
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        logger.debug("\nWS: recieve ...")
-        logger.debug(f'\nWS: message: \n{text_data_json}\n')
-        # message = text_data_json['message']
         msg_type = text_data_json['type']
 
-        logger.debug("WS: checking message type\n")
 
         match msg_type:
             case "task_vote":
@@ -163,8 +146,6 @@ class GameLobby(AsyncWebsocketConsumer):
                     case 'no':
                         vote_input = False
 
-                logger.debug(f'WS: following information added to database:\n{vote_user}, {task}, {game}, {vote}')
-                logger.debug(f'WS: vote_input: {vote_input}')
                 
                 # Create new vote.
                 previous_vote, newVote = await self.add_new_vote(vote_user, task, game, vote_input)
@@ -204,7 +185,6 @@ class GameLobby(AsyncWebsocketConsumer):
                             'newVote': 'yes' if newVote.vote is True else 'no' if newVote.vote is False else 'skip'
                         }
 
-                    logger.debug(f'WS: Vote response: {response}')
                     logger.info("WS: More votes needed to determine win/loss...")
 
                     await self.channel_layer.group_send(
@@ -259,7 +239,6 @@ class GameLobby(AsyncWebsocketConsumer):
                 )
 
             case 'game_end':
-                logger.debug("WS: game_end")
                 
                 game = await self.get_participant_game(self.user_id)
 
@@ -274,9 +253,9 @@ class GameLobby(AsyncWebsocketConsumer):
                 end_game = await self.end_game(game)
 
                 if end_game:
-                    logger.debug("WS: game ended")
+                    logger.info("WS: game ended")
                 else:
-                    logger.debug("WS: failed to end game")
+                    logger.warning("WS: failed to end game")
 
                 response = {
                     'game_end': True,
@@ -300,7 +279,6 @@ class GameLobby(AsyncWebsocketConsumer):
 
     # Message methods
     async def Game_End(self, event):
-        logger.debug("WS: Game_End message method")
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
 
@@ -346,7 +324,6 @@ class GameLobby(AsyncWebsocketConsumer):
     async def wheel_stop_message(self, event):
         message = event['message']
         msg_type = event.get('msg_type', 'No msg_type')
-        logger.debug("CELERY: Sending wheel_stop_message to group")
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
@@ -481,7 +458,7 @@ class GameLobby(AsyncWebsocketConsumer):
             task_history.save()
     
         except Exception as e:
-            print("\tWS: Next task preperation failed error: ", str(e))
+            logger.error("\tWS: Next task preperation failed error: ", str(e))
             return False
 
 
@@ -502,7 +479,6 @@ class GameLobby(AsyncWebsocketConsumer):
     # Database function
     @database_sync_to_async
     def start_wheel_spin(self, game_id):
-        logger.debug("WS: start_wheel_spin")
         try:
             # Logic to start the wheel spinning
             game = Game.objects.get(game_id=game_id)
@@ -515,7 +491,6 @@ class GameLobby(AsyncWebsocketConsumer):
                     end_wheel_spin.apply_async((game_id,), countdown=12)
             except Exception as e:
                 logger.debug(str(e))
-            logger.debug("WS: successfully called celery")
 
             # return {'success': True, 'message': 'Wheel is spinning!'}
             return True
@@ -610,7 +585,6 @@ class GameLobby(AsyncWebsocketConsumer):
             # participants_in_same_game = Participant.objects.filter(game=game)
             new_participant = Participant.objects.get(user=self.user_id)
 
-            logger.debug(f'WS: new participant being added: {new_participant.user}')
 
             participant_data = {
                 'username': new_participant.user.username,
@@ -619,6 +593,7 @@ class GameLobby(AsyncWebsocketConsumer):
 
             return participant_data
         except Participant.DoesNotExist:
+            logger.warning("WS: Participant does not exist")
             return None
         
         
@@ -661,7 +636,6 @@ class GameLobby(AsyncWebsocketConsumer):
         try:
             existing_vote = Response.objects.filter(user=user, game=game, task=task).first()
             if existing_vote:   # check for existing Response record and edit it
-                logger.debug("WS: vote exists, editing the vote")
 
                 previous_vote = None
                 
@@ -678,8 +652,6 @@ class GameLobby(AsyncWebsocketConsumer):
                 return previous_vote, existing_vote
             
             else:    # create new Response record
-                logger.debug("WS: Creatig new vote")
-                logger.debug(f'WS: New record: user: {user}, task: {task}, game: {game}, vote: {vote}')
                 new_vote = Response(user=user,
                                     task=task,
                                     game=game,

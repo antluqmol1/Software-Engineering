@@ -101,4 +101,5 @@ if We want to branch from the main branch, make sure We are at main, or move the
 5.  And now, merge the changes from main: `git merge main`
 
 # Testing
+    inside venv and manage.py location run `python manage.py test --settings=ServerBackend.test_settings` 
 
